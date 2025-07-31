@@ -39,7 +39,6 @@ import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,11 +49,9 @@ import java.util.regex.Pattern;
  * @version 01-12-2022
  */
 public class Record {
-	private static final Logger logger = LogManager.getLogger(Record.class);
+	protected static final Logger logger = LogManager.getLogger();
 
-	private String contributor;
 	private String ACCESSION;
-	private Instant timestamp;
 	private boolean deprecated;
 	private String deprecated_content;
 	private List<String> RECORD_TITLE;
@@ -80,17 +77,16 @@ public class Record {
 	private String AC$INSTRUMENT_TYPE;
 	private String AC$MASS_SPECTROMETRY_MS_TYPE;
 	private String AC$MASS_SPECTROMETRY_ION_MODE;
-	private List<Pair<String, String>> AC$MASS_SPECTROMETRY; // optional
-	private List<Pair<String, String>> AC$CHROMATOGRAPHY; // optional
-	private List<Pair<String, String>> MS$FOCUSED_ION; // optional
-	private List<Pair<String, String>> MS$DATA_PROCESSING; // optional
+	private LinkedHashMap<String, String> AC$MASS_SPECTROMETRY; // optional
+	private LinkedHashMap<String, String> AC$CHROMATOGRAPHY; // optional
+	private LinkedHashMap<String, String> MS$FOCUSED_ION; // optional
+	private LinkedHashMap<String, String> MS$DATA_PROCESSING; // optional
 	private String PK$SPLASH;
 	private List<String> PK$ANNOTATION_HEADER; // optional
 	private final List<Pair<BigDecimal, List<String>>> PK$ANNOTATION; // optional
 	private final List<Triple<BigDecimal,BigDecimal,Integer>> PK$PEAK;
 	
 	public Record() {
-		contributor = "";
 		ACCESSION = "";
 		deprecated = false;
 		deprecated_content = "";
@@ -117,18 +113,14 @@ public class Record {
 		AC$INSTRUMENT_TYPE = "";
 		AC$MASS_SPECTROMETRY_MS_TYPE = "";
 		AC$MASS_SPECTROMETRY_ION_MODE = "";
-		AC$MASS_SPECTROMETRY = new ArrayList<>(); // optional
-		AC$CHROMATOGRAPHY = new ArrayList<>(); // optional
-		MS$FOCUSED_ION = new ArrayList<>(); // optional
-		MS$DATA_PROCESSING = new ArrayList<>(); // optional
+		AC$MASS_SPECTROMETRY = new LinkedHashMap<>(); // optional
+		AC$CHROMATOGRAPHY = new LinkedHashMap<>(); // optional
+		MS$FOCUSED_ION = new LinkedHashMap<>(); // optional
+		MS$DATA_PROCESSING = new LinkedHashMap<>(); // optional
 		PK$SPLASH = "";
 		PK$ANNOTATION_HEADER = new ArrayList<>(); // optional
 		PK$ANNOTATION = new ArrayList<>(); // optional
 		PK$PEAK = new ArrayList<>();
-	}
-	
-	public String CONTRIBUTOR() {
-		return contributor;
 	}
 
 	
@@ -136,20 +128,10 @@ public class Record {
 		return ACCESSION;
 	}
 	public void ACCESSION(String value) {
-		String[] splitedAccession = value.split("-");
-		contributor=splitedAccession[1];
 		ACCESSION = value;
 	}
 	
-	
-	public Instant getTimestamp() {
-		return timestamp;
-	}
-	public void setTimestamp(Instant value) {
-		timestamp = value;
-	}
-	
-	
+
 	public boolean DEPRECATED() {
 		return deprecated;
 	}
@@ -259,13 +241,13 @@ public class Record {
 	}
 	
 	/**
-	* Returns the molecular formula as an String.
+	* Returns the molecular formula as a String.
 	*/
 	public String CH_FORMULA() {
 		return CH$FORMULA;
 	}
 	/**
-	* Returns the molecular formula as an String with HTML sup tags.
+	* Returns the molecular formula as a String with HTML sup tags.
 	*/
 	public String CH_FORMULA1() {
 		IMolecularFormula m = MolecularFormulaManipulator.getMolecularFormula(CH$FORMULA, SilentChemObjectBuilder.getInstance());
@@ -332,9 +314,7 @@ public class Record {
 	public LinkedHashMap<String, String> CH_LINK() {
 		return CH$LINK;
 	}
-	public void CH_LINK(LinkedHashMap<String, String> value) {
-		CH$LINK=value;
-	}
+	public void CH_LINK(LinkedHashMap<String, String> value) { CH$LINK=value; }
 
 	public String SP_SCIENTIFIC_NAME() {
 		return SP$SCIENTIFIC_NAME;
@@ -393,41 +373,28 @@ public class Record {
 		AC$MASS_SPECTROMETRY_ION_MODE=value;
 	}
 	
-	public List<Pair<String, String>> AC_MASS_SPECTROMETRY() {
+	public LinkedHashMap<String, String> AC_MASS_SPECTROMETRY() {
 		return AC$MASS_SPECTROMETRY;
 	}
-	public Map<String, String> AC_MASS_SPECTROMETRY_asMap() {
-		return listToMap(AC$MASS_SPECTROMETRY);
-	}
-	public void AC_MASS_SPECTROMETRY(List<Pair<String, String>> value) {
-		AC$MASS_SPECTROMETRY= new ArrayList<>(value);
-	}
+	public void AC_MASS_SPECTROMETRY(LinkedHashMap<String, String> value) { AC$MASS_SPECTROMETRY=value; }
 
-	public List<Pair<String, String>> AC_CHROMATOGRAPHY() {
+	public LinkedHashMap<String, String> AC_CHROMATOGRAPHY() {
 		return AC$CHROMATOGRAPHY;
 	}
-	public Map<String, String> AC_CHROMATOGRAPHY_asMap() {
-		return listToMap(AC$CHROMATOGRAPHY);
-	}
-	public void AC_CHROMATOGRAPHY(List<Pair<String, String>> value) {
-		AC$CHROMATOGRAPHY= new ArrayList<>(value);
+	public void AC_CHROMATOGRAPHY(LinkedHashMap<String, String> value) {
+		AC$CHROMATOGRAPHY=value;
 	}
 	
-	public List<Pair<String, String>> MS_FOCUSED_ION() {
+	public LinkedHashMap<String, String> MS_FOCUSED_ION() {
 		return MS$FOCUSED_ION;
 	}
-	public Map<String, String> MS_FOCUSED_ION_asMap() {
-		return listToMap(MS$FOCUSED_ION);
-	}
-	public void MS_FOCUSED_ION(List<Pair<String, String>> value) {
-		MS$FOCUSED_ION= new ArrayList<>(value);
-	}
+	public void MS_FOCUSED_ION(LinkedHashMap<String, String> value) { MS$FOCUSED_ION=value; }
 	
-	public List<Pair<String, String>> MS_DATA_PROCESSING() {
+	public LinkedHashMap<String, String> MS_DATA_PROCESSING() {
 		return MS$DATA_PROCESSING;
 	}
-	public void MS_DATA_PROCESSING(List<Pair<String, String>> value) {
-		MS$DATA_PROCESSING= new ArrayList<>(value);
+	public void MS_DATA_PROCESSING(LinkedHashMap<String, String> value) {
+		MS$DATA_PROCESSING=value;
 	}
 
 	public String PK_SPLASH() {
@@ -508,14 +475,34 @@ public class Record {
 		sb.append("AC$INSTRUMENT_TYPE: ").append(AC_INSTRUMENT_TYPE()).append("\n");
 		sb.append("AC$MASS_SPECTROMETRY: MS_TYPE ").append(AC_MASS_SPECTROMETRY_MS_TYPE()).append("\n");
 		sb.append("AC$MASS_SPECTROMETRY: ION_MODE ").append(AC_MASS_SPECTROMETRY_ION_MODE()).append("\n");
-		for (Pair<String,String> ac_mass_spectrometry : AC_MASS_SPECTROMETRY())
-			sb.append("AC$MASS_SPECTROMETRY: ").append(ac_mass_spectrometry.getKey()).append(" ").append(ac_mass_spectrometry.getValue()).append("\n");
-		for (Pair<String,String> ac_chromatography : AC_CHROMATOGRAPHY())
-			sb.append("AC$CHROMATOGRAPHY: ").append(ac_chromatography.getKey()).append(" ").append(ac_chromatography.getValue()).append("\n");
-		for (Pair<String,String> ms_focued_ion : MS_FOCUSED_ION())
-			sb.append("MS$FOCUSED_ION: ").append(ms_focued_ion.getKey()).append(" ").append(ms_focued_ion.getValue()).append("\n");
-		for (Pair<String,String> ms_data_processing : MS_DATA_PROCESSING())
-			sb.append("MS$DATA_PROCESSING: ").append(ms_data_processing.getKey()).append(" ").append(ms_data_processing.getValue()).append("\n");
+		for (Map.Entry<String, String> entry : AC_MASS_SPECTROMETRY().entrySet()) {
+			sb.append("AC$MASS_SPECTROMETRY: ")
+					.append(entry.getKey())
+					.append(" ")
+					.append(entry.getValue())
+					.append("\n");
+		}
+		for (Map.Entry<String, String> entry : AC_CHROMATOGRAPHY().entrySet()) {
+			sb.append("AC$CHROMATOGRAPHY: ")
+					.append(entry.getKey())
+					.append(" ")
+					.append(entry.getValue())
+					.append("\n");
+		}
+		for (Map.Entry<String, String> entry : MS_FOCUSED_ION().entrySet()) {
+			sb.append("MS$FOCUSED_ION: ")
+					.append(entry.getKey())
+					.append(" ")
+					.append(entry.getValue())
+					.append("\n");
+		}
+		for (Map.Entry<String, String> entry : MS_DATA_PROCESSING().entrySet()) {
+			sb.append("MS$DATA_PROCESSING: ")
+					.append(entry.getKey())
+					.append(" ")
+					.append(entry.getValue())
+					.append("\n");
+		}
 
 		sb.append("PK$SPLASH: ").append(PK_SPLASH()).append("\n");
 		if (!PK_ANNOTATION_HEADER().isEmpty()) {
@@ -628,16 +615,36 @@ public class Record {
 		sb.append("<b>AC$INSTRUMENT_TYPE:</b> ").append(AC_INSTRUMENT_TYPE()).append("<br>\n");
 		sb.append("<b>AC$MASS_SPECTROMETRY:</b> MS_TYPE ").append(AC_MASS_SPECTROMETRY_MS_TYPE()).append("<br>\n");
 		sb.append("<b>AC$MASS_SPECTROMETRY:</b> ION_MODE ").append(AC_MASS_SPECTROMETRY_ION_MODE()).append("<br>\n");
-		for (Pair<String,String> ac_mass_spectrometry : AC_MASS_SPECTROMETRY())
-			sb.append("<b>AC$MASS_SPECTROMETRY:</b> ").append(ac_mass_spectrometry.getKey()).append(" ").append(ac_mass_spectrometry.getValue()).append("<br>\n");
-		for (Pair<String,String> ac_chromatography : AC_CHROMATOGRAPHY())
-			sb.append("<b>AC$CHROMATOGRAPHY:</b> ").append(ac_chromatography.getKey()).append(" ").append(ac_chromatography.getValue()).append("<br>\n");
+		for (Map.Entry<String, String> entry : AC_MASS_SPECTROMETRY().entrySet()) {
+			sb.append("<b>AC$MASS_SPECTROMETRY:</b> ")
+					.append(entry.getKey())
+					.append(" ")
+					.append(entry.getValue())
+					.append("<br>\n");
+		}
+		for (Map.Entry<String, String> entry : AC_CHROMATOGRAPHY().entrySet()) {
+			sb.append("<b>AC$CHROMATOGRAPHY:</b> ")
+					.append(entry.getKey())
+					.append(" ")
+					.append(entry.getValue())
+					.append("<br>\n");
+		}
 		sb.append("<hr>\n");
-		
-		for (Pair<String,String> ms_focued_ion : MS_FOCUSED_ION())
-			sb.append("<b>MS$FOCUSED_ION:</b> ").append(ms_focued_ion.getKey()).append(" ").append(ms_focued_ion.getValue()).append("<br>\n");
-		for (Pair<String,String> ms_data_processing : MS_DATA_PROCESSING())
-				sb.append("<b>MS$DATA_PROCESSING:</b> ").append(ms_data_processing.getKey()).append(" ").append(ms_data_processing.getValue()).append("<br>\n");
+
+		for (Map.Entry<String, String> entry : MS_FOCUSED_ION().entrySet()) {
+			sb.append("<b>MS$FOCUSED_ION:</b> ")
+					.append(entry.getKey())
+					.append(" ")
+					.append(entry.getValue())
+					.append("<br>\n");
+		}
+		for (Map.Entry<String, String> entry : MS_DATA_PROCESSING().entrySet()) {
+			sb.append("<b>MS$DATA_PROCESSING:</b> ")
+					.append(entry.getKey())
+					.append(" ")
+					.append(entry.getValue())
+					.append("<br>\n");
+		}
 		if (!MS_FOCUSED_ION().isEmpty() || !MS_DATA_PROCESSING().isEmpty()) sb.append("<hr>\n");
 		
 		sb.append("<b>PK$SPLASH:</b> <a href=\"http://www.google.com/search?q=").append(PK_SPLASH()).append("\" target=\"_blank\">").append(PK_SPLASH()).append("</a><br>\n");
@@ -750,7 +757,7 @@ public class Record {
 		}
 		String InChiKey = CH_LINK().get("INCHIKEY");
 		String description = "This MassBank record with Accession " + ACCESSION() 
-			+ " contains the " + AC_MASS_SPECTROMETRY_MS_TYPE() + " mass spectrum of " + RECORD_TITLE().get(0)
+			+ " contains the " + AC_MASS_SPECTROMETRY_MS_TYPE() + " mass spectrum of " + RECORD_TITLE().getFirst()
 			+ ((InChiKey==null) ? "." : " with the InChIkey " + InChiKey + ".");
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		
@@ -778,20 +785,15 @@ public class Record {
 				"url": "http://edamontology.org"
 				} }""", JsonObject.class));
 		dataset.add("keywords", keywords);
-		
-		if (LICENSE().equals("CC0")) {
-			dataset.addProperty("license", "ttps://creativecommons.org/publicdomain/zero/1.0/");
-		} else if (LICENSE().equals("CC BY")) {
-			dataset.addProperty("license", "https://creativecommons.org/licenses/by/4.0/");
-		} else if (LICENSE().equals("CC BY-SA")) {
-			dataset.addProperty("license", "https://creativecommons.org/licenses/by-sa/4.0");
-		}  else if (LICENSE().equals("CC BY-NC")) {
-			dataset.addProperty("license", "https://creativecommons.org/licenses/by-nc/4.0");
-		} else if (LICENSE().equals("CC BY-NC-SA")) {
-			dataset.addProperty("license", "https://creativecommons.org/licenses/by-nc-sa/4.0");
-		} else if (LICENSE().equals("dl-de/by-2-0")) {
-			dataset.addProperty("license", "https://www.govdata.de/dl-de/by-2-0");
-		}
+
+        switch (LICENSE()) {
+            case "CC0" -> dataset.addProperty("license", "https://creativecommons.org/publicdomain/zero/1.0/");
+            case "CC BY" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by/4.0/");
+            case "CC BY-SA" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by-sa/4.0");
+            case "CC BY-NC" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by-nc/4.0");
+            case "CC BY-NC-SA" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by-nc-sa/4.0");
+            case "dl-de/by-2-0" -> dataset.addProperty("license", "https://www.govdata.de/dl-de/by-2-0");
+        }
 
 		JsonObject about = new JsonObject();
 		about.addProperty("@type", "ChemicalSubstance");
@@ -828,10 +830,10 @@ public class Record {
 				gson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/ChemicalSubstance/0.4-RELEASE\" }", JsonObject.class));
 		chemicalSubstance.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id="+ACCESSION()+"#ChemicalSubstance");
 		chemicalSubstance.addProperty("identifier", ACCESSION());
-		chemicalSubstance.addProperty("name", RECORD_TITLE().get(0));
+		chemicalSubstance.addProperty("name", RECORD_TITLE().getFirst());
 		chemicalSubstance.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id="+ACCESSION());
 		chemicalSubstance.addProperty("chemicalComposition", CH_FORMULA());
-		if (CH_NAME().size() == 1)  chemicalSubstance.addProperty("alternateName", CH_NAME().get(0));
+		if (CH_NAME().size() == 1)  chemicalSubstance.addProperty("alternateName", CH_NAME().getFirst());
 		else if (!CH_NAME().isEmpty()) chemicalSubstance.add("alternateName", gson.toJsonTree(CH_NAME()));
 		
 		JsonArray molecularEntitys = new JsonArray();
@@ -845,7 +847,7 @@ public class Record {
 		molecularEntity.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + ACCESSION()
 				+ "#" + (InChiKey!=null ? InChiKey : "MolecularEntity"));
 		molecularEntity.addProperty("identifier", ACCESSION());
-		molecularEntity.addProperty("name", RECORD_TITLE().get(0));
+		molecularEntity.addProperty("name", RECORD_TITLE().getFirst());
 		molecularEntity.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id="+ACCESSION());
 		if (!CH_IUPAC().equals("N/A")) molecularEntity.addProperty("inChI", CH_IUPAC());
 		if (!CH_SMILES().equals("N/A")) molecularEntity.addProperty("smiles", CH_SMILES());
@@ -884,7 +886,7 @@ public class Record {
 		}
 		return String.join("@", peaks);
 	}
-	
+
 	public JsonObject createPeakListData() {
 		JsonObject result = new JsonObject();
 		JsonArray peaklist = new JsonArray();
@@ -902,11 +904,5 @@ public class Record {
 	}
 
 	public record Contributor(String ACRONYM, String SHORT_NAME, String FULL_NAME) {
-	}
-	
-	private static Map<String, String> listToMap(List<Pair<String, String>> list) {
-		Map<String, String> map	= new HashMap<>();
-		for (Pair<String, String> pair : list) map.put(pair.getKey(), pair.getValue());
-		return map;		
 	}
 }

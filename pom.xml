@@ -12,6 +12,85 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <versionName>${project.version}</versionName>
+        <timestamp>2025-04-28T10:48:05+02:00</timestamp>
+        <cdk-version>2.11</cdk-version>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.12.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.12.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.13.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
+        </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>org.openscience.cdk</groupId>-->
+<!--            <artifactId>cdk-data</artifactId>-->
+<!--            <version>${cdk-version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.openscience.cdk</groupId>-->
+<!--            <artifactId>cdk-depict</artifactId>-->
+<!--            <version>${cdk-version}</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>org.openscience.cdk</groupId>
+            <artifactId>cdk-inchi</artifactId>
+            <version>${cdk-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openscience.cdk</groupId>
+            <artifactId>cdk-formula</artifactId>
+            <version>${cdk-version}</version>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.openscience.cdk</groupId>-->
+<!--            <artifactId>cdk-interfaces</artifactId>-->
+<!--            <version>${cdk-version}</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>org.openscience.cdk</groupId>
+            <artifactId>cdk-smiles</artifactId>
+            <version>${cdk-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openscience.cdk</groupId>
+            <artifactId>cdk-silent</artifactId>
+            <version>${cdk-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.petitparser.java-petitparser</groupId>
+            <artifactId>petitparser-core</artifactId>
+            <version>main-426086de4c-1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.meier-rene.spectra-hash</groupId>
+            <artifactId>core</artifactId>
+            <version>51f5a0ae23</version>
+        </dependency>
+
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 </project>
