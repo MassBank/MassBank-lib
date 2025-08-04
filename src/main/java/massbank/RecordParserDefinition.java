@@ -1752,7 +1752,7 @@ public class RecordParserDefinition extends GrammarDefinition {
     private Record setAC_MASS_SPECTROMETRY(List<?> value) {
         Record record = (Record) value.get(0);
         if (value.get(value.size()-1) != null)
-            record.AC_MASS_SPECTROMETRY((List<Pair<String, String>>) value.get(value.size()-1));
+            record.AC_MASS_SPECTROMETRY((LinkedHashMap<String, String>) value.get(value.size()-1));
         return record;
     }
 
@@ -1760,7 +1760,7 @@ public class RecordParserDefinition extends GrammarDefinition {
     private Record setAC_CHROMATOGRAPHY(List<?> value) {
         Record record = (Record) value.get(0);
         if (value.get(value.size()-1) != null)
-            record.AC_CHROMATOGRAPHY((List<Pair<String, String>>) value.get(value.size()-1));
+            record.AC_CHROMATOGRAPHY((LinkedHashMap<String, String>) value.get(value.size()-1));
         return record;
     }
 
@@ -1768,7 +1768,7 @@ public class RecordParserDefinition extends GrammarDefinition {
     private Record setMS_FOCUSED_ION(List<?> value) {
         Record record = (Record) value.get(0);
         if (value.get(value.size()-1) != null)
-            record.MS_FOCUSED_ION((List<Pair<String, String>>) value.get(value.size()-1));
+            record.MS_FOCUSED_ION((LinkedHashMap<String, String>) value.get(value.size()-1));
         return record;
     }
 
@@ -1776,7 +1776,7 @@ public class RecordParserDefinition extends GrammarDefinition {
     private Record setMS_DATA_PROCESSING(List<?> value) {
         Record record = (Record) value.get(0);
         if (value.get(value.size()-1) != null)
-            record.MS_DATA_PROCESSING((List<Pair<String, String>>) value.get(value.size()-1));
+            record.MS_DATA_PROCESSING((LinkedHashMap<String, String>) value.get(value.size()-1));
         return record;
     }
 
@@ -2016,13 +2016,13 @@ public class RecordParserDefinition extends GrammarDefinition {
             }
 
             // check for duplicate entries in AC$MASS_SPECTROMETRY
-            List<String> subtags = record.AC_MASS_SPECTROMETRY().stream().map(Pair::getKey).toList();
-            uniques = new HashSet<>();
-            for (String c : subtags) {
-                if (!uniques.add(c)) {
-                    return context.failure("There are duplicate subtags in \"AC$MASS_SPECTROMETRY\" field.");
-                }
-            }
+//            List<String> subtags = record.AC_MASS_SPECTROMETRY().entrySet().stream().map(Pair::getKey).toList();
+//            uniques = new HashSet<>();
+//            for (String c : subtags) {
+//                if (!uniques.add(c)) {
+//                    return context.failure("There are duplicate subtags in \"AC$MASS_SPECTROMETRY\" field.");
+//                }
+//            }
 
             // check annotation sorting
             List<Pair<BigDecimal, List<String>>> pk_annotation = record.PK_ANNOTATION();
