@@ -1748,35 +1748,69 @@ public class RecordParserDefinition extends GrammarDefinition {
         return record;
     }
 
-    @SuppressWarnings("unchecked")
     private Record setAC_MASS_SPECTROMETRY(List<?> value) {
-        Record record = (Record) value.get(0);
-        if (value.get(value.size()-1) != null)
-            record.AC_MASS_SPECTROMETRY((LinkedHashMap<String, String>) value.get(value.size()-1));
+        Record record = (Record) value.getFirst();
+        if (value.getLast() != null) {
+            List<Pair<String, String>> pairs = (List<Pair<String, String>>) value.getLast();
+            LinkedHashMap<String, String> map = pairs.stream()
+                .collect(Collectors.toMap(
+                        Pair::getKey,
+                        Pair::getValue,
+                        (v1, v2) -> v2,
+                        LinkedHashMap::new
+                ));
+            record.AC_MASS_SPECTROMETRY(map);
+        }
         return record;
     }
 
-    @SuppressWarnings("unchecked")
     private Record setAC_CHROMATOGRAPHY(List<?> value) {
-        Record record = (Record) value.get(0);
-        if (value.get(value.size()-1) != null)
-            record.AC_CHROMATOGRAPHY((LinkedHashMap<String, String>) value.get(value.size()-1));
+        Record record = (Record) value.getFirst();
+        if (value.getLast() != null) {
+            List<Pair<String, String>> pairs = (List<Pair<String, String>>) value.getLast();
+            LinkedHashMap<String, String> map = pairs.stream()
+                    .collect(Collectors.toMap(
+                            Pair::getKey,
+                            Pair::getValue,
+                            (v1, v2) -> v2,
+                            LinkedHashMap::new
+                    ));
+            record.AC_CHROMATOGRAPHY(map);
+        }
         return record;
     }
 
     @SuppressWarnings("unchecked")
     private Record setMS_FOCUSED_ION(List<?> value) {
-        Record record = (Record) value.get(0);
-        if (value.get(value.size()-1) != null)
-            record.MS_FOCUSED_ION((LinkedHashMap<String, String>) value.get(value.size()-1));
+        Record record = (Record) value.getFirst();
+        if (value.getLast() != null) {
+            List<Pair<String, String>> pairs = (List<Pair<String, String>>) value.getLast();
+            LinkedHashMap<String, String> map = pairs.stream()
+                    .collect(Collectors.toMap(
+                            Pair::getKey,
+                            Pair::getValue,
+                            (v1, v2) -> v2,
+                            LinkedHashMap::new
+                    ));
+            record.MS_FOCUSED_ION(map);
+        }
         return record;
     }
 
     @SuppressWarnings("unchecked")
     private Record setMS_DATA_PROCESSING(List<?> value) {
-        Record record = (Record) value.get(0);
-        if (value.get(value.size()-1) != null)
-            record.MS_DATA_PROCESSING((LinkedHashMap<String, String>) value.get(value.size()-1));
+        Record record = (Record) value.getFirst();
+        if (value.getLast() != null) {
+            List<Pair<String, String>> pairs = (List<Pair<String, String>>) value.getLast();
+            LinkedHashMap<String, String> map = pairs.stream()
+                    .collect(Collectors.toMap(
+                            Pair::getKey,
+                            Pair::getValue,
+                            (v1, v2) -> v2,
+                            LinkedHashMap::new
+                    ));
+            record.MS_DATA_PROCESSING(map);
+        }
         return record;
     }
 

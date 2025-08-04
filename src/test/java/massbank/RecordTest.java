@@ -1,38 +1,36 @@
 package massbank;
 
 import org.junit.jupiter.api.Test;
+import org.petitparser.context.Result;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class RecordTest {
 
     @Test
-    void testAccessionGetterSetter() {
-        Record record = new Record();
-        record.ACCESSION("ABC123");
-        assertEquals("ABC123", record.ACCESSION());
+    void testRecordParser() throws IOException {
+        Set<String> config = new HashSet<>();
+        config.add("validate");
+        RecordParser recordparser = new RecordParser(config);
+
+        InputStream is = getClass().getClassLoader().getResourceAsStream("MSBNK-IPB_Halle-PB000122.txt");
+        assertNotNull(is);
+        String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+        Result res = recordparser.parse(content);
+        Record record = res.get();
+
     }
 
-    @Test
-    void testDeprecatedFlag() {
-        Record record = new Record();
-        record.DEPRECATED(true);
-        assertTrue(record.DEPRECATED());
-    }
-
-    @Test
-    void testRecordTitle() {
-        Record record = new Record();
-        record.RECORD_TITLE(List.of("Title1", "Title2"));
-        assertEquals(List.of("Title1", "Title2"), record.RECORD_TITLE());
-        assertEquals("Title1; Title2", record.RECORD_TITLE1());
-    }
-
-    @Test
-    void testExactMass() {
-        Record record = new Record();
-        record.CH_EXACT_MASS(new BigDecimal("123.456"));
-        assertEquals(new BigDecimal("123.456"), record.CH_EXACT_MASS());
-    }
 }

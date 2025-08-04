@@ -53,6 +53,7 @@ public class Record {
 
 	private String ACCESSION;
 	private boolean deprecated;
+	private String DEPRECATED;
 	private String deprecated_content;
 	private List<String> RECORD_TITLE;
 	private String DATE;
@@ -89,6 +90,7 @@ public class Record {
 	public Record() {
 		ACCESSION = "";
 		deprecated = false;
+		DEPRECATED = "";
 		deprecated_content = "";
 		RECORD_TITLE = new ArrayList<>();
 		DATE = "";
