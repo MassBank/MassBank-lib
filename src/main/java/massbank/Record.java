@@ -52,7 +52,7 @@ public class Record {
 	protected static final Logger logger = LogManager.getLogger();
 
 	private String ACCESSION;
-	private boolean deprecated;
+	private boolean isDepricated;
 	private String DEPRECATED;
 	private String deprecated_content;
 	private List<String> RECORD_TITLE;
@@ -84,12 +84,12 @@ public class Record {
 	private LinkedHashMap<String, String> MS$DATA_PROCESSING; // optional
 	private String PK$SPLASH;
 	private List<String> PK$ANNOTATION_HEADER; // optional
-	private final List<Pair<BigDecimal, List<String>>> PK$ANNOTATION; // optional
-	private final List<Triple<BigDecimal,BigDecimal,Integer>> PK$PEAK;
+	private List<Pair<BigDecimal, List<String>>> PK$ANNOTATION; // optional
+	private List<Triple<BigDecimal,BigDecimal,Integer>> PK$PEAK;
 	
 	public Record() {
 		ACCESSION = "";
-		deprecated = false;
+        isDepricated = false;
 		DEPRECATED = "";
 		deprecated_content = "";
 		RECORD_TITLE = new ArrayList<>();
@@ -134,19 +134,22 @@ public class Record {
 	}
 	
 
-	public boolean DEPRECATED() {
-		return deprecated;
+	public boolean isDepricated() {
+		return isDepricated;
 	}
-	
-	public void DEPRECATED(boolean value) {
-		deprecated = value;
+	public void isDepricated(boolean value) {
+        isDepricated = value;
 	}
-	
-	// everything after the keyword "DEPRECATED: "
+    public String DEPRECATED() {
+        return DEPRECATED;
+    }
+    public void DEPRECATED(String value) {
+        DEPRECATED = value;
+    }
+    // everything after the line with "DEPRECATED: "
 	public String DEPRECATED_CONTENT() {
 		return deprecated_content;
 	}
-	
 	public void DEPRECATED_CONTENT(String value) {
 		deprecated_content = value;
 	}
@@ -158,7 +161,7 @@ public class Record {
 		return String.join("; ", RECORD_TITLE);
 	}
 	public void RECORD_TITLE(List<String> value) {
-		RECORD_TITLE = value;
+        RECORD_TITLE = List.copyOf(value);
 	}
 	public void RECORD_TITLE1(String value) {
 		RECORD_TITLE = new ArrayList<>(Arrays.asList(value.split("; ")));
@@ -183,7 +186,7 @@ public class Record {
 		return AUTHORS;
 	}
 	public void AUTHORS(String value) {
-		AUTHORS=value;
+		AUTHORS = value;
 	}
 	
 	
@@ -191,7 +194,7 @@ public class Record {
 		return LICENSE;
 	}
 	public void LICENSE(String value) {
-		LICENSE=value;
+		LICENSE = value;
 	}
 	
 	
@@ -199,7 +202,7 @@ public class Record {
 		return COPYRIGHT;
 	}
 	public void COPYRIGHT(String value) {
-		COPYRIGHT= value;
+		COPYRIGHT = value;
 	}
 	
 	
@@ -207,7 +210,7 @@ public class Record {
 		return PUBLICATION;
 	}
 	public void PUBLICATION(String value) {
-		PUBLICATION=value;
+        PUBLICATION = value;
 	}
 	
 	
@@ -215,7 +218,7 @@ public class Record {
 		return PROJECT;
 	}
 	public void PROJECT(String value) {
-		PROJECT=value;
+		PROJECT = value;
 	}
 
 
@@ -223,7 +226,7 @@ public class Record {
 		return COMMENT;
 	}
 	public void COMMENT(List<String> value) {
-		COMMENT= new ArrayList<>(value);
+        COMMENT = List.copyOf(value);
 	}
 	
 	
@@ -231,7 +234,7 @@ public class Record {
 		return CH$NAME;
 	}
 	public void CH_NAME(List<String> value) {
-		CH$NAME= new ArrayList<>(value);
+		CH$NAME = List.copyOf(value);
 	}
 	
 	
@@ -239,7 +242,7 @@ public class Record {
 		return CH$COMPOUND_CLASS;
 	}
 	public void CH_COMPOUND_CLASS(List<String> value) {
-		CH$COMPOUND_CLASS= new ArrayList<>(value);
+		CH$COMPOUND_CLASS = List.copyOf(value);
 	}
 	
 	/**
@@ -256,7 +259,7 @@ public class Record {
 		return MolecularFormulaManipulator.getHTML(m);
 	}
 	public void CH_FORMULA(String value) {
-		CH$FORMULA=value;
+		CH$FORMULA = value;
 	}
 	
 	
@@ -264,7 +267,7 @@ public class Record {
 		return CH$EXACT_MASS;
 	}
 	public void CH_EXACT_MASS(BigDecimal value) {
-		CH$EXACT_MASS=value;
+		CH$EXACT_MASS = value;
 	}
 	
 	
@@ -281,7 +284,7 @@ public class Record {
 		}
 	}
 	public void CH_SMILES(String value) {
-		CH$SMILES=value;
+		CH$SMILES = value;
 	}
 	
 	
@@ -310,26 +313,26 @@ public class Record {
 		}		 			
 	}
 	public void CH_IUPAC(String value) {
-		CH$IUPAC=value;
+		CH$IUPAC = value;
 	}
 		
 	public LinkedHashMap<String, String> CH_LINK() {
 		return CH$LINK;
 	}
-	public void CH_LINK(LinkedHashMap<String, String> value) { CH$LINK=value; }
+	public void CH_LINK(LinkedHashMap<String, String> value) { CH$LINK=new LinkedHashMap<>(value); }
 
 	public String SP_SCIENTIFIC_NAME() {
 		return SP$SCIENTIFIC_NAME;
 	}
 	public void SP_SCIENTIFIC_NAME(String value) {
-		SP$SCIENTIFIC_NAME=value;
+		SP$SCIENTIFIC_NAME = value;
 	}
 	
 	public String SP_LINEAGE() {
 		return SP$LINEAGE;
 	}
 	public void SP_LINEAGE(String value) {
-		SP$LINEAGE=value;
+		SP$LINEAGE = value;
 	}
  
 
@@ -337,80 +340,80 @@ public class Record {
 		return SP$LINK;
 	}
 	public void SP_LINK(LinkedHashMap<String, String> value) {
-		SP$LINK=value;
+		SP$LINK = new LinkedHashMap<>(value);
 	}
 
 	public List<String> SP_SAMPLE() {
 		return SP$SAMPLE;
 	}
 	public void SP_SAMPLE(List<String> value) {
-		SP$SAMPLE= new ArrayList<>(value);
+		SP$SAMPLE = List.copyOf(value);
 	}
 	
 	public String AC_INSTRUMENT() {
 		return AC$INSTRUMENT;
 	}
 	public void AC_INSTRUMENT(String value) {
-		AC$INSTRUMENT=value;
+		AC$INSTRUMENT = value;
 	}
 
 	public String AC_INSTRUMENT_TYPE() {
 		return AC$INSTRUMENT_TYPE;
 	}
 	public void AC_INSTRUMENT_TYPE(String value) {
-		this.AC$INSTRUMENT_TYPE	= value;
+		this.AC$INSTRUMENT_TYPE = value;
 	}
 	
 	public String AC_MASS_SPECTROMETRY_MS_TYPE() {
 		return AC$MASS_SPECTROMETRY_MS_TYPE;
 	}
 	public void AC_MASS_SPECTROMETRY_MS_TYPE(String value) {
-		AC$MASS_SPECTROMETRY_MS_TYPE=value;
+		AC$MASS_SPECTROMETRY_MS_TYPE = value;
 	}
 	
 	public String AC_MASS_SPECTROMETRY_ION_MODE() {
 		return AC$MASS_SPECTROMETRY_ION_MODE;
 	}
 	public void AC_MASS_SPECTROMETRY_ION_MODE(String value) {
-		AC$MASS_SPECTROMETRY_ION_MODE=value;
+		AC$MASS_SPECTROMETRY_ION_MODE = value;
 	}
 	
 	public LinkedHashMap<String, String> AC_MASS_SPECTROMETRY() {
 		return AC$MASS_SPECTROMETRY;
 	}
-	public void AC_MASS_SPECTROMETRY(LinkedHashMap<String, String> value) { AC$MASS_SPECTROMETRY=value; }
+	public void AC_MASS_SPECTROMETRY(LinkedHashMap<String, String> value) { AC$MASS_SPECTROMETRY = new LinkedHashMap<>(value); }
 
 	public LinkedHashMap<String, String> AC_CHROMATOGRAPHY() {
 		return AC$CHROMATOGRAPHY;
 	}
 	public void AC_CHROMATOGRAPHY(LinkedHashMap<String, String> value) {
-		AC$CHROMATOGRAPHY=value;
+		AC$CHROMATOGRAPHY = new LinkedHashMap<>(value);
 	}
 	
 	public LinkedHashMap<String, String> MS_FOCUSED_ION() {
 		return MS$FOCUSED_ION;
 	}
-	public void MS_FOCUSED_ION(LinkedHashMap<String, String> value) { MS$FOCUSED_ION=value; }
+	public void MS_FOCUSED_ION(LinkedHashMap<String, String> value) { MS$FOCUSED_ION = new LinkedHashMap<>(value); }
 	
 	public LinkedHashMap<String, String> MS_DATA_PROCESSING() {
 		return MS$DATA_PROCESSING;
 	}
 	public void MS_DATA_PROCESSING(LinkedHashMap<String, String> value) {
-		MS$DATA_PROCESSING=value;
+		MS$DATA_PROCESSING = new LinkedHashMap<>(value);
 	}
 
 	public String PK_SPLASH() {
 		return PK$SPLASH;
 	}
 	public void PK_SPLASH(String value) {
-		PK$SPLASH=value;
+		PK$SPLASH = value;
 	}
 
 	public List<String> PK_ANNOTATION_HEADER() {
 		return PK$ANNOTATION_HEADER;
 	}
 	public void PK_ANNOTATION_HEADER(List<String> value) {
-		PK$ANNOTATION_HEADER= new ArrayList<>(value);
+		PK$ANNOTATION_HEADER = List.copyOf(value);
 	}
 
 	// PK_ANNOTATION is a two-dimensional List
@@ -437,8 +440,11 @@ public class Record {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("ACCESSION: ").append(ACCESSION()).append("\n");
-		if (DEPRECATED()) {
-			sb.append("DEPRECATED: ").append(DEPRECATED_CONTENT());
+		if (isDepricated()) {
+			sb.append("DEPRECATED: ")
+                .append(DEPRECATED())
+                .append("\n")
+                .append(DEPRECATED_CONTENT());
 			return sb.toString();
 		}
 		sb.append("RECORD_TITLE: ").append(RECORD_TITLE1()).append("\n");
@@ -754,7 +760,7 @@ public class Record {
 	//https://github.com/BioSchemas/specifications/issues/198
 	
 	public JsonArray createStructuredDataJsonArray() {
-		if (DEPRECATED()) {
+		if (isDepricated()) {
 			return new JsonArray();
 		}
 		String InChiKey = CH_LINK().get("INCHIKEY");

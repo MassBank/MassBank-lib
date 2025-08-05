@@ -30,7 +30,8 @@ public class RecordToJson {
 
 	public static class RecordJsonSerializer {
 		String ACCESSION;
-		Boolean DEPRECATED;
+        Boolean isDeprecated;
+        String DEPRECATED;
 		String DEPRECATED_CONTENT;
 		List<String> RECORD_TITLE;
 		String DATE;
@@ -66,8 +67,9 @@ public class RecordToJson {
 
 		RecordJsonSerializer(Record record) {
 			ACCESSION = record.ACCESSION();
-			if (record.DEPRECATED()) {
-				DEPRECATED = Boolean.TRUE;
+			if (record.isDepricated()) {
+                isDeprecated = Boolean.TRUE;
+                DEPRECATED = record.DEPRECATED();
 				DEPRECATED_CONTENT = record.DEPRECATED_CONTENT();
 			} else {
 				RECORD_TITLE = record.RECORD_TITLE();

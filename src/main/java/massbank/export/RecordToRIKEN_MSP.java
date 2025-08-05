@@ -72,7 +72,7 @@ public class RecordToRIKEN_MSP {
 	public static String convert(Record record) {
 		StringBuilder sb = new StringBuilder();
 		
-		if (record.DEPRECATED()) {
+		if (record.isDepricated()) {
             logger.warn("{} is deprecated. No export possible.", record.ACCESSION());
 			return sb.toString();
 		}
