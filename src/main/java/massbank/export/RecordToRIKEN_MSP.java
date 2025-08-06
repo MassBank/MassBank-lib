@@ -1,3 +1,23 @@
+/*******************************************************************************
+ * Copyright (C) 2025 MassBank consortium
+ *
+ * This file is part of MassBank.
+ *
+ * MassBank is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ ******************************************************************************/
 package massbank.export;
 
 import massbank.Record;
@@ -77,7 +97,7 @@ public class RecordToRIKEN_MSP {
 			return sb.toString();
 		}
 		
-		sb.append("NAME: ").append(record.CH_NAME().get(0)).append(System.lineSeparator());
+		sb.append("NAME: ").append(record.CH_NAME().getFirst()).append(System.lineSeparator());
 		Map<String, String> MS_FOCUSED_ION = record.MS_FOCUSED_ION();
 		sb.append("PRECURSORMZ: ").append((MS_FOCUSED_ION.getOrDefault("PRECURSOR_M/Z", ""))).append(System.lineSeparator());
 		sb.append("PRECURSORTYPE: ").append((MS_FOCUSED_ION.getOrDefault("PRECURSOR_TYPE", "NA"))).append(System.lineSeparator());
@@ -106,7 +126,7 @@ public class RecordToRIKEN_MSP {
 		});
 		sb.append("LINKS: ").append(String.join("; ", links)).append(System.lineSeparator());
 		
-		List<String> recordComment = record.COMMENT();
+		List<String> recordComment = new ArrayList<>(record.COMMENT());
 		for (int i = 0; i < recordComment.size(); i++) {
 			if(recordComment.get(i).startsWith("CONFIDENCE")) recordComment.set(i,"Annotation " + recordComment.get(i).substring("CONFIDENCE".length()).trim());
         }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2017 MassBank consortium
+ * Copyright (C) 2025 MassBank consortium
  *
  * This file is part of MassBank.
  *
@@ -26,7 +26,6 @@ import com.google.gson.JsonArray;
 import massbank.Record;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.openscience.cdk.exception.CDKException;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -58,8 +57,7 @@ public class RecordToJsonLD {
 	 * 
 	 * @param file    to write
 	 * @param records to convert
-	 * @throws CDKException
-	 */
+     */
 	public static void recordsToJson(File file, List<Record> records) {
 		// collect data
 		String recordJson = convert(records);

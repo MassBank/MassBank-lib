@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2017 MassBank consortium
+ * Copyright (C) 2025 MassBank consortium
  * 
  * This file is part of MassBank.
  * 
