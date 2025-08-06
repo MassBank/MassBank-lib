@@ -4,9 +4,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.ipb-halle.msbi</groupId>
-    <artifactId>MassBank-lib</artifactId>
+    <groupId>io.github.massbank</groupId>
+    <artifactId>massbank-lib</artifactId>
     <version>1.0.1-SNAPSHOT</version>
+    <name>MassBank-lib</name>
+    <description>MassBank java library.</description>
+    <url>https://github.com/MassBank/MassBank-lib</url>
+    <licenses>
+        <license>
+            <name>GNU General Public License, Version 2</name>
+            <url>https://www.gnu.org/licenses/old-licenses/gpl-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -16,6 +26,14 @@
         <timestamp>2025-04-28T10:48:05+02:00</timestamp>
         <cdk-version>2.11</cdk-version>
     </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/MassBank/MassBank-lib</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
@@ -115,6 +133,12 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.4</version>
+            </plugin>
+
         </plugins>
     </build>
 
