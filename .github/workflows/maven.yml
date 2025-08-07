@@ -35,9 +35,8 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
         
       - name: Deploy
-        if: |
-          (github.event_name == 'release' && !steps.get_version.outputs.version.endsWith('-SNAPSHOT')) ||
-          (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && steps.get_version.outputs.version.endsWith('-SNAPSHOT'))
+        if: github.event_name == 'release' && !endsWith(steps.get_version.outputs.version, '-SNAPSHOT') ||
+            github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && endsWith(steps.get_version.outputs.version, '-SNAPSHOT')
         run: mvn -B -DskipTests deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
