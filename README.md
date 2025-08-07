@@ -1,4 +1,4 @@
-# Massbank-lib
+# MassBank-lib
 MassBank java library.
 
 To use the library depend on:
