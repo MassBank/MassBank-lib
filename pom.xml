@@ -7,7 +7,7 @@
     <groupId>io.github.massbank</groupId>
     <artifactId>massbank-lib</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.6</version>
+    <version>1.0.7-SNAPSHOT</version>
     <name>MassBank-lib</name>
     <description>MassBank java library.</description>
     <url>https://github.com/MassBank/MassBank-lib</url>
