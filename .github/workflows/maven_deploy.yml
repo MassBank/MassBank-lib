@@ -31,7 +31,7 @@ jobs:
         run: mvn -B package
 
       - name: Deploy
-        run: mvn deploy -PsonatypeDeplo
+        run: mvn deploy -PsonatypeDeploy
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
