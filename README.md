@@ -6,6 +6,6 @@ To use the library depend on:
 <dependency>
     <groupId>io.github.massbank</groupId>
     <artifactId>massbank-lib</artifactId>
-    <version>1.0.10</version>
+    <version>1.0.11</version>
 </dependency>
 ```
