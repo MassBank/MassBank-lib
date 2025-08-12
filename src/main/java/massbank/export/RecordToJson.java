@@ -87,7 +87,7 @@ public class RecordToJson {
 
 		RecordJsonSerializer(Record record) {
 			ACCESSION = record.ACCESSION();
-			if (record.isDepricated()) {
+			if (record.isDeprecated()) {
                 isDeprecated = Boolean.TRUE;
                 DEPRECATED = record.DEPRECATED();
 				DEPRECATED_CONTENT = record.DEPRECATED_CONTENT();

@@ -103,7 +103,7 @@ public class RecordToNIST_MSP {
 	public static String convert(Record record) {
 		StringBuilder sb = new StringBuilder();
 		
-		if (record.isDepricated()) {
+		if (record.isDeprecated()) {
 			logger.warn(record.ACCESSION() + " is deprecated. No export possible.");
 			return sb.toString();
 		}

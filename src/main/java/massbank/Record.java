@@ -52,7 +52,7 @@ public class Record {
 	protected static final Logger logger = LogManager.getLogger();
 
 	private String ACCESSION;
-	private boolean isDepricated;
+	private boolean isDeprecated;
 	private String DEPRECATED;
 	private String deprecated_content;
 	private List<String> RECORD_TITLE;
@@ -89,7 +89,7 @@ public class Record {
 	
 	public Record() {
 		ACCESSION = "";
-        isDepricated = false;
+        isDeprecated = false;
 		DEPRECATED = "";
 		deprecated_content = "";
 		RECORD_TITLE = new ArrayList<>();
@@ -134,11 +134,11 @@ public class Record {
 	}
 	
 
-	public boolean isDepricated() {
-		return isDepricated;
+	public boolean isDeprecated() {
+		return isDeprecated;
 	}
-	public void isDepricated(boolean value) {
-        isDepricated = value;
+	public void isDeprecated(boolean value) {
+        isDeprecated = value;
 	}
     public String DEPRECATED() {
         return DEPRECATED;
@@ -440,7 +440,7 @@ public class Record {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("ACCESSION: ").append(ACCESSION()).append("\n");
-		if (isDepricated()) {
+		if (isDeprecated()) {
 			sb.append("DEPRECATED: ")
                 .append(DEPRECATED())
                 .append("\n")
@@ -760,7 +760,7 @@ public class Record {
 	//https://github.com/BioSchemas/specifications/issues/198
 	
 	public JsonArray createStructuredDataJsonArray() {
-		if (isDepricated()) {
+		if (isDeprecated()) {
 			return new JsonArray();
 		}
 		String InChiKey = CH_LINK().get("INCHIKEY");

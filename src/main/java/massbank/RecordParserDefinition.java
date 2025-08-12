@@ -1852,7 +1852,7 @@ public class RecordParserDefinition extends GrammarDefinition {
     @SuppressWarnings("unchecked")
     private Record setDEPRECATED(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.isDepricated(true);
+        record.isDeprecated(true);
         record.DEPRECATED( ((List<String>)value.getLast()).get(0));
         record.DEPRECATED_CONTENT( ((List<String>)value.getLast()).get(2));
         return record;
