@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 title: "MassBank-lib"
-version: "1.0.12"
-date-released: "2025-09-17"
+version: "1.0.13"
+date-released: "2025-10-01"
 authors:
   - name: "MassBank Consortium"
     website: "https://github.com/MassBank"
