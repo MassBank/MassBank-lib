@@ -3,6 +3,7 @@ set -e
 
 if [ -z "$1" ] || [ -z "$2" ]; then
   echo "Usage: $0 <release-version> <next-snapshot-version>"
+  echo "Current version is $(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
   exit 1
 fi
 
