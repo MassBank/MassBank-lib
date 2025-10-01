@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
  * @version 01-12-2022
  */
 public class Record {
-	protected static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger(Record.class);
 
 	private String ACCESSION;
 	private boolean isDeprecated;

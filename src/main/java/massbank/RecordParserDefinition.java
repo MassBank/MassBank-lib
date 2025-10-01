@@ -68,7 +68,7 @@ import static org.petitparser.parser.primitive.CharacterParser.word;
 
 
 public class RecordParserDefinition extends GrammarDefinition {
-    protected static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger(RecordParserDefinition.class);;
 
     // legacy mode to let validation pass on legacy records until they are fixed
     private final boolean legacy;
