@@ -27,7 +27,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.openscience.cdk.exception.CDKException;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -76,10 +75,10 @@ public class RecordToJson {
 		String AC$INSTRUMENT_TYPE;
 		String AC$MASS_SPECTROMETRY_MS_TYPE;
 		String AC$MASS_SPECTROMETRY_ION_MODE;
-		LinkedHashMap<String, String> AC$MASS_SPECTROMETRY; // optional
-		LinkedHashMap<String, String> AC$CHROMATOGRAPHY; // optional
-		LinkedHashMap<String, String> MS$FOCUSED_ION; // optional
-		LinkedHashMap<String, String> MS$DATA_PROCESSING; // optional
+        List<Pair<String, String>> AC$MASS_SPECTROMETRY; // optional
+        List<Pair<String, String>> AC$CHROMATOGRAPHY; // optional
+        List<Pair<String, String>> MS$FOCUSED_ION; // optional
+        List<Pair<String, String>> MS$DATA_PROCESSING; // optional
 		String PK$SPLASH;
 		List<List<String>> PK$ANNOTATION; // optional
 		Integer PK$NUM_PEAK;
@@ -163,8 +162,7 @@ public class RecordToJson {
 
 	public static String convert(Record record) {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String recordJson = gson.toJson(new RecordJsonSerializer(record));
-		return recordJson;
+        return gson.toJson(new RecordJsonSerializer(record));
 	}
 
 	public static String convert(List<Record> records) {

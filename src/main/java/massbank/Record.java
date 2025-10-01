@@ -78,10 +78,10 @@ public class Record {
 	private String AC$INSTRUMENT_TYPE;
 	private String AC$MASS_SPECTROMETRY_MS_TYPE;
 	private String AC$MASS_SPECTROMETRY_ION_MODE;
-	private LinkedHashMap<String, String> AC$MASS_SPECTROMETRY; // optional
-	private LinkedHashMap<String, String> AC$CHROMATOGRAPHY; // optional
-	private LinkedHashMap<String, String> MS$FOCUSED_ION; // optional
-	private LinkedHashMap<String, String> MS$DATA_PROCESSING; // optional
+	private List<Pair<String, String>> AC$MASS_SPECTROMETRY; // optional
+	private List<Pair<String, String>> AC$CHROMATOGRAPHY; // optional
+	private List<Pair<String, String>> MS$FOCUSED_ION; // optional
+	private List<Pair<String, String>> MS$DATA_PROCESSING; // optional
 	private String PK$SPLASH;
 	private List<String> PK$ANNOTATION_HEADER; // optional
 	private List<Pair<BigDecimal, List<String>>> PK$ANNOTATION; // optional
@@ -115,10 +115,10 @@ public class Record {
 		AC$INSTRUMENT_TYPE = "";
 		AC$MASS_SPECTROMETRY_MS_TYPE = "";
 		AC$MASS_SPECTROMETRY_ION_MODE = "";
-		AC$MASS_SPECTROMETRY = new LinkedHashMap<>(); // optional
-		AC$CHROMATOGRAPHY = new LinkedHashMap<>(); // optional
-		MS$FOCUSED_ION = new LinkedHashMap<>(); // optional
-		MS$DATA_PROCESSING = new LinkedHashMap<>(); // optional
+		AC$MASS_SPECTROMETRY = new ArrayList<>(); // optional
+		AC$CHROMATOGRAPHY = new ArrayList<>(); // optional
+		MS$FOCUSED_ION = new ArrayList<>(); // optional
+		MS$DATA_PROCESSING = new ArrayList<>(); // optional
 		PK$SPLASH = "";
 		PK$ANNOTATION_HEADER = new ArrayList<>(); // optional
 		PK$ANNOTATION = new ArrayList<>(); // optional
@@ -378,28 +378,25 @@ public class Record {
 		AC$MASS_SPECTROMETRY_ION_MODE = value;
 	}
 	
-	public LinkedHashMap<String, String> AC_MASS_SPECTROMETRY() {
+	public List<Pair<String, String>> AC_MASS_SPECTROMETRY() {
 		return AC$MASS_SPECTROMETRY;
 	}
-	public void AC_MASS_SPECTROMETRY(LinkedHashMap<String, String> value) { AC$MASS_SPECTROMETRY = new LinkedHashMap<>(value); }
+	public void AC_MASS_SPECTROMETRY(List<Pair<String, String>> value) { AC$MASS_SPECTROMETRY = value; }
 
-	public LinkedHashMap<String, String> AC_CHROMATOGRAPHY() {
+	public List<Pair<String, String>> AC_CHROMATOGRAPHY() {
 		return AC$CHROMATOGRAPHY;
 	}
-	public void AC_CHROMATOGRAPHY(LinkedHashMap<String, String> value) {
-		AC$CHROMATOGRAPHY = new LinkedHashMap<>(value);
-	}
+	public void AC_CHROMATOGRAPHY(List<Pair<String, String>> value) { AC$CHROMATOGRAPHY = value; }
 	
-	public LinkedHashMap<String, String> MS_FOCUSED_ION() {
+	public List<Pair<String, String>> MS_FOCUSED_ION() {
 		return MS$FOCUSED_ION;
 	}
-	public void MS_FOCUSED_ION(LinkedHashMap<String, String> value) { MS$FOCUSED_ION = new LinkedHashMap<>(value); }
+	public void MS_FOCUSED_ION(List<Pair<String, String>> value) { MS$FOCUSED_ION = value; }
 	
-	public LinkedHashMap<String, String> MS_DATA_PROCESSING() {
+	public List<Pair<String, String>> MS_DATA_PROCESSING() {
 		return MS$DATA_PROCESSING;
 	}
-	public void MS_DATA_PROCESSING(LinkedHashMap<String, String> value) {
-		MS$DATA_PROCESSING = new LinkedHashMap<>(value);
+	public void MS_DATA_PROCESSING(List<Pair<String, String>> value) { MS$DATA_PROCESSING = value;
 	}
 
 	public String PK_SPLASH() {
@@ -483,28 +480,28 @@ public class Record {
 		sb.append("AC$INSTRUMENT_TYPE: ").append(AC_INSTRUMENT_TYPE()).append("\n");
 		sb.append("AC$MASS_SPECTROMETRY: MS_TYPE ").append(AC_MASS_SPECTROMETRY_MS_TYPE()).append("\n");
 		sb.append("AC$MASS_SPECTROMETRY: ION_MODE ").append(AC_MASS_SPECTROMETRY_ION_MODE()).append("\n");
-		for (Map.Entry<String, String> entry : AC_MASS_SPECTROMETRY().entrySet()) {
+        for (Pair<String, String> entry : AC_MASS_SPECTROMETRY()) {
 			sb.append("AC$MASS_SPECTROMETRY: ")
 					.append(entry.getKey())
 					.append(" ")
 					.append(entry.getValue())
 					.append("\n");
 		}
-		for (Map.Entry<String, String> entry : AC_CHROMATOGRAPHY().entrySet()) {
+        for (Pair<String, String> entry : AC_CHROMATOGRAPHY()) {
 			sb.append("AC$CHROMATOGRAPHY: ")
 					.append(entry.getKey())
 					.append(" ")
 					.append(entry.getValue())
 					.append("\n");
 		}
-		for (Map.Entry<String, String> entry : MS_FOCUSED_ION().entrySet()) {
+        for (Pair<String, String> entry: MS_FOCUSED_ION()) {
 			sb.append("MS$FOCUSED_ION: ")
 					.append(entry.getKey())
 					.append(" ")
 					.append(entry.getValue())
 					.append("\n");
 		}
-		for (Map.Entry<String, String> entry : MS_DATA_PROCESSING().entrySet()) {
+        for (Pair<String, String> entry: MS_DATA_PROCESSING()) {
 			sb.append("MS$DATA_PROCESSING: ")
 					.append(entry.getKey())
 					.append(" ")
@@ -623,14 +620,14 @@ public class Record {
 		sb.append("<b>AC$INSTRUMENT_TYPE:</b> ").append(AC_INSTRUMENT_TYPE()).append("<br>\n");
 		sb.append("<b>AC$MASS_SPECTROMETRY:</b> MS_TYPE ").append(AC_MASS_SPECTROMETRY_MS_TYPE()).append("<br>\n");
 		sb.append("<b>AC$MASS_SPECTROMETRY:</b> ION_MODE ").append(AC_MASS_SPECTROMETRY_ION_MODE()).append("<br>\n");
-		for (Map.Entry<String, String> entry : AC_MASS_SPECTROMETRY().entrySet()) {
+        for (Pair<String, String> entry: AC_MASS_SPECTROMETRY()) {
 			sb.append("<b>AC$MASS_SPECTROMETRY:</b> ")
 					.append(entry.getKey())
 					.append(" ")
 					.append(entry.getValue())
 					.append("<br>\n");
 		}
-		for (Map.Entry<String, String> entry : AC_CHROMATOGRAPHY().entrySet()) {
+        for (Pair<String, String> entry: AC_CHROMATOGRAPHY()) {
 			sb.append("<b>AC$CHROMATOGRAPHY:</b> ")
 					.append(entry.getKey())
 					.append(" ")
@@ -639,14 +636,14 @@ public class Record {
 		}
 		sb.append("<hr>\n");
 
-		for (Map.Entry<String, String> entry : MS_FOCUSED_ION().entrySet()) {
+        for (Pair<String, String> entry: MS_FOCUSED_ION()) {
 			sb.append("<b>MS$FOCUSED_ION:</b> ")
 					.append(entry.getKey())
 					.append(" ")
 					.append(entry.getValue())
 					.append("<br>\n");
 		}
-		for (Map.Entry<String, String> entry : MS_DATA_PROCESSING().entrySet()) {
+        for (Pair<String, String> entry: MS_DATA_PROCESSING()) {
 			sb.append("<b>MS$DATA_PROCESSING:</b> ")
 					.append(entry.getKey())
 					.append(" ")

@@ -21,6 +21,7 @@
 package massbank.export;
 
 import massbank.Record;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -98,9 +99,21 @@ public class RecordToRIKEN_MSP {
 		}
 		
 		sb.append("NAME: ").append(record.CH_NAME().getFirst()).append(System.lineSeparator());
-		Map<String, String> MS_FOCUSED_ION = record.MS_FOCUSED_ION();
-		sb.append("PRECURSORMZ: ").append((MS_FOCUSED_ION.getOrDefault("PRECURSOR_M/Z", ""))).append(System.lineSeparator());
-		sb.append("PRECURSORTYPE: ").append((MS_FOCUSED_ION.getOrDefault("PRECURSOR_TYPE", "NA"))).append(System.lineSeparator());
+        List<Pair<String, String>> MS_FOCUSED_ION = record.MS_FOCUSED_ION();
+        sb.append("PRECURSORMZ: ")
+                .append(MS_FOCUSED_ION.stream()
+                        .filter(p -> "PRECURSOR_M/Z".equals(p.getLeft()))
+                        .map(Pair::getRight)
+                        .findFirst()
+                        .orElse(""))
+                .append(System.lineSeparator());
+        sb.append("PRECURSORTYPE: ")
+                .append(MS_FOCUSED_ION.stream()
+                        .filter(p -> "PRECURSOR_TYPE".equals(p.getLeft()))
+                        .map(Pair::getRight)
+                        .findFirst()
+                        .orElse("NA"))
+                .append(System.lineSeparator());
 		sb.append("FORMULA: ").append(record.CH_FORMULA()).append(System.lineSeparator());
 		if (record.CH_LINK().containsKey("ChemOnt")) {
 			String chemOntValue = record.CH_LINK().get("ChemOnt");
@@ -110,7 +123,13 @@ public class RecordToRIKEN_MSP {
 		sb.append("INCHIKEY: ").append(record.CH_LINK().getOrDefault("INCHIKEY", "N/A")).append(System.lineSeparator());
 		sb.append("INCHI: ").append(record.CH_IUPAC()).append(System.lineSeparator());
 		sb.append("SMILES: ").append(record.CH_SMILES()).append(System.lineSeparator());
-		sb.append("RETENTIONTIME: ").append(record.AC_CHROMATOGRAPHY().getOrDefault("RETENTION_TIME", "0")).append(System.lineSeparator());
+        sb.append("RETENTIONTIME: ")
+                .append(MS_FOCUSED_ION.stream()
+                        .filter(p -> "RETENTION_TIME".equals(p.getLeft()))
+                        .map(Pair::getRight)
+                        .findFirst()
+                        .orElse("0"))
+                .append(System.lineSeparator());
 		sb.append("INSTRUMENTTYPE: ").append(record.AC_INSTRUMENT_TYPE()).append(System.lineSeparator());
 		sb.append("INSTRUMENT: ").append(record.AC_INSTRUMENT()).append(System.lineSeparator());
 		if (record.AC_MASS_SPECTROMETRY_ION_MODE().equals("NEGATIVE")) {

@@ -1759,14 +1759,7 @@ public class RecordParserDefinition extends GrammarDefinition {
         Record record = (Record) value.getFirst();
         if (value.getLast() != null) {
             List<Pair<String, String>> pairs = (List<Pair<String, String>>) value.getLast();
-            LinkedHashMap<String, String> map = pairs.stream()
-                .collect(Collectors.toMap(
-                        Pair::getKey,
-                        Pair::getValue,
-                        (v1, v2) -> v2,
-                        LinkedHashMap::new
-                ));
-            record.AC_MASS_SPECTROMETRY(map);
+            record.AC_MASS_SPECTROMETRY(pairs);
         }
         return record;
     }
@@ -1776,14 +1769,7 @@ public class RecordParserDefinition extends GrammarDefinition {
         Record record = (Record) value.getFirst();
         if (value.getLast() != null) {
             List<Pair<String, String>> pairs = (List<Pair<String, String>>) value.getLast();
-            LinkedHashMap<String, String> map = pairs.stream()
-                    .collect(Collectors.toMap(
-                            Pair::getKey,
-                            Pair::getValue,
-                            (v1, v2) -> v2,
-                            LinkedHashMap::new
-                    ));
-            record.AC_CHROMATOGRAPHY(map);
+            record.AC_CHROMATOGRAPHY(pairs);
         }
         return record;
     }
@@ -1793,14 +1779,7 @@ public class RecordParserDefinition extends GrammarDefinition {
         Record record = (Record) value.getFirst();
         if (value.getLast() != null) {
             List<Pair<String, String>> pairs = (List<Pair<String, String>>) value.getLast();
-            LinkedHashMap<String, String> map = pairs.stream()
-                    .collect(Collectors.toMap(
-                            Pair::getKey,
-                            Pair::getValue,
-                            (v1, v2) -> v2,
-                            LinkedHashMap::new
-                    ));
-            record.MS_FOCUSED_ION(map);
+            record.MS_FOCUSED_ION(pairs);
         }
         return record;
     }
@@ -1810,14 +1789,7 @@ public class RecordParserDefinition extends GrammarDefinition {
         Record record = (Record) value.getFirst();
         if (value.getLast() != null) {
             List<Pair<String, String>> pairs = (List<Pair<String, String>>) value.getLast();
-            LinkedHashMap<String, String> map = pairs.stream()
-                    .collect(Collectors.toMap(
-                            Pair::getKey,
-                            Pair::getValue,
-                            (v1, v2) -> v2,
-                            LinkedHashMap::new
-                    ));
-            record.MS_DATA_PROCESSING(map);
+            record.MS_DATA_PROCESSING(pairs);
         }
         return record;
     }
