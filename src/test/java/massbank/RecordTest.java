@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class RecordTest {
 
     @Test
-    void testNormalRecord() throws IOException {
+    void testRecord1() throws IOException {
         ParseResult res = parseRecord("MSBNK-IPB_Halle-PB000122.txt");
         assertTrue(res.result().isSuccess());
         assertEquals("MSBNK-IPB_Halle-PB000122", ((Record) res.result().get()).ACCESSION());
@@ -45,10 +45,40 @@ class RecordTest {
     }
 
     @Test
-    void testDeprecatedRecord() throws IOException {
+    void testRecord2() throws IOException {
         ParseResult res = parseRecord("MSBNK-LCSB-LU092805.txt");
         assertTrue(res.result().isSuccess());
         assertEquals("MSBNK-LCSB-LU092805", ((Record) res.result().get()).ACCESSION());
+        assertTrue(((Record) res.result().get()).isDeprecated());
+        assertEquals("2022-02-08 possible mixed spectra", ((Record) res.result().get()).DEPRECATED());
+        assertEquals(res.content(), res.result().get().toString());
+    }
+
+    @Test
+    void testRecord3() throws IOException {
+        ParseResult res = parseRecord("MSBNK-test-TST00001.txt");
+        assertTrue(res.result().isSuccess());
+        assertEquals("MSBNK-test-TST00001", ((Record) res.result().get()).ACCESSION());
+        assertEquals("Fiscalin C; LC-ESI-ITFT; MS2; CE: 30; R=17500; [M+H]+", ((Record) res.result().get()).RECORD_TITLE1());
+        assertEquals(res.content(), res.result().get().toString());
+    }
+
+    @Test
+    void testRecord4() throws IOException {
+        ParseResult res = parseRecord("MSBNK-test-TST00002.txt");
+        assertTrue(res.result().isSuccess());
+        assertEquals("MSBNK-test-TST00002", ((Record) res.result().get()).ACCESSION());
+        assertEquals("Disialoganglioside GD1a; MALDI-TOF; MS; Pos", ((Record) res.result().get()).RECORD_TITLE1());
+        assertEquals(res.content(), res.result().get().toString());
+    }
+
+    @Test
+    void testRecord5() throws IOException {
+        ParseResult res = parseRecord("MSBNK-test-TST00003.txt");
+        assertTrue(res.result().isSuccess());
+        assertEquals("MSBNK-test-TST00003", ((Record) res.result().get()).ACCESSION());
+        assertTrue(((Record) res.result().get()).isDeprecated());
+        assertEquals("2019-11-25 Wrong MS measurement assigned", ((Record) res.result().get()).DEPRECATED());
         assertEquals(res.content(), res.result().get().toString());
     }
 
@@ -79,7 +109,6 @@ Num Peaks: 4
 153.019 30
 273.076 999
 274.083 30
-
 """;
         assertEquals(nistMspPB000122, RecordToNIST_MSP.convert(res.result().get()));
     }
@@ -109,7 +138,6 @@ Num Peaks: 4
 153.019	316.545
 273.076	10000.000
 274.083	318.003
-
 """;
         assertEquals(nistMspPB000122, RecordToRIKEN_MSP.convert(res.result().get()));
     }

@@ -188,7 +188,6 @@ There is one mandatory field, namely Parent=<m/z>, which is the precursor ion m/
 		sb.append("Num Peaks: ").append(numPeaks).append(System.lineSeparator());
 		sb.append(peaklist);
 				
-		sb.append(System.lineSeparator());
 		return sb.toString();
 	}
 	

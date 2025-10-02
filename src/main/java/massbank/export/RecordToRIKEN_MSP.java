@@ -158,7 +158,6 @@ public class RecordToRIKEN_MSP {
 		for(Triple<BigDecimal,BigDecimal,Integer> peak : record.PK_PEAK())
 			sb.append(peak.getLeft().toPlainString()).append("\t").append(peak.getMiddle().toPlainString()).append(System.lineSeparator());
 		
-		sb.append(System.lineSeparator());
 		return sb.toString();
 	}
 	
