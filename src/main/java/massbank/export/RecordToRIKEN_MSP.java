@@ -160,6 +160,19 @@ public class RecordToRIKEN_MSP {
 		
 		return sb.toString();
 	}
+
+    /**
+     * Converts a list of Records to a single String in RIKEN MSP format.
+     *
+     * @param records the list of Record objects to convert
+     * @return a String containing all records in RIKEN MSP format
+     */
+    public static String convertRecords(List<Record> records) {
+        return records.stream()
+                .map(RecordToRIKEN_MSP::convert)
+                .collect(java.util.stream.Collectors.joining(System.lineSeparator()))
+                + System.lineSeparator();
+    }
 	
 	/**
 	 * A wrapper to convert multiple Records and write to file.
@@ -167,24 +180,11 @@ public class RecordToRIKEN_MSP {
 	 * @param records to convert
      */
 	public static void recordsToRIKEN_MSP(File file, List<Record> records) {
-		// collect data
-		List<String> list	= new ArrayList<>();
-		for(Record record : records) {
-			list.add(convert(record));
-			list.add("");
-		}
-		
-		BufferedWriter writer;
-		try {
-			writer = new BufferedWriter(new FileWriter(file));
-			for (String line : list) {
-				writer.write(line);
-			}
-			writer.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(convertRecords(records));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 	}
 
 }

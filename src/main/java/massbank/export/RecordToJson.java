@@ -165,7 +165,7 @@ public class RecordToJson {
         return gson.toJson(new RecordJsonSerializer(record));
 	}
 
-	public static String convert(List<Record> records) {
+	public static String convertRecords(List<Record> records) {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		List<RecordJsonSerializer> recordJsonSerializers = records.stream().map(RecordJsonSerializer::new).collect(Collectors.toList());
         return gson.toJson(recordJsonSerializers);
@@ -178,18 +178,11 @@ public class RecordToJson {
 	 * @param records to convert
      */
 	public static void recordsToJson(File file, List<Record> records) {
-		// collect data
-		String recordJson = convert(records);
-		
-		BufferedWriter writer;
-		try {
-			writer = new BufferedWriter(new FileWriter(file));
-			writer.write(recordJson);
-			writer.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(convertRecords(records));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 	}
 
 }

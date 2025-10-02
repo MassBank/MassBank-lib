@@ -97,7 +97,7 @@ public class RecordToNIST_MSP {
 	private static final Logger logger = LogManager.getLogger(RecordToNIST_MSP.class);
 	
 	/**
-	 * A plain converter Record to String with RIKEN PRIME msp.
+	 * A plain converter Record to String with NIST msp.
 	 * @param record to convert
 	 */
 	public static String convert(Record record) {
@@ -187,9 +187,22 @@ There is one mandatory field, namely Parent=<m/z>, which is the precursor ion m/
 		}
 		sb.append("Num Peaks: ").append(numPeaks).append(System.lineSeparator());
 		sb.append(peaklist);
-				
+
 		return sb.toString();
 	}
+
+    /**
+     * Converts a list of Records to a single String in NIST MSP format.
+     *
+     * @param records the list of Record objects to convert
+     * @return a String containing all records in NIST MSP format
+     */
+    public static String convertRecords(List<Record> records) {
+        return records.stream()
+                .map(RecordToNIST_MSP::convert)
+                .collect(java.util.stream.Collectors.joining(System.lineSeparator()))
+                + System.lineSeparator();
+    }
 	
 	/**
 	 * A wrapper to convert multiple Records and write to file.
@@ -197,25 +210,11 @@ There is one mandatory field, namely Parent=<m/z>, which is the precursor ion m/
 	 * @param records to convert
      */
 	public static void recordsToNIST_MSP(File file, List<Record> records) {
-		// collect data
-		List<String> list	= new ArrayList<>();
-		for(Record record : records) {
-			list.add(convert(record));
-			list.add("");
-		}
-		
-		BufferedWriter writer;
-		try {
-			writer = new BufferedWriter(new FileWriter(file));
-			for (String line : list) {
-				writer.write(line);
-				//writer.newLine();
-			}
-			writer.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(convertRecords(records));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 	}
 
 }
