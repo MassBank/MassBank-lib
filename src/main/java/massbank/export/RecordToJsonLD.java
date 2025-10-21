@@ -24,8 +24,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import massbank.Record;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,7 +40,7 @@ import java.util.List;
  * @version 07-06-2023
  */
 public class RecordToJsonLD {
-	private static final Logger logger = LogManager.getLogger(RecordToJsonLD.class);
+	private static final Logger logger = LoggerFactory.getLogger(RecordToJsonLD.class);
 
 	public static String convert(List<Record> records) {
 		JsonArray allRecords = new JsonArray();

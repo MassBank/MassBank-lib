@@ -26,8 +26,8 @@ import com.google.gson.JsonObject;
 import io.github.dan2097.jnainchi.InchiStatus;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
  * @version 01-12-2022
  */
 public class Record {
-    private static final Logger logger = LogManager.getLogger(Record.class);
+    private static final Logger logger = LoggerFactory.getLogger(Record.class);
 
 	private String ACCESSION;
 	private boolean isDeprecated;

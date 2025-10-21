@@ -30,8 +30,8 @@ import io.github.dan2097.jnainchi.InchiStatus;
 import io.github.dan2097.jnainchi.JnaInchi;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.inchi.InChIGenerator;
@@ -68,7 +68,7 @@ import static org.petitparser.parser.primitive.CharacterParser.word;
 
 
 public class RecordParserDefinition extends GrammarDefinition {
-    private static final Logger logger = LogManager.getLogger(RecordParserDefinition.class);;
+    private static final Logger logger = LoggerFactory.getLogger(RecordParserDefinition.class);;
 
     // legacy mode to let validation pass on legacy records until they are fixed
     private final boolean legacy;

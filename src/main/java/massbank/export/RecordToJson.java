@@ -25,8 +25,8 @@ import com.google.gson.GsonBuilder;
 import massbank.Record;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * @version 09-06-2022
  */
 public class RecordToJson {
-	private static final Logger logger = LogManager.getLogger(RecordToJson.class);
+	private static final Logger logger = LoggerFactory.getLogger(RecordToJson.class);
 
 	public static class RecordJsonSerializer {
 		String ACCESSION;

@@ -23,8 +23,8 @@ package massbank.export;
 import massbank.Record;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -84,7 +84,7 @@ Num Peaks: 17
  * @version 24-02-2023
  */
 public class RecordToRIKEN_MSP {
-	private static final Logger logger = LogManager.getLogger(RecordToRIKEN_MSP.class);
+	private static final Logger logger = LoggerFactory.getLogger(RecordToRIKEN_MSP.class);
 	
 	/**
 	 * A plain converter Record to String with RIKEN PRIME msp.
