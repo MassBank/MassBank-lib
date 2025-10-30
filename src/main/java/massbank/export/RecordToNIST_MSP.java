@@ -22,15 +22,14 @@ package massbank.export;
 
 import massbank.Record;
 import org.apache.commons.lang3.tuple.Triple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -94,7 +93,7 @@ Num Peaks: 7
  * @version 21-08-2020
  */
 public class RecordToNIST_MSP {
-	private static final Logger logger = LoggerFactory.getLogger(RecordToNIST_MSP.class);
+	private static final Logger logger = LogManager.getLogger(RecordToNIST_MSP.class);
 	
 	/**
 	 * A plain converter Record to String with NIST msp.
