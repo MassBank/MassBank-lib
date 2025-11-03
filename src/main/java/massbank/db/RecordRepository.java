@@ -106,7 +106,7 @@ public class RecordRepository {
     }
     
     /**
-     * Helper method to deserialize JSON values, preserving BigDecimal for numbers.
+     * Helper method to deserialize JSON values, preserving numeric types appropriately.
      */
     private static Object deserializeValue(JsonElement element) {
         if (element == null || element.isJsonNull()) {
@@ -115,8 +115,19 @@ public class RecordRepository {
         if (element.isJsonPrimitive()) {
             JsonPrimitive primitive = element.getAsJsonPrimitive();
             if (primitive.isNumber()) {
-                // Preserve numbers as BigDecimal to match Record field types
-                return primitive.getAsBigDecimal();
+                // Check if the number is an integer value
+                BigDecimal bd = primitive.getAsBigDecimal();
+                try {
+                    // If it's an exact integer, return as Integer
+                    if (bd.scale() <= 0 && bd.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) <= 0 
+                        && bd.compareTo(BigDecimal.valueOf(Integer.MIN_VALUE)) >= 0) {
+                        return bd.intValueExact();
+                    }
+                } catch (ArithmeticException e) {
+                    // Not an exact integer, continue to return as BigDecimal
+                }
+                // Otherwise preserve as BigDecimal for decimal values
+                return bd;
             } else if (primitive.isBoolean()) {
                 return primitive.getAsBoolean();
             } else if (primitive.isString()) {
