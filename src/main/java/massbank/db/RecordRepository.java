@@ -64,9 +64,9 @@ public class RecordRepository {
                 ac_mass_spectrometry_ms_type, ac_mass_spectrometry_ion_mode,
                 ac_mass_spectrometry, ac_chromatography, ms_focused_ion,
                 ms_data_processing, pk_splash, pk_annotation_header, pk_annotation, pk_peak
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?::jsonb, ?::jsonb, ?, 
-                     ?, ?, ?, ?::jsonb, ?, ?, ?::jsonb, ?::jsonb, ?, ?, ?, ?, ?::jsonb,
-                     ?::jsonb, ?::jsonb, ?::jsonb, ?, ?::jsonb, ?::jsonb, ?::jsonb)
+            ) VALUES (?, ?, ?, ?, CAST(? AS jsonb), ?, ?, ?, ?, ?, ?, CAST(? AS jsonb), CAST(? AS jsonb), CAST(? AS jsonb), ?, 
+                     ?, ?, ?, CAST(? AS jsonb), ?, ?, CAST(? AS jsonb), CAST(? AS jsonb), ?, ?, ?, ?, CAST(? AS jsonb),
+                     CAST(? AS jsonb), CAST(? AS jsonb), CAST(? AS jsonb), ?, CAST(? AS jsonb), CAST(? AS jsonb), CAST(? AS jsonb))
             ON CONFLICT (accession) DO UPDATE SET
                 is_deprecated = EXCLUDED.is_deprecated,
                 deprecated = EXCLUDED.deprecated,
