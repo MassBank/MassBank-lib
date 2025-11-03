@@ -68,8 +68,8 @@ public class RecordRepository {
         @Override
         public Pair<?, ?> deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             JsonObject obj = json.getAsJsonObject();
-            Object left = context.deserialize(obj.get("left"), Object.class);
-            Object right = context.deserialize(obj.get("right"), Object.class);
+            Object left = deserializeValue(obj.get("left"));
+            Object right = deserializeValue(obj.get("right"));
             return ImmutablePair.of(left, right);
         }
         
@@ -89,9 +89,9 @@ public class RecordRepository {
         @Override
         public Triple<?, ?, ?> deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             JsonObject obj = json.getAsJsonObject();
-            Object left = context.deserialize(obj.get("left"), Object.class);
-            Object middle = context.deserialize(obj.get("middle"), Object.class);
-            Object right = context.deserialize(obj.get("right"), Object.class);
+            Object left = deserializeValue(obj.get("left"));
+            Object middle = deserializeValue(obj.get("middle"));
+            Object right = deserializeValue(obj.get("right"));
             return ImmutableTriple.of(left, middle, right);
         }
         
@@ -103,6 +103,28 @@ public class RecordRepository {
             obj.add("right", context.serialize(src.getRight()));
             return obj;
         }
+    }
+    
+    /**
+     * Helper method to deserialize JSON values, preserving BigDecimal for numbers.
+     */
+    private static Object deserializeValue(JsonElement element) {
+        if (element == null || element.isJsonNull()) {
+            return null;
+        }
+        if (element.isJsonPrimitive()) {
+            JsonPrimitive primitive = element.getAsJsonPrimitive();
+            if (primitive.isNumber()) {
+                // Preserve numbers as BigDecimal to match Record field types
+                return primitive.getAsBigDecimal();
+            } else if (primitive.isBoolean()) {
+                return primitive.getAsBoolean();
+            } else if (primitive.isString()) {
+                return primitive.getAsString();
+            }
+        }
+        // For complex types, return the element as-is
+        return element;
     }
 
     /**
