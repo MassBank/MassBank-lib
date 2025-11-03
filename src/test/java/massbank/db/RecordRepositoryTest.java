@@ -60,6 +60,11 @@ class RecordRepositoryTest {
         );
         DatabaseConnection.initializeSchema(connection);
         repository = new RecordRepository(connection);
+        
+        // Clear any existing data from previous tests
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute("TRUNCATE TABLE records");
+        }
     }
 
     @AfterEach

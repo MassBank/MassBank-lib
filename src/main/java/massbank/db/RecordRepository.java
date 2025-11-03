@@ -20,9 +20,11 @@
  ******************************************************************************/
 package massbank.db;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import massbank.Record;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
@@ -45,7 +47,62 @@ public class RecordRepository {
 
     public RecordRepository(Connection connection) {
         this.connection = connection;
-        this.gson = new Gson();
+        this.gson = createGsonWithTypeAdapters();
+    }
+    
+    /**
+     * Creates a Gson instance with custom type adapters for Apache Commons Lang3 Pair and Triple.
+     * These types are abstract and cannot be directly deserialized by Gson.
+     */
+    private Gson createGsonWithTypeAdapters() {
+        return new GsonBuilder()
+            .registerTypeAdapter(Pair.class, new PairTypeAdapter())
+            .registerTypeAdapter(Triple.class, new TripleTypeAdapter())
+            .create();
+    }
+    
+    /**
+     * Custom TypeAdapter for deserializing Pair objects.
+     */
+    private static class PairTypeAdapter implements JsonDeserializer<Pair<?, ?>>, JsonSerializer<Pair<?, ?>> {
+        @Override
+        public Pair<?, ?> deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            JsonObject obj = json.getAsJsonObject();
+            Object left = context.deserialize(obj.get("left"), Object.class);
+            Object right = context.deserialize(obj.get("right"), Object.class);
+            return ImmutablePair.of(left, right);
+        }
+        
+        @Override
+        public JsonElement serialize(Pair<?, ?> src, java.lang.reflect.Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject obj = new JsonObject();
+            obj.add("left", context.serialize(src.getLeft()));
+            obj.add("right", context.serialize(src.getRight()));
+            return obj;
+        }
+    }
+    
+    /**
+     * Custom TypeAdapter for deserializing Triple objects.
+     */
+    private static class TripleTypeAdapter implements JsonDeserializer<Triple<?, ?, ?>>, JsonSerializer<Triple<?, ?, ?>> {
+        @Override
+        public Triple<?, ?, ?> deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            JsonObject obj = json.getAsJsonObject();
+            Object left = context.deserialize(obj.get("left"), Object.class);
+            Object middle = context.deserialize(obj.get("middle"), Object.class);
+            Object right = context.deserialize(obj.get("right"), Object.class);
+            return ImmutableTriple.of(left, middle, right);
+        }
+        
+        @Override
+        public JsonElement serialize(Triple<?, ?, ?> src, java.lang.reflect.Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject obj = new JsonObject();
+            obj.add("left", context.serialize(src.getLeft()));
+            obj.add("middle", context.serialize(src.getMiddle()));
+            obj.add("right", context.serialize(src.getRight()));
+            return obj;
+        }
     }
 
     /**
