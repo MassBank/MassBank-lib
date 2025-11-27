@@ -31,7 +31,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class RecordParserTest {
+public class RecordParserTest {
 
     @Test
     void testRecord1() throws IOException {
