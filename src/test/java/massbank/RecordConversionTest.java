@@ -20,6 +20,9 @@
  ******************************************************************************/
 package massbank;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import massbank.export.RecordToJson;
 import massbank.export.RecordToNIST_MSP;
 import massbank.export.RecordToRIKEN_MSP;
 import org.junit.jupiter.api.Test;
@@ -198,6 +201,87 @@ Num Peaks: 3
         assertEquals(nist, RecordToRIKEN_MSP.convertRecords(records));
     }
 
+    @Test
+    void testRecordToJSON() throws IOException {
+        RecordParserTest.ParseResult res = parseRecord("MSBNK-IPB_Halle-PB000122.txt");
+        assertTrue(res.result().isSuccess());
+        String JsonPB000122 = """
+{
+  "ACCESSION": "MSBNK-IPB_Halle-PB000122",
+  "RECORD_TITLE": [
+    "Naringenin",
+    "LC-ESI-QTOF",
+    "MS2",
+    "CE:15 eV",
+    "[M+H]+"
+  ],
+  "DATE": "2016.01.19 (Created 2008.01.02, modified 2013.06.04)",
+  "AUTHORS": "Boettcher C, Institute of Plant Biochemistry, Halle, Germany",
+  "LICENSE": "CC BY-SA",
+  "COMMENT": [
+    "IPB_RECORD: 83",
+    "CONFIDENCE confident structure"
+  ],
+  "CH$NAME": [
+    "Naringenin",
+    "5,7-dihydroxy-2-(4-hydroxyphenyl)chroman-4-one"
+  ],
+  "CH$COMPOUND_CLASS": [
+    "Natural Product",
+    "Flavanone"
+  ],
+  "CH$FORMULA": "C15H12O5",
+  "CH$EXACT_MASS": 272.06847,
+  "CH$SMILES": "C1[C@H](OC2\\u003dCC(\\u003dCC(\\u003dC2C1\\u003dO)O)O)C3\\u003dCC\\u003dC(C\\u003dC3)O",
+  "CH$IUPAC": "InChI\\u003d1S/C15H12O5/c16-9-3-1-8(2-4-9)13-7-12(19)15-11(18)5-10(17)6-14(15)20-13/h1-6,13,16-18H,7H2/t13-/m0/s1",
+  "CH$LINK": {
+    "INCHIKEY": "FTVWIRXFELQLPI-ZDUSSCGKSA-N",
+    "KEGG": "C00509",
+    "PUBCHEM": "CID:439246",
+    "COMPTOX": "DTXSID1022392",
+    "ChemOnt": "CHEMONTID:0000337; Organic compounds; Phenylpropanoids and polyketides; Flavonoids; Flavans"
+  },
+  "AC$INSTRUMENT": "API QSTAR Pulsar i",
+  "AC$INSTRUMENT_TYPE": "LC-ESI-QTOF",
+  "AC$MASS_SPECTROMETRY_MS_TYPE": "MS2",
+  "AC$MASS_SPECTROMETRY_ION_MODE": "POSITIVE",
+  "AC$MASS_SPECTROMETRY": {
+    "COLLISION_ENERGY": "15 eV",
+    "IONIZATION": "ESI"
+  },
+  "MS$FOCUSED_ION": {
+    "PRECURSOR_TYPE": "[M+H]+"
+  },
+  "PK$SPLASH": "splash10-00di-0090000000-ed08d01208992e5a7a9f",
+  "PK$NUM_PEAK": 4,
+  "PK$PEAK": [
+    [
+      "147.044",
+      "218.845",
+      "20"
+    ],
+    [
+      "153.019",
+      "316.545",
+      "30"
+    ],
+    [
+      "273.076",
+      "10000.000",
+      "999"
+    ],
+    [
+      "274.083",
+      "318.003",
+      "30"
+    ]
+  ]
+}
+""";
+        JsonElement expected = JsonParser.parseString(JsonPB000122);
+        JsonElement actual = JsonParser.parseString(RecordToJson.convert(res.result().get()));
+        assertEquals(expected, actual);
+    }
 
 
 

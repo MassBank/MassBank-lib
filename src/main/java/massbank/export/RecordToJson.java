@@ -75,10 +75,10 @@ public class RecordToJson {
 		String AC$INSTRUMENT_TYPE;
 		String AC$MASS_SPECTROMETRY_MS_TYPE;
 		String AC$MASS_SPECTROMETRY_ION_MODE;
-        List<Pair<String, String>> AC$MASS_SPECTROMETRY; // optional
-        List<Pair<String, String>> AC$CHROMATOGRAPHY; // optional
-        List<Pair<String, String>> MS$FOCUSED_ION; // optional
-        List<Pair<String, String>> MS$DATA_PROCESSING; // optional
+		LinkedHashMap<String, String> AC$MASS_SPECTROMETRY; // optional
+		LinkedHashMap<String, String> AC$CHROMATOGRAPHY; // optional
+		LinkedHashMap<String, String> MS$FOCUSED_ION; // optional
+		LinkedHashMap<String, String> MS$DATA_PROCESSING; // optional
 		String PK$SPLASH;
 		List<List<String>> PK$ANNOTATION; // optional
 		Integer PK$NUM_PEAK;
@@ -117,22 +117,54 @@ public class RecordToJson {
 				if (record.AC_MASS_SPECTROMETRY().isEmpty())
 					AC$MASS_SPECTROMETRY = null;
 				else {
-					AC$MASS_SPECTROMETRY = record.AC_MASS_SPECTROMETRY();
+					AC$MASS_SPECTROMETRY = new LinkedHashMap<>();
+					for (Pair<String, String> p : record.AC_MASS_SPECTROMETRY()) {
+						if (p == null) continue;
+						String key = p.getLeft();
+						String value = p.getRight();
+						if (key != null) {
+							AC$MASS_SPECTROMETRY.put(key, value);
+						}
+					}
 				}
 				if (record.AC_CHROMATOGRAPHY().isEmpty())
 					AC$CHROMATOGRAPHY = null;
 				else {
-					AC$CHROMATOGRAPHY = record.AC_CHROMATOGRAPHY();
+					AC$CHROMATOGRAPHY = new LinkedHashMap<>();
+					for (Pair<String, String> p : record.AC_CHROMATOGRAPHY()) {
+						if (p == null) continue;
+						String key = p.getLeft();
+						String value = p.getRight();
+						if (key != null) {
+							AC$CHROMATOGRAPHY.put(key, value);
+						}
+					}
 				}
 				if (record.MS_FOCUSED_ION().isEmpty())
 					MS$FOCUSED_ION = null;
 				else {
-					MS$FOCUSED_ION = record.MS_FOCUSED_ION();
+					MS$FOCUSED_ION = new LinkedHashMap<>();
+					for (Pair<String, String> p : record.MS_FOCUSED_ION()) {
+						if (p == null) continue;
+						String key = p.getLeft();
+						String value = p.getRight();
+						if (key != null) {
+							MS$FOCUSED_ION.put(key, value);
+						}
+					}
 				}
 				if (record.MS_DATA_PROCESSING().isEmpty())
 					MS$DATA_PROCESSING = null;
 				else {
-					MS$DATA_PROCESSING = record.MS_DATA_PROCESSING();
+					MS$DATA_PROCESSING = new LinkedHashMap<>();
+					for (Pair<String, String> p : record.MS_DATA_PROCESSING()) {
+						if (p == null) continue;
+						String key = p.getLeft();
+						String value = p.getRight();
+						if (key != null) {
+							MS$DATA_PROCESSING.put(key, value);
+						}
+					}
 				}
 				PK$SPLASH = record.PK_SPLASH();
 				if (record.PK_ANNOTATION().isEmpty())
