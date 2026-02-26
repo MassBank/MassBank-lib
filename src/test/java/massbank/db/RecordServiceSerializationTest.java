@@ -34,7 +34,7 @@ class RecordServiceSerializationTest {
 
     @Test
     void roundtripSerializationRecord1() throws Exception {
-        RecordParserTest.ParseResult res = parseRecord("MSBNK-IPB_Halle-PB000122.txt");
+        RecordParserTest.ParseResult res = parseRecord("MSBNK-test-TST00002.txt");
         Record record = res.result().get();
 
         RecordService svc = new RecordService(null);
@@ -42,7 +42,7 @@ class RecordServiceSerializationTest {
         RecordEntity entity = svc.recordToEntity(record);
         Record record2 = svc.entityToRecord(entity);
 
-        assertNotNull(record2, "Rückkonvertiertes Record ist null");
-        assertEquals(record.toString(), record2.toString(), "Record nach Roundtrip stimmt nicht überein");
+        assertNotNull(record2, "Roundtrip Record is null");
+        assertEquals(record.toString(), record2.toString(), "Roundtrip Record does not match original Record");
     }
 }

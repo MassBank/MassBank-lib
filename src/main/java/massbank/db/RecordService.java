@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Optional;
@@ -56,9 +57,9 @@ public class RecordService {
         @Override
         public Triple<?, ?, ?> deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             JsonObject obj = json.getAsJsonObject();
-            Object left = deserializeValue(obj.get("left"));
-            Object middle = deserializeValue(obj.get("middle"));
-            Object right = deserializeValue(obj.get("right"));
+            Object left = deserializeValue(obj.get("left"), false);
+            Object middle = deserializeValue(obj.get("middle"), false);
+            Object right = deserializeValue(obj.get("right"), true); // Right element might be Integer
             return ImmutableTriple.of(left, middle, right);
         }
 
@@ -79,8 +80,8 @@ public class RecordService {
         @Override
         public Pair<?, ?> deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             JsonObject obj = json.getAsJsonObject();
-            Object left = deserializeValue(obj.get("left"));
-            Object right = deserializeValue(obj.get("right"));
+            Object left = deserializeValue(obj.get("left"), false);
+            Object right = deserializeValue(obj.get("right"), false);
             return ImmutablePair.of(left, right);
         }
 
@@ -95,32 +96,46 @@ public class RecordService {
 
     /**
      * Helper method to deserialize JSON values, preserving numeric types appropriately.
+     * @param element the JSON element to deserialize
+     * @param allowInteger whether to allow conversion to Integer for whole numbers
      */
-    private static Object deserializeValue(JsonElement element) {
+    private static Object deserializeValue(JsonElement element, boolean allowInteger) {
         if (element == null || element.isJsonNull()) {
             return null;
         }
         if (element.isJsonPrimitive()) {
             JsonPrimitive primitive = element.getAsJsonPrimitive();
             if (primitive.isNumber()) {
-                // Check if the number is an integer value
                 BigDecimal bd = primitive.getAsBigDecimal();
-                try {
-                    // If it's an exact integer, return as Integer
-                    if (bd.scale() <= 0 && bd.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) <= 0
-                            && bd.compareTo(BigDecimal.valueOf(Integer.MIN_VALUE)) >= 0) {
-                        return bd.intValueExact();
+
+                // Only convert to Integer if explicitly allowed and the value is within Integer range
+                if (allowInteger) {
+                    try {
+                        // If it's an exact integer within Integer range, return as Integer
+                        if (bd.scale() <= 0 && bd.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) <= 0
+                                && bd.compareTo(BigDecimal.valueOf(Integer.MIN_VALUE)) >= 0) {
+                            return bd.intValueExact();
+                        }
+                    } catch (ArithmeticException e) {
+                        // Not an exact integer, continue to return as BigDecimal
                     }
-                } catch (ArithmeticException e) {
-                    // Not an exact integer, continue to return as BigDecimal
                 }
-                // Otherwise preserve as BigDecimal for decimal values
+                // Otherwise preserve as BigDecimal
                 return bd;
             } else if (primitive.isBoolean()) {
                 return primitive.getAsBoolean();
             } else if (primitive.isString()) {
                 return primitive.getAsString();
             }
+        }
+        if (element.isJsonArray()) {
+            // Deserialize JSON arrays to List of the appropriate type
+            JsonArray array = element.getAsJsonArray();
+            List<Object> list = new ArrayList<>();
+            for (JsonElement item : array) {
+                list.add(deserializeValue(item, false)); // Don't convert array elements to Integer by default
+            }
+            return list;
         }
         // For complex types, return the element as-is
         return element;
