@@ -94,7 +94,7 @@ public class RecordToRIKEN_MSP {
 		StringBuilder sb = new StringBuilder();
 		
 		if (record.isDeprecated()) {
-            logger.warn("{} is deprecated. No export possible.", record.ACCESSION());
+            logger.warn("{} is deprecated. No export possible.", record.getAccession());
 			return sb.toString();
 		}
 		
@@ -149,7 +149,7 @@ public class RecordToRIKEN_MSP {
 		for (int i = 0; i < recordComment.size(); i++) {
 			if(recordComment.get(i).startsWith("CONFIDENCE")) recordComment.set(i,"Annotation " + recordComment.get(i).substring("CONFIDENCE".length()).trim());
         }
-		recordComment.add(0, "DB#="+record.ACCESSION()+"; origin=MassBank");
+		recordComment.add(0, "DB#="+record.getAccession()+"; origin=MassBank");
 				
 		sb.append("Comment: ").append(String.join("; ", recordComment)).append(System.lineSeparator());
 		sb.append("Splash: ").append(record.PK_SPLASH()).append(System.lineSeparator());

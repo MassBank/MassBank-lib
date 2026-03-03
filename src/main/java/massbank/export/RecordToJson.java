@@ -85,7 +85,7 @@ public class RecordToJson {
 		List<List<String>> PK$PEAK;
 
 		RecordJsonSerializer(Record record) {
-			ACCESSION = record.ACCESSION();
+			ACCESSION = record.getAccession();
 			if (record.isDeprecated()) {
                 isDeprecated = Boolean.TRUE;
                 DEPRECATED = record.DEPRECATED();

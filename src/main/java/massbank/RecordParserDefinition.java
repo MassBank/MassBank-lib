@@ -1594,7 +1594,7 @@ public class RecordParserDefinition extends GrammarDefinition {
 
     private Record setACCESSION(String accession) {
         Record record = new Record();
-        record.ACCESSION(accession);
+        record.setAccession(accession);
         return record;
     }
 

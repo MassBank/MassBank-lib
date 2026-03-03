@@ -24,6 +24,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.dan2097.jnainchi.InchiStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.Logger;
@@ -48,17 +52,22 @@ import java.util.regex.Pattern;
  * @author rmeier
  * @version 01-12-2022
  */
+@Entity
+@Table(name = "massbank")
 public class Record {
     private static final Logger logger = LogManager.getLogger(Record.class);
 
-	private String ACCESSION;
+	@Id
+	@Column(name="accession", nullable = false, length = 50, unique = true)
+	private String accession;
 	private boolean isDeprecated;
 	private String DEPRECATED;
 	private String deprecated_content;
 	private List<String> RECORD_TITLE;
-	private String DATE;
+	@Column(name = "date", length = 100)
+	private String date;
 	private String AUTHORS;
-	private String LICENSE;	
+	private String LICENSE;
 	private String COPYRIGHT; // optional
 	private String PUBLICATION; // optional
 	private String PROJECT; // optional
@@ -88,12 +97,12 @@ public class Record {
 	private List<Triple<BigDecimal,BigDecimal,Integer>> PK$PEAK;
 	
 	public Record() {
-		ACCESSION = "";
+		accession = "";
         isDeprecated = false;
 		DEPRECATED = "";
 		deprecated_content = "";
 		RECORD_TITLE = new ArrayList<>();
-		DATE = "";
+		date = "";
 		AUTHORS = "";
 		LICENSE = "";
 		COPYRIGHT = ""; // optional
@@ -125,14 +134,12 @@ public class Record {
 		PK$PEAK = new ArrayList<>();
 	}
 
-	
-	public String ACCESSION() {
-		return ACCESSION;
+	public String getAccession() {
+		return accession;
 	}
-	public void ACCESSION(String value) {
-		ACCESSION = value;
+	public void setAccession(String accession) {
+		this.accession = accession;
 	}
-	
 
 	public boolean isDeprecated() {
 		return isDeprecated;
@@ -167,18 +174,26 @@ public class Record {
 		RECORD_TITLE = new ArrayList<>(Arrays.asList(value.split("; ")));
 	}
 	
-	
+	// Standard JavaBean methods for JPA compatibility
+	public String getDate() {
+		return date;
+	}
+	public void setDate(String date) {
+		this.date = date;
+	}
+
+	// Legacy methods (kept for backward compatibility)
 	public String DATE() {
-		return DATE;
+		return date;
 	}
 	public String[] DATE1() {
 		// DATE: 2016.01.15
 		// DATE: 2011.02.21 (Created 2007.07.07)
 		// DATE: 2016.01.19 (Created 2006.12.21, modified 2011.05.06)
-		return DATE.replace("(Created ", "").replace(", modified", "").replace(")", "").split(" ");
+		return date.replace("(Created ", "").replace(", modified", "").replace(")", "").split(" ");
 	}
 	public void DATE(String value) {
-		DATE=value;
+		date=value;
 	}
 	
 	
@@ -436,7 +451,7 @@ public class Record {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 
-		sb.append("ACCESSION: ").append(ACCESSION()).append("\n");
+		sb.append("ACCESSION: ").append(getAccession()).append("\n");
 		if (isDeprecated()) {
 			sb.append("DEPRECATED: ")
                 .append(DEPRECATED())
@@ -536,7 +551,7 @@ public class Record {
 	public String createRecordString() {
 		StringBuilder sb = new StringBuilder();
 
-		sb.append("<b>ACCESSION:</b> ").append(ACCESSION()).append("<br>\n")
+		sb.append("<b>ACCESSION:</b> ").append(getAccession()).append("<br>\n")
             .append("<b>RECORD_TITLE:</b> ").append(RECORD_TITLE1()).append("<br>\n")
             .append("<b>DATE:</b> ").append(DATE()).append("<br>\n")
 			.append("<b>AUTHORS:</b> ").append(AUTHORS()).append("<br>\n")
@@ -761,7 +776,7 @@ public class Record {
 			return new JsonArray();
 		}
 		String InChiKey = CH_LINK().get("INCHIKEY");
-		String description = "This MassBank record with Accession " + ACCESSION() 
+		String description = "This MassBank record with Accession " + getAccession()
 			+ " contains the " + AC_MASS_SPECTROMETRY_MS_TYPE() + " mass spectrum of " + RECORD_TITLE().getFirst()
 			+ ((InChiKey==null) ? "." : " with the InChIkey " + InChiKey + ".");
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -772,9 +787,9 @@ public class Record {
 		dataset.addProperty("@type", "Dataset");
 		dataset.add("http://purl.org/dc/terms/conformsTo",
 				gson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/Dataset/1.0-RELEASE\" }", JsonObject.class));
-		dataset.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id="+ACCESSION()+"#Dataset");
+		dataset.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession() + "#Dataset");
 		dataset.addProperty("description", description);
-		dataset.addProperty("identifier", ACCESSION());
+		dataset.addProperty("identifier", getAccession());
 		dataset.addProperty("name", RECORD_TITLE1());
 		
 		JsonArray keywords = new JsonArray();
@@ -802,10 +817,10 @@ public class Record {
 
 		JsonObject about = new JsonObject();
 		about.addProperty("@type", "ChemicalSubstance");
-		about.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + ACCESSION() + "#ChemicalSubstance");
+		about.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession() + "#ChemicalSubstance");
 		dataset.add("about", about);
 
-		dataset.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id="+ACCESSION());
+		dataset.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
 		dataset.addProperty("datePublished", DATE1()[0].replace(".","-"));
 		dataset.addProperty("citation", PUBLICATION());
 		
@@ -833,10 +848,10 @@ public class Record {
 		chemicalSubstance.addProperty("@type", "ChemicalSubstance");
 		chemicalSubstance.add("http://purl.org/dc/terms/conformsTo",
 				gson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/ChemicalSubstance/0.4-RELEASE\" }", JsonObject.class));
-		chemicalSubstance.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id="+ACCESSION()+"#ChemicalSubstance");
-		chemicalSubstance.addProperty("identifier", ACCESSION());
+		chemicalSubstance.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession() + "#ChemicalSubstance");
+		chemicalSubstance.addProperty("identifier", getAccession());
 		chemicalSubstance.addProperty("name", RECORD_TITLE().getFirst());
-		chemicalSubstance.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id="+ACCESSION());
+		chemicalSubstance.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
 		chemicalSubstance.addProperty("chemicalComposition", CH_FORMULA());
 		if (CH_NAME().size() == 1)  chemicalSubstance.addProperty("alternateName", CH_NAME().getFirst());
 		else if (!CH_NAME().isEmpty()) chemicalSubstance.add("alternateName", gson.toJsonTree(CH_NAME()));
@@ -849,11 +864,11 @@ public class Record {
 		molecularEntity.addProperty("@type", "MolecularEntity");
 		molecularEntity.add("http://purl.org/dc/terms/conformsTo",
 				gson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/MolecularEntity/0.5-RELEASE\" }", JsonObject.class));
-		molecularEntity.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + ACCESSION()
+		molecularEntity.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession()
 				+ "#" + (InChiKey!=null ? InChiKey : "MolecularEntity"));
-		molecularEntity.addProperty("identifier", ACCESSION());
+		molecularEntity.addProperty("identifier", getAccession());
 		molecularEntity.addProperty("name", RECORD_TITLE().getFirst());
-		molecularEntity.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id="+ACCESSION());
+		molecularEntity.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
 		if (!CH_IUPAC().equals("N/A")) molecularEntity.addProperty("inChI", CH_IUPAC());
 		if (!CH_SMILES().equals("N/A")) molecularEntity.addProperty("smiles", CH_SMILES());
 		molecularEntity.addProperty("molecularFormula", CH_FORMULA());
@@ -865,7 +880,7 @@ public class Record {
 
 		JsonObject subjectOf = new JsonObject();
 		subjectOf.addProperty("@type", "Dataset");
-		subjectOf.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id="+ACCESSION()+"#Dataset");
+		subjectOf.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession() + "#Dataset");
 		chemicalSubstance.add("subjectOf", subjectOf);
 
 		// put MolecularEntity and Dataset together

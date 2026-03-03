@@ -103,7 +103,7 @@ public class RecordToNIST_MSP {
 		StringBuilder sb = new StringBuilder();
 		
 		if (record.isDeprecated()) {
-			logger.warn(record.ACCESSION() + " is deprecated. No export possible.");
+			logger.warn(record.getAccession() + " is deprecated. No export possible.");
 			return sb.toString();
 		}
 		
@@ -112,7 +112,7 @@ public class RecordToNIST_MSP {
 		for(int i = 1; i < tmpList.size(); i++)
 			sb.append("Synon: ").append(tmpList.get(i)).append(System.lineSeparator());
 		
-		sb.append("DB#: ").append(record.ACCESSION()).append(System.lineSeparator());
+		sb.append("DB#: ").append(record.getAccession()).append(System.lineSeparator());
 		if(record.CH_LINK().containsKey("INCHIKEY"))
 			sb.append("InChIKey: ").append(record.CH_LINK().get("INCHIKEY")).append(System.lineSeparator());
 		sb.append("InChI: ").append(record.CH_IUPAC()).append(System.lineSeparator());
