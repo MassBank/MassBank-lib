@@ -19,6 +19,7 @@
  * 
  ******************************************************************************/
 package massbank;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -30,8 +31,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
@@ -43,7 +44,10 @@ import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,12 +57,12 @@ import java.util.regex.Pattern;
  * @version 01-12-2022
  */
 @Entity
-@Table(name = "massbank")
+@Table(name = "massbank-records")
 public class Record {
     private static final Logger logger = LogManager.getLogger(Record.class);
 
 	@Id
-	@Column(name="accession", nullable = false, length = 50, unique = true)
+	@Column(name="accession", nullable = false, length = 105, unique = true)
 	private String accession;
 	private boolean isDeprecated;
 	private String DEPRECATED;
