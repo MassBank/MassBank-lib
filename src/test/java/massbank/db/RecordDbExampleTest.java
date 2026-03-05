@@ -1,6 +1,7 @@
 package massbank.db;
 
 import massbank.Record;
+import massbank.RecordParserTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -11,8 +12,14 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,7 +52,27 @@ class RecordDbExampleTest {
     private RecordRepository repository;
 
     @Test
-    void saveAndLoadRecord() {
+    void saveAndLoadRecords() throws IOException {
+        Path resourcesDir = Paths.get("src/test/resources");
+        assertTrue(Files.exists(resourcesDir), "src/test/resources not found");
+
+        List<Path> recordFiles = Files.walk(resourcesDir)
+                .filter(p -> p.toString().endsWith(".txt"))
+                .filter(p -> p.getFileName().toString().startsWith("MSBNK-"))
+                .toList();
+        assertFalse(recordFiles.isEmpty(), "No .txt files in src/test/resources found");
+
+        for (Path file : recordFiles) {
+            RecordParserTest.ParseResult res = RecordParserTest.parseRecord("MSBNK-test-TST00001.txt");
+            assertTrue(res.result().isSuccess());
+            Record record = (Record) res.result().get();
+            repository.save(record);
+            Record loaded = repository.findById(record.getAccession()).orElse(null);
+            assertNotNull(loaded, () -> "record not found: " + record.getAccession());
+            assertEquals(record.toString(), loaded.toString(), () -> "mismatch for " + record.getAccession());
+        }
+
+
         Record r = new Record();
         r.setAccession("TEST-001");
         r.RECORD_TITLE(List.of("Test Compound"));
