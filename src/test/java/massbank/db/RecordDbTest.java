@@ -14,18 +14,16 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = RecordDbExample.class)
+@SpringBootTest
 @Testcontainers
-class RecordDbExampleTest {
+class RecordDbTest {
 
     static final PostgreSQLContainer postgres = new PostgreSQLContainer(
             "postgres:17-alpine");
