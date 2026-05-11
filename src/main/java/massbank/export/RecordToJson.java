@@ -92,8 +92,8 @@ public class RecordToJson {
 				DEPRECATED_CONTENT = record.DEPRECATED_CONTENT();
 			} else {
 				RECORD_TITLE = record.RECORD_TITLE();
-				DATE = record.DATE();
-				AUTHORS = record.AUTHORS();
+				DATE = record.getDate();
+				AUTHORS = record.getAuthors();
 				LICENSE = record.LICENSE();
 				COPYRIGHT = "".equals(record.COPYRIGHT()) ? null : record.COPYRIGHT();
 				PUBLICATION = "".equals(record.PUBLICATION()) ? null : record.PUBLICATION();

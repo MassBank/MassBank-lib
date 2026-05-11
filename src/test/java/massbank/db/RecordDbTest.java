@@ -6,7 +6,12 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -21,9 +26,17 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 class RecordDbTest {
+
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    @EntityScan(basePackageClasses = Record.class)
+    @EnableJpaRepositories(basePackageClasses = RecordRepository.class)
+    static class TestApplication {
+    }
 
     static final PostgreSQLContainer postgres = new PostgreSQLContainer(
             "postgres:17-alpine");
@@ -63,7 +76,7 @@ class RecordDbTest {
         for (Path file : recordFiles) {
             RecordParserTest.ParseResult res = RecordParserTest.parseRecord("MSBNK-test-TST00001.txt");
             assertTrue(res.result().isSuccess());
-            Record record = (Record) res.result().get();
+            Record record = res.result().get();
             repository.save(record);
             Record loaded = repository.findById(record.getAccession()).orElse(null);
             assertNotNull(loaded, () -> "record not found: " + record.getAccession());

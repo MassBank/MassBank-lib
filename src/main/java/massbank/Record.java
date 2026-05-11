@@ -70,7 +70,8 @@ public class Record {
 	private List<String> RECORD_TITLE;
 	@Column(name = "date", length = 100)
 	private String date;
-	private String AUTHORS;
+	@Column(name = "authors", length = 512)
+	private String authors;
 	private String LICENSE;
 	private String COPYRIGHT; // optional
 	private String PUBLICATION; // optional
@@ -107,7 +108,7 @@ public class Record {
 		deprecated_content = "";
 		RECORD_TITLE = new ArrayList<>();
 		date = "";
-		AUTHORS = "";
+		authors = "";
 		LICENSE = "";
 		COPYRIGHT = ""; // optional
 		PUBLICATION = ""; // optional
@@ -178,17 +179,11 @@ public class Record {
 		RECORD_TITLE = new ArrayList<>(Arrays.asList(value.split("; ")));
 	}
 	
-	// Standard JavaBean methods for JPA compatibility
 	public String getDate() {
 		return date;
 	}
 	public void setDate(String date) {
 		this.date = date;
-	}
-
-	// Legacy methods (kept for backward compatibility)
-	public String DATE() {
-		return date;
 	}
 	public String[] DATE1() {
 		// DATE: 2016.01.15
@@ -196,18 +191,13 @@ public class Record {
 		// DATE: 2016.01.19 (Created 2006.12.21, modified 2011.05.06)
 		return date.replace("(Created ", "").replace(", modified", "").replace(")", "").split(" ");
 	}
-	public void DATE(String value) {
-		date=value;
+
+	public String getAuthors() {
+		return authors;
 	}
-	
-	
-	public String AUTHORS() {
-		return AUTHORS;
+	public void setAuthors(String authors) {
+		this.authors = authors;
 	}
-	public void AUTHORS(String value) {
-		AUTHORS = value;
-	}
-	
 	
 	public String LICENSE() {
 		return LICENSE;
@@ -464,8 +454,8 @@ public class Record {
 			return sb.toString();
 		}
 		sb.append("RECORD_TITLE: ").append(RECORD_TITLE1()).append("\n");
-		sb.append("DATE: ").append(DATE()).append("\n");
-		sb.append("AUTHORS: ").append(AUTHORS()).append("\n");
+		sb.append("DATE: ").append(getDate()).append("\n");
+		sb.append("AUTHORS: ").append(getAuthors()).append("\n");
 		sb.append("LICENSE: ").append(LICENSE()).append("\n");
 		if (!"".equals(COPYRIGHT()))
 			sb.append("COPYRIGHT: ").append(COPYRIGHT()).append("\n");
@@ -557,8 +547,8 @@ public class Record {
 
 		sb.append("<b>ACCESSION:</b> ").append(getAccession()).append("<br>\n")
             .append("<b>RECORD_TITLE:</b> ").append(RECORD_TITLE1()).append("<br>\n")
-            .append("<b>DATE:</b> ").append(DATE()).append("<br>\n")
-			.append("<b>AUTHORS:</b> ").append(AUTHORS()).append("<br>\n")
+			.append("<b>DATE:</b> ").append(getDate()).append("<br>\n")
+			.append("<b>AUTHORS:</b> ").append(getAuthors()).append("<br>\n")
 			.append("<b>LICENSE:</b> ").append(getLicenseLink()).append("<br>\n");
 		if (!COPYRIGHT().isEmpty())
 			sb.append("<b>COPYRIGHT:</b> ").append(COPYRIGHT()).append("<br>\n");

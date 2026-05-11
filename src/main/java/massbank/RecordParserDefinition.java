@@ -97,8 +97,8 @@ public class RecordParserDefinition extends GrammarDefinition {
                 .or(
                     ref("ACCESSION").map(this::setACCESSION)
                         .seq(ref("RECORD_TITLE")).map(this::setRECORD_TITLE)
-                        .seq(ref("DATE")).map(this::setDATE)
-                        .seq(ref("AUTHORS")).map(this::setAUTHORS)
+                        .seq(ref("DATE")).map(this::setDate)
+                        .seq(ref("AUTHORS")).map(this::setAuthors)
                         .seq(ref("LICENSE")).map(this::setLICENSE)
                         .seq(ref("COPYRIGHT").optional()).map(this::setCOPYRIGHT)
                         .seq(ref("PUBLICATION").optional()).map(this::setPUBLICATION)
@@ -1604,15 +1604,15 @@ public class RecordParserDefinition extends GrammarDefinition {
         return record;
     }
 
-    private Record setDATE(List<?> value) {
+    private Record setDate(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.DATE((String) value.getLast());
+        record.setDate((String) value.getLast());
         return record;
     }
 
-    private Record setAUTHORS(List<?> value) {
+    private Record setAuthors(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.AUTHORS((String) value.getLast());
+        record.setAuthors((String) value.getLast());
         return record;
     }
 
