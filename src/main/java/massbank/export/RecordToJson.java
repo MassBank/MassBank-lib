@@ -94,10 +94,10 @@ public class RecordToJson {
 				RECORD_TITLE = record.RECORD_TITLE();
 				DATE = record.getDate();
 				AUTHORS = record.getAuthors();
-				LICENSE = record.LICENSE();
-				COPYRIGHT = "".equals(record.COPYRIGHT()) ? null : record.COPYRIGHT();
-				PUBLICATION = "".equals(record.PUBLICATION()) ? null : record.PUBLICATION();
-				PROJECT = "".equals(record.PROJECT()) ? null : record.PROJECT();
+				LICENSE = record.getLicense();
+				COPYRIGHT = "".equals(record.getCopyright()) ? null : record.getCopyright();
+				PUBLICATION = "".equals(record.getPublication()) ? null : record.getPublication();
+				PROJECT = "".equals(record.getProject()) ? null : record.getProject();
 				COMMENT = record.COMMENT().isEmpty() ? null : record.COMMENT();
 				CH$NAME = record.CH_NAME();
 				CH$COMPOUND_CLASS = record.CH_COMPOUND_CLASS();

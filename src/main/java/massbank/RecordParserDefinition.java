@@ -1618,25 +1618,25 @@ public class RecordParserDefinition extends GrammarDefinition {
 
     private Record setLICENSE(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.LICENSE((String) value.getLast());
+        record.setLicense((String) value.getLast());
         return record;
     }
 
     private Record setCOPYRIGHT(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) record.COPYRIGHT((String) value.getLast());
+        if (value.getLast() != null) record.setCopyright((String) value.getLast());
         return record;
     }
 
     private Record setPUBLICATION(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) record.PUBLICATION((String) value.getLast());
+        if (value.getLast() != null) record.setPublication((String) value.getLast());
         return record;
     }
 
     private Record setPROJECT(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) record.PROJECT((String) value.getLast());
+        if (value.getLast() != null) record.setProject((String) value.getLast());
         return record;
     }
 
@@ -2008,10 +2008,10 @@ public class RecordParserDefinition extends GrammarDefinition {
                 }
             }
 
-            // max 600 characters are supported in database for PUBLICATION
-            if (record.PUBLICATION() != null) {
-                if (record.PUBLICATION().length() > 600) {
-                    return context.failure("PUBLICATION length exceeds database limit of 600 characters.");
+            // max 2048 characters are supported in database for PUBLICATION
+            if (record.getPublication() != null) {
+                if (record.getPublication().length() > 2048) {
+                    return context.failure("PUBLICATION length exceeds database limit of 2048 characters.");
                 }
             }
 

@@ -204,34 +204,38 @@ public class Record {
 		this.authors = authors;
 	}
 	
-	public String LICENSE() {
+	@Column(name = "license", length = 64)
+	public String getLicense() {
 		return LICENSE;
 	}
-	public void LICENSE(String value) {
+	public void setLicense(String value) {
 		LICENSE = value;
 	}
 	
 	
-	public String COPYRIGHT() {
+	@Column(name = "copyright", length = 2048)
+	public String getCopyright() {
 		return COPYRIGHT;
 	}
-	public void COPYRIGHT(String value) {
+	public void setCopyright(String value) {
 		COPYRIGHT = value;
 	}
 	
 	
-	public String PUBLICATION() {
+	@Column(name = "publication", length = 2048)
+	public String getPublication() {
 		return PUBLICATION;
 	}
-	public void PUBLICATION(String value) {
+	public void setPublication(String value) {
         PUBLICATION = value;
 	}
 	
 	
-	public String PROJECT() {
+	@Column(name = "project", length = 512)
+	public String getProject() {
 		return PROJECT;
 	}
-	public void PROJECT(String value) {
+	public void setProject(String value) {
 		PROJECT = value;
 	}
 
@@ -461,13 +465,13 @@ public class Record {
 		sb.append("RECORD_TITLE: ").append(RECORD_TITLE1()).append("\n");
 		sb.append("DATE: ").append(getDate()).append("\n");
 		sb.append("AUTHORS: ").append(getAuthors()).append("\n");
-		sb.append("LICENSE: ").append(LICENSE()).append("\n");
-		if (!"".equals(COPYRIGHT()))
-			sb.append("COPYRIGHT: ").append(COPYRIGHT()).append("\n");
-		if (!"".equals(PUBLICATION()))
-			sb.append("PUBLICATION: ").append(PUBLICATION()).append("\n");
-		if (!"".equals(PROJECT()))
-			sb.append("PROJECT: ").append(PROJECT()).append("\n");
+		sb.append("LICENSE: ").append(getLicense()).append("\n");
+		if (!"".equals(getCopyright()))
+			sb.append("COPYRIGHT: ").append(getCopyright()).append("\n");
+		if (!"".equals(getPublication()))
+			sb.append("PUBLICATION: ").append(getPublication()).append("\n");
+		if (!"".equals(getProject()))
+			sb.append("PROJECT: ").append(getProject()).append("\n");
 		for (String comment : COMMENT())
 			sb.append("COMMENT: ").append(comment).append("\n");
 		
@@ -555,12 +559,12 @@ public class Record {
 			.append("<b>DATE:</b> ").append(getDate()).append("<br>\n")
 			.append("<b>AUTHORS:</b> ").append(getAuthors()).append("<br>\n")
 			.append("<b>LICENSE:</b> ").append(getLicenseLink()).append("<br>\n");
-		if (!COPYRIGHT().isEmpty())
-			sb.append("<b>COPYRIGHT:</b> ").append(COPYRIGHT()).append("<br>\n");
-		if (!PUBLICATION().isEmpty())
+		if (!getCopyright().isEmpty())
+			sb.append("<b>COPYRIGHT:</b> ").append(getCopyright()).append("<br>\n");
+		if (!getPublication().isEmpty())
         	sb.append("<b>PUBLICATION:</b> ").append(getPublicationLink()).append("<br>\n");
-		if (!PROJECT().isEmpty())
-			sb.append("<b>PROJECT:</b> ").append(PROJECT()).append("<br>\n");
+		if (!getProject().isEmpty())
+			sb.append("<b>PROJECT:</b> ").append(getProject()).append("<br>\n");
 		for (String comment : COMMENT())
 			sb.append("<b>COMMENT:</b> ").append(comment).append("<br>\n");
 		sb.append("<hr>\n");
@@ -689,23 +693,23 @@ public class Record {
 
 	@Transient
 	private String getLicenseLink() {
-        return switch (LICENSE()) {
-            case "CC0" -> "<a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\">CC0</a>";
-            case "CC BY" -> "<a href=\"https://creativecommons.org/licenses/by/4.0/\" target=\"_blank\">CC BY</a>";
-            case "CC BY-SA" ->
-                "<a href=\"https://creativecommons.org/licenses/by-sa/4.0/\" target=\"_blank\">CC BY-SA</a>";
-            case "CC BY-NC" ->
-                "<a href=\"https://creativecommons.org/licenses/by-nc/4.0/\" target=\"_blank\">CC BY-NC</a>";
-            case "CC BY-NC-SA" ->
-                "<a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\" target=\"_blank\">CC BY-NC-SA</a>";
-            case "dl-de/by-2-0" -> "<a href=\"https://www.govdata.de/dl-de/by-2-0\" target=\"_blank\">dl-de/by-2-0</a>";
-            default -> LICENSE();
-        };
+		return switch (getLicense()) {
+			case "CC0" -> "<a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\">CC0</a>";
+			case "CC BY" -> "<a href=\"https://creativecommons.org/licenses/by/4.0/\" target=\"_blank\">CC BY</a>";
+			case "CC BY-SA" ->
+				"<a href=\"https://creativecommons.org/licenses/by-sa/4.0/\" target=\"_blank\">CC BY-SA</a>";
+			case "CC BY-NC" ->
+				"<a href=\"https://creativecommons.org/licenses/by-nc/4.0/\" target=\"_blank\">CC BY-NC</a>";
+			case "CC BY-NC-SA" ->
+				"<a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\" target=\"_blank\">CC BY-NC-SA</a>";
+			case "dl-de/by-2-0" -> "<a href=\"https://www.govdata.de/dl-de/by-2-0\" target=\"_blank\">dl-de/by-2-0</a>";
+			default -> getLicense();
+		};
 	}
 
 	@Transient
 	private String getPublicationLink() {
-		String pub = PUBLICATION();
+		String pub = getPublication();
 		String regex_doi = "10\\.\\d{3,9}/[\\-._;()/:a-zA-Z0-9]+[a-zA-Z0-9]";
 		String regex_pmid = "PMID: ?\\d{8}";
 		Pattern pattern_doi = Pattern.compile(".*(" + regex_doi + ").*");
@@ -807,7 +811,7 @@ public class Record {
 				} }""", JsonObject.class));
 		dataset.add("keywords", keywords);
 
-        switch (LICENSE()) {
+	        switch (getLicense()) {
             case "CC0" -> dataset.addProperty("license", "https://creativecommons.org/publicdomain/zero/1.0/");
             case "CC BY" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by/4.0/");
             case "CC BY-SA" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by-sa/4.0");
@@ -823,8 +827,8 @@ public class Record {
 
 		dataset.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
 		dataset.addProperty("datePublished", DATE1()[0].replace(".","-"));
-		dataset.addProperty("citation", PUBLICATION());
-		
+		dataset.addProperty("citation", getPublication());
+
 		JsonArray measurementTechnique = new JsonArray();
 		measurementTechnique.add(gson.fromJson(
 				"{\"@type\": \"DefinedTerm\","

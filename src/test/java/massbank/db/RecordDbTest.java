@@ -98,6 +98,10 @@ class RecordDbTest {
         r.setAccession("TEST-001");
         r.setDate("2026.05.12 (Created 2026.05.12)");
         r.setAuthors("Test Author");
+        r.setLicense("CC BY-SA");
+        r.setCopyright("Copyright (C) 2026 Test Lab");
+        r.setPublication("Example publication DOI:10.1000/test");
+        r.setProject("Entity migration");
 
         Record loaded = persistAndReload(r);
         assertMappedFieldsEqual(r, loaded);
@@ -117,5 +121,9 @@ class RecordDbTest {
         assertEquals(expected.getAccession(), actual.getAccession(), () -> "accession mismatch for " + expected.getAccession());
         assertEquals(expected.getDate(), actual.getDate(), () -> "date mismatch for " + expected.getAccession());
         assertEquals(expected.getAuthors(), actual.getAuthors(), () -> "authors mismatch for " + expected.getAccession());
+        assertEquals(expected.getLicense(), actual.getLicense(), () -> "license mismatch for " + expected.getAccession());
+        assertEquals(expected.getCopyright(), actual.getCopyright(), () -> "copyright mismatch for " + expected.getAccession());
+        assertEquals(expected.getPublication(), actual.getPublication(), () -> "publication mismatch for " + expected.getAccession());
+        assertEquals(expected.getProject(), actual.getProject(), () -> "project mismatch for " + expected.getAccession());
     }
 }
