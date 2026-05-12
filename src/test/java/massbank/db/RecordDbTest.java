@@ -1,5 +1,7 @@
 package massbank.db;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import massbank.Record;
 import massbank.RecordParserTest;
 import org.junit.jupiter.api.AfterAll;
@@ -18,11 +20,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,40 +64,58 @@ class RecordDbTest {
     @Autowired
     private RecordRepository repository;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Test
-    void saveAndLoadRecords() throws IOException {
+    void saveAndLoadFixtureRecords() throws IOException {
         Path resourcesDir = Paths.get("src/test/resources");
         assertTrue(Files.exists(resourcesDir), "src/test/resources not found");
 
-        List<Path> recordFiles = Files.walk(resourcesDir)
-                .filter(p -> p.toString().endsWith(".txt"))
-                .filter(p -> p.getFileName().toString().startsWith("MSBNK-"))
-                .toList();
+        List<Path> recordFiles;
+        try (Stream<Path> paths = Files.walk(resourcesDir)) {
+            recordFiles = paths
+                    .filter(p -> p.toString().endsWith(".txt"))
+                    .filter(p -> p.getFileName().toString().startsWith("MSBNK-"))
+                    .toList();
+        }
         assertFalse(recordFiles.isEmpty(), "No .txt files in src/test/resources found");
 
         for (Path file : recordFiles) {
-            RecordParserTest.ParseResult res = RecordParserTest.parseRecord("MSBNK-test-TST00001.txt");
+            RecordParserTest.ParseResult res = RecordParserTest.parseRecord(file.getFileName().toString());
             assertTrue(res.result().isSuccess());
             Record record = res.result().get();
-            repository.save(record);
-            Record loaded = repository.findById(record.getAccession()).orElse(null);
-            assertNotNull(loaded, () -> "record not found: " + record.getAccession());
-            assertEquals(record.toString(), loaded.toString(), () -> "mismatch for " + record.getAccession());
+            Record loaded = persistAndReload(record);
+            assertMappedFieldsEqual(record, loaded);
         }
 
+        assertEquals(recordFiles.size(), repository.count(), "unexpected number of persisted fixture records");
+    }
 
+    @Test
+    void saveAndLoadManuallyCreatedRecord() {
         Record r = new Record();
         r.setAccession("TEST-001");
-        r.RECORD_TITLE(List.of("Test Compound"));
-        r.CH_FORMULA("H2O");
-        r.CH_EXACT_MASS(new BigDecimal("18.01056"));
-        r.CH_SMILES("O");
+        r.setDate("2026.05.12 (Created 2026.05.12)");
+        r.setAuthors("Test Author");
 
-        repository.save(r);
+        Record loaded = persistAndReload(r);
+        assertMappedFieldsEqual(r, loaded);
+    }
 
-        Record loaded = repository.findById("TEST-001").orElse(null);
-        assertNotNull(loaded);
-        assertEquals("TEST-001", loaded.getAccession());
-        assertEquals("H2O", loaded.CH_FORMULA());
+    private Record persistAndReload(Record record) {
+        repository.saveAndFlush(record);
+        entityManager.flush();
+        entityManager.clear();
+
+        return repository.findById(record.getAccession())
+                .orElseThrow(() -> new AssertionError("record not found: " + record.getAccession()));
+    }
+
+    private static void assertMappedFieldsEqual(Record expected, Record actual) {
+        assertNotNull(actual, "loaded record is null");
+        assertEquals(expected.getAccession(), actual.getAccession(), () -> "accession mismatch for " + expected.getAccession());
+        assertEquals(expected.getDate(), actual.getDate(), () -> "date mismatch for " + expected.getAccession());
+        assertEquals(expected.getAuthors(), actual.getAuthors(), () -> "authors mismatch for " + expected.getAccession());
     }
 }

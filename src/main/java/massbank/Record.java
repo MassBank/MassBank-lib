@@ -25,10 +25,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.dan2097.jnainchi.InchiStatus;
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
@@ -58,19 +61,16 @@ import java.util.regex.Pattern;
  */
 @Entity
 @Table(name = "massbank-records")
+@Access(AccessType.PROPERTY)
 public class Record {
     private static final Logger logger = LogManager.getLogger(Record.class);
 
-	@Id
-	@Column(name="accession", nullable = false, length = 105, unique = true)
 	private String accession;
 	private boolean isDeprecated;
 	private String DEPRECATED;
 	private String deprecated_content;
 	private List<String> RECORD_TITLE;
-	@Column(name = "date", length = 100)
 	private String date;
-	@Column(name = "authors", length = 512)
 	private String authors;
 	private String LICENSE;
 	private String COPYRIGHT; // optional
@@ -139,6 +139,8 @@ public class Record {
 		PK$PEAK = new ArrayList<>();
 	}
 
+	@Id
+	@Column(name="accession", nullable = false, length = 105, unique = true)
 	public String getAccession() {
 		return accession;
 	}
@@ -146,6 +148,7 @@ public class Record {
 		this.accession = accession;
 	}
 
+	@Transient
 	public boolean isDeprecated() {
 		return isDeprecated;
 	}
@@ -179,6 +182,7 @@ public class Record {
 		RECORD_TITLE = new ArrayList<>(Arrays.asList(value.split("; ")));
 	}
 	
+	@Column(name = "date", length = 100)
 	public String getDate() {
 		return date;
 	}
@@ -192,6 +196,7 @@ public class Record {
 		return date.replace("(Created ", "").replace(", modified", "").replace(")", "").split(" ");
 	}
 
+	@Column(name = "authors", length = 512)
 	public String getAuthors() {
 		return authors;
 	}
@@ -682,6 +687,7 @@ public class Record {
 		return sb.toString();
 	}
 
+	@Transient
 	private String getLicenseLink() {
         return switch (LICENSE()) {
             case "CC0" -> "<a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\">CC0</a>";
@@ -697,6 +703,7 @@ public class Record {
         };
 	}
 
+	@Transient
 	private String getPublicationLink() {
 		String pub = PUBLICATION();
 		String regex_doi = "10\\.\\d{3,9}/[\\-._;()/:a-zA-Z0-9]+[a-zA-Z0-9]";
