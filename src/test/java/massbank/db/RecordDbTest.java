@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -102,6 +103,8 @@ class RecordDbTest {
         r.setCopyright("Copyright (C) 2026 Test Lab");
         r.setPublication("Example publication DOI:10.1000/test");
         r.setProject("Entity migration");
+        r.setChName(List.of("Primary name", "Secondary synonym"));
+        r.setComment(List.of("First comment", "Second comment"));
 
         Record loaded = persistAndReload(r);
         assertMappedFieldsEqual(r, loaded);
@@ -125,5 +128,7 @@ class RecordDbTest {
         assertEquals(expected.getCopyright(), actual.getCopyright(), () -> "copyright mismatch for " + expected.getAccession());
         assertEquals(expected.getPublication(), actual.getPublication(), () -> "publication mismatch for " + expected.getAccession());
         assertEquals(expected.getProject(), actual.getProject(), () -> "project mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getChName()), new ArrayList<>(actual.getChName()), () -> "CH$NAME mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getComment()), new ArrayList<>(actual.getComment()), () -> "comment mismatch for " + expected.getAccession());
     }
 }

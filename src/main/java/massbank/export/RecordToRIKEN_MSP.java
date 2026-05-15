@@ -98,7 +98,7 @@ public class RecordToRIKEN_MSP {
 			return sb.toString();
 		}
 		
-		sb.append("NAME: ").append(record.CH_NAME().getFirst()).append(System.lineSeparator());
+		sb.append("NAME: ").append(record.getChName().getFirst()).append(System.lineSeparator());
         List<Pair<String, String>> MS_FOCUSED_ION = record.MS_FOCUSED_ION();
         sb.append("PRECURSORMZ: ")
                 .append(MS_FOCUSED_ION.stream()
@@ -145,7 +145,7 @@ public class RecordToRIKEN_MSP {
 		});
 		sb.append("LINKS: ").append(String.join("; ", links)).append(System.lineSeparator());
 		
-		List<String> recordComment = new ArrayList<>(record.COMMENT());
+		List<String> recordComment = new ArrayList<>(record.getComment());
 		for (int i = 0; i < recordComment.size(); i++) {
 			if(recordComment.get(i).startsWith("CONFIDENCE")) recordComment.set(i,"Annotation " + recordComment.get(i).substring("CONFIDENCE".length()).trim());
         }

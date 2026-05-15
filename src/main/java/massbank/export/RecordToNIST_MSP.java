@@ -107,7 +107,7 @@ public class RecordToNIST_MSP {
 			return sb.toString();
 		}
 		
-		List<String> tmpList	= record.CH_NAME();
+		List<String> tmpList	= record.getChName();
 		sb.append("Name: ").append(tmpList.getFirst()).append(System.lineSeparator());
 		for(int i = 1; i < tmpList.size(); i++)
 			sb.append("Synon: ").append(tmpList.get(i)).append(System.lineSeparator());

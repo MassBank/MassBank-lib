@@ -1643,14 +1643,14 @@ public class RecordParserDefinition extends GrammarDefinition {
     @SuppressWarnings("unchecked")
     private Record setCOMMENT(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) record.COMMENT((List<String>) value.getLast());
+        if (value.getLast() != null) record.setComment((List<String>) value.getLast());
         return record;
     }
 
     @SuppressWarnings("unchecked")
     private Record setCH_NAME(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) record.CH_NAME((List<String>) value.getLast());
+        if (value.getLast() != null) record.setChName((List<String>) value.getLast());
         return record;
     }
 
@@ -2021,7 +2021,7 @@ public class RecordParserDefinition extends GrammarDefinition {
             }
 
             // check for duplicate entries in CH$NAME
-            List<String> ch_name = record.CH_NAME();
+            List<String> ch_name = record.getChName();
             Set<String> uniques = new HashSet<>();
             for (String c : ch_name) {
                 if (!uniques.add(c)) {

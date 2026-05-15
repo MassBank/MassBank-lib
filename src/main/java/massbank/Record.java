@@ -32,6 +32,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
@@ -72,10 +74,10 @@ public class Record {
 	private List<String> RECORD_TITLE;
 	private String date;
 	private String authors;
-	private String LICENSE;
-	private String COPYRIGHT; // optional
-	private String PUBLICATION; // optional
-	private String PROJECT; // optional
+	private String license;
+	private String copyright; // optional
+	private String publication; // optional
+	private String project; // optional
 	private List<String> COMMENT; // optional
 	private List<String> CH$NAME;
 	private List<String> CH$COMPOUND_CLASS; // optional
@@ -109,10 +111,10 @@ public class Record {
 		RECORD_TITLE = new ArrayList<>();
 		date = "";
 		authors = "";
-		LICENSE = "";
-		COPYRIGHT = ""; // optional
-		PUBLICATION = ""; // optional
-		PROJECT = ""; // optional
+		license = "";
+		copyright = ""; // optional
+		publication = ""; // optional
+		project = ""; // optional
 		COMMENT = new ArrayList<>(); // optional
 		CH$NAME = new ArrayList<>();
 		CH$COMPOUND_CLASS = new ArrayList<>();
@@ -203,56 +205,61 @@ public class Record {
 	public void setAuthors(String authors) {
 		this.authors = authors;
 	}
-	
+
+
 	@Column(name = "license", length = 64)
 	public String getLicense() {
-		return LICENSE;
+		return license;
 	}
 	public void setLicense(String value) {
-		LICENSE = value;
+		license = value;
 	}
-	
-	
+
+
 	@Column(name = "copyright", length = 2048)
 	public String getCopyright() {
-		return COPYRIGHT;
+		return copyright;
 	}
 	public void setCopyright(String value) {
-		COPYRIGHT = value;
+		copyright = value;
 	}
-	
-	
+
+
 	@Column(name = "publication", length = 2048)
 	public String getPublication() {
-		return PUBLICATION;
+		return publication;
 	}
 	public void setPublication(String value) {
-        PUBLICATION = value;
+        publication = value;
 	}
 	
 	
 	@Column(name = "project", length = 512)
 	public String getProject() {
-		return PROJECT;
+		return project;
 	}
 	public void setProject(String value) {
-		PROJECT = value;
+		project = value;
 	}
 
 
-	public List<String> COMMENT() {
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "comment", columnDefinition = "jsonb")
+	public List<String> getComment() {
 		return COMMENT;
 	}
-	public void COMMENT(List<String> value) {
-        COMMENT = List.copyOf(value);
+	public void setComment(List<String> value) {
+	        COMMENT = value == null ? new ArrayList<>() : new ArrayList<>(value);
 	}
 	
 	
-	public List<String> CH_NAME() {
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ch_name", columnDefinition = "jsonb")
+	public List<String> getChName() {
 		return CH$NAME;
 	}
-	public void CH_NAME(List<String> value) {
-		CH$NAME = List.copyOf(value);
+	public void setChName(List<String> value) {
+		CH$NAME = value == null ? new ArrayList<>() : new ArrayList<>(value);
 	}
 	
 	
@@ -472,10 +479,10 @@ public class Record {
 			sb.append("PUBLICATION: ").append(getPublication()).append("\n");
 		if (!"".equals(getProject()))
 			sb.append("PROJECT: ").append(getProject()).append("\n");
-		for (String comment : COMMENT())
+		for (String comment : getComment())
 			sb.append("COMMENT: ").append(comment).append("\n");
 		
-		for (String ch_name : CH_NAME())
+		for (String ch_name : getChName())
 			sb.append("CH$NAME: ").append(ch_name).append("\n");
 		if (!CH_COMPOUND_CLASS().isEmpty()) {
 			sb.append("CH$COMPOUND_CLASS: ").append(String.join("; ", CH_COMPOUND_CLASS())).append("\n");
@@ -565,11 +572,11 @@ public class Record {
         	sb.append("<b>PUBLICATION:</b> ").append(getPublicationLink()).append("<br>\n");
 		if (!getProject().isEmpty())
 			sb.append("<b>PROJECT:</b> ").append(getProject()).append("<br>\n");
-		for (String comment : COMMENT())
+		for (String comment : getComment())
 			sb.append("<b>COMMENT:</b> ").append(comment).append("<br>\n");
 		sb.append("<hr>\n");
 		
-		for (String ch_name : CH_NAME())
+		for (String ch_name : getChName())
 			sb.append("<b>CH$NAME:</b> ").append(ch_name).append("<br>\n");
 		sb.append("<b>CH$COMPOUND_CLASS:</b> ").append(String.join("; ", CH_COMPOUND_CLASS())).append("<br>\n");
 		sb.append("<b>CH$FORMULA:</b> <a href=\"http://www.chemspider.com/Search.aspx?q=").append(CH_FORMULA()).append("\" target=\"_blank\">").append(CH_FORMULA1()).append("</a><br>\n");
@@ -858,9 +865,9 @@ public class Record {
 		chemicalSubstance.addProperty("name", RECORD_TITLE().getFirst());
 		chemicalSubstance.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
 		chemicalSubstance.addProperty("chemicalComposition", CH_FORMULA());
-		if (CH_NAME().size() == 1)  chemicalSubstance.addProperty("alternateName", CH_NAME().getFirst());
-		else if (!CH_NAME().isEmpty()) chemicalSubstance.add("alternateName", gson.toJsonTree(CH_NAME()));
-		
+		if (getChName().size() == 1)  chemicalSubstance.addProperty("alternateName", getChName().getFirst());
+		else if (!getChName().isEmpty()) chemicalSubstance.add("alternateName", gson.toJsonTree(getChName()));
+
 		JsonArray molecularEntitys = new JsonArray();
 		
 		// create a loop in case of multiple MolecularEntity

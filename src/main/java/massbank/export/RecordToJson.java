@@ -98,8 +98,8 @@ public class RecordToJson {
 				COPYRIGHT = "".equals(record.getCopyright()) ? null : record.getCopyright();
 				PUBLICATION = "".equals(record.getPublication()) ? null : record.getPublication();
 				PROJECT = "".equals(record.getProject()) ? null : record.getProject();
-				COMMENT = record.COMMENT().isEmpty() ? null : record.COMMENT();
-				CH$NAME = record.CH_NAME();
+				COMMENT = record.getComment().isEmpty() ? null : record.getComment();
+				CH$NAME = record.getChName();
 				CH$COMPOUND_CLASS = record.CH_COMPOUND_CLASS();
 				CH$FORMULA = record.CH_FORMULA();
 				CH$EXACT_MASS = record.CH_EXACT_MASS();
