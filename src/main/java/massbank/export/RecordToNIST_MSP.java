@@ -153,10 +153,10 @@ public class RecordToNIST_MSP {
                     .append(System.lineSeparator());
         }
 
-		sb.append("Formula: ").append(record.CH_FORMULA()).append(System.lineSeparator());
-		sb.append("MW: ").append(Math.round(record.CH_EXACT_MASS().floatValue())).append(System.lineSeparator());
-		sb.append("ExactMass: ").append(record.CH_EXACT_MASS()).append(System.lineSeparator());
-		
+		sb.append("Formula: ").append(record.getChFormula()).append(System.lineSeparator());
+		sb.append("MW: ").append(Math.round(record.getChExactMass().floatValue())).append(System.lineSeparator());
+		sb.append("ExactMass: ").append(record.getChExactMass()).append(System.lineSeparator());
+
 		/*
 https://chemdata.nist.gov/mass-spc/ftp/mass-spc/PepLib.pdf:
 Comments are composed of a series of space delimited field=value pairs, where values may be embedded within double quotes. 

@@ -20,6 +20,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -104,6 +105,11 @@ class RecordDbTest {
         r.setPublication("Example publication DOI:10.1000/test");
         r.setProject("Entity migration");
         r.setChName(List.of("Primary name", "Secondary synonym"));
+        r.setChCompoundClass(List.of("Lipid", "Ceramide"));
+        r.setChFormula("C12H24O12");
+        r.setChExactMass(new BigDecimal("360.12678"));
+        r.setSpScientificName("Mus musculus");
+        r.setSpLineage("cellular organisms; Eukaryota; Metazoa; Chordata; Mammalia; Rodentia; Mus");
         r.setComment(List.of("First comment", "Second comment"));
 
         Record loaded = persistAndReload(r);
@@ -129,6 +135,11 @@ class RecordDbTest {
         assertEquals(expected.getPublication(), actual.getPublication(), () -> "publication mismatch for " + expected.getAccession());
         assertEquals(expected.getProject(), actual.getProject(), () -> "project mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getChName()), new ArrayList<>(actual.getChName()), () -> "CH$NAME mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getChCompoundClass()), new ArrayList<>(actual.getChCompoundClass()), () -> "CH$COMPOUND_CLASS mismatch for " + expected.getAccession());
+        assertEquals(expected.getChFormula(), actual.getChFormula(), () -> "CH$FORMULA mismatch for " + expected.getAccession());
+        assertEquals(0, expected.getChExactMass().compareTo(actual.getChExactMass()), () -> "CH$EXACT_MASS mismatch for " + expected.getAccession());
+        assertEquals(expected.getSpScientificName(), actual.getSpScientificName(), () -> "SP$SCIENTIFIC_NAME mismatch for " + expected.getAccession());
+        assertEquals(expected.getSpLineage(), actual.getSpLineage(), () -> "SP$LINEAGE mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getComment()), new ArrayList<>(actual.getComment()), () -> "comment mismatch for " + expected.getAccession());
     }
 }

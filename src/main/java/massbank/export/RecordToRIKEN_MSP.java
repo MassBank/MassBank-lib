@@ -114,7 +114,7 @@ public class RecordToRIKEN_MSP {
                         .findFirst()
                         .orElse("NA"))
                 .append(System.lineSeparator());
-		sb.append("FORMULA: ").append(record.CH_FORMULA()).append(System.lineSeparator());
+		sb.append("FORMULA: ").append(record.getChFormula()).append(System.lineSeparator());
 		if (record.CH_LINK().containsKey("ChemOnt")) {
 			String chemOntValue = record.CH_LINK().get("ChemOnt");
 			String lastTerm = chemOntValue.substring(chemOntValue.lastIndexOf(";") + 1).trim();

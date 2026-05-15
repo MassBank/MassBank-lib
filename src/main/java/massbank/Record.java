@@ -78,11 +78,11 @@ public class Record {
 	private String copyright; // optional
 	private String publication; // optional
 	private String project; // optional
-	private List<String> COMMENT; // optional
-	private List<String> CH$NAME;
-	private List<String> CH$COMPOUND_CLASS; // optional
-	private String CH$FORMULA;
-	private BigDecimal CH$EXACT_MASS;
+	private List<String> comment; // optional
+	private List<String> chName;
+	private List<String> chCompoundClass; // optional
+	private String chFormula;
+	private BigDecimal exactMass;
 	private String CH$SMILES;
 	private String CH$IUPAC;
 	private LinkedHashMap<String, String> CH$LINK; // optional
@@ -115,11 +115,11 @@ public class Record {
 		copyright = ""; // optional
 		publication = ""; // optional
 		project = ""; // optional
-		COMMENT = new ArrayList<>(); // optional
-		CH$NAME = new ArrayList<>();
-		CH$COMPOUND_CLASS = new ArrayList<>();
-		CH$FORMULA = "";
-		CH$EXACT_MASS = new BigDecimal(0);
+		comment = new ArrayList<>(); // optional
+		chName = new ArrayList<>();
+		chCompoundClass = new ArrayList<>();
+		chFormula = "";
+		exactMass = new BigDecimal(0);
 		CH$SMILES = "";
 		CH$IUPAC = "";
 		CH$LINK = new LinkedHashMap<>(); // optional
@@ -246,55 +246,62 @@ public class Record {
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "comment", columnDefinition = "jsonb")
 	public List<String> getComment() {
-		return COMMENT;
+		return comment;
 	}
 	public void setComment(List<String> value) {
-	        COMMENT = value == null ? new ArrayList<>() : new ArrayList<>(value);
+	        comment = value == null ? new ArrayList<>() : new ArrayList<>(value);
 	}
 	
 	
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ch_name", columnDefinition = "jsonb")
 	public List<String> getChName() {
-		return CH$NAME;
+		return chName;
 	}
 	public void setChName(List<String> value) {
-		CH$NAME = value == null ? new ArrayList<>() : new ArrayList<>(value);
+		chName = value == null ? new ArrayList<>() : new ArrayList<>(value);
 	}
 	
 	
-	public List<String> CH_COMPOUND_CLASS() {
-		return CH$COMPOUND_CLASS;
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ch_compound_class", columnDefinition = "jsonb")
+	public List<String> getChCompoundClass() {
+		return chCompoundClass;
 	}
-	public void CH_COMPOUND_CLASS(List<String> value) {
-		CH$COMPOUND_CLASS = List.copyOf(value);
+	public void setChCompoundClass(List<String> value) {
+		chCompoundClass = value == null ? new ArrayList<>() : new ArrayList<>(value);
 	}
+
 	
 	/**
 	* Returns the molecular formula as a String.
 	*/
-	public String CH_FORMULA() {
-		return CH$FORMULA;
+	@Column(name = "ch_formula", length = 512)
+	public String getChFormula() {
+		return chFormula;
 	}
+	public void setChFormula(String value) {
+		chFormula = value;
+	}
+
 	/**
 	* Returns the molecular formula as a String with HTML sup tags.
 	*/
-	public String CH_FORMULA1() {
-		IMolecularFormula m = MolecularFormulaManipulator.getMolecularFormula(CH$FORMULA, SilentChemObjectBuilder.getInstance());
+	@Transient
+	public String getChFormula1() {
+		IMolecularFormula m = MolecularFormulaManipulator.getMolecularFormula(getChFormula(), SilentChemObjectBuilder.getInstance());
 		return MolecularFormulaManipulator.getHTML(m);
 	}
-	public void CH_FORMULA(String value) {
-		CH$FORMULA = value;
-	}
+
 	
-	
-	public BigDecimal CH_EXACT_MASS() {
-		return CH$EXACT_MASS;
+	@Column(name = "ch_exact_mass", precision = 20, scale = 10)
+	public BigDecimal getChExactMass() {
+		return exactMass;
 	}
-	public void CH_EXACT_MASS(BigDecimal value) {
-		CH$EXACT_MASS = value;
+	public void setChExactMass(BigDecimal value) {
+		exactMass = value;
 	}
-	
+
 	
 	public String CH_SMILES() {
 		return CH$SMILES;
@@ -346,20 +353,36 @@ public class Record {
 	}
 	public void CH_LINK(LinkedHashMap<String, String> value) { CH$LINK=new LinkedHashMap<>(value); }
 
-	public String SP_SCIENTIFIC_NAME() {
+	@Column(name = "sp_scientific_name", length = 512)
+	public String getSpScientificName() {
 		return SP$SCIENTIFIC_NAME;
 	}
-	public void SP_SCIENTIFIC_NAME(String value) {
+	public void setSpScientificName(String value) {
 		SP$SCIENTIFIC_NAME = value;
 	}
-	
-	public String SP_LINEAGE() {
+
+	public String SP_SCIENTIFIC_NAME() {
+		return getSpScientificName();
+	}
+	public void SP_SCIENTIFIC_NAME(String value) {
+		setSpScientificName(value);
+	}
+
+	@Column(name = "sp_lineage", length = 2048)
+	public String getSpLineage() {
 		return SP$LINEAGE;
 	}
-	public void SP_LINEAGE(String value) {
+	public void setSpLineage(String value) {
 		SP$LINEAGE = value;
 	}
- 
+
+	public String SP_LINEAGE() {
+		return getSpLineage();
+	}
+	public void SP_LINEAGE(String value) {
+		setSpLineage(value);
+	}
+
 
 	public LinkedHashMap<String, String> SP_LINK() {
 		return SP$LINK;
@@ -484,19 +507,19 @@ public class Record {
 		
 		for (String ch_name : getChName())
 			sb.append("CH$NAME: ").append(ch_name).append("\n");
-		if (!CH_COMPOUND_CLASS().isEmpty()) {
-			sb.append("CH$COMPOUND_CLASS: ").append(String.join("; ", CH_COMPOUND_CLASS())).append("\n");
+		if (!getChCompoundClass().isEmpty()) {
+			sb.append("CH$COMPOUND_CLASS: ").append(String.join("; ", getChCompoundClass())).append("\n");
 		}
-		sb.append("CH$FORMULA: ").append(CH_FORMULA()).append("\n");
-		sb.append("CH$EXACT_MASS: ").append(CH_EXACT_MASS()).append("\n");
+		sb.append("CH$FORMULA: ").append(getChFormula()).append("\n");
+		sb.append("CH$EXACT_MASS: ").append(getChExactMass()).append("\n");
 		sb.append("CH$SMILES: ").append(CH_SMILES()).append("\n");
 		sb.append("CH$IUPAC: ").append(CH_IUPAC()).append("\n");
 		CH_LINK().forEach((key,value) -> sb.append("CH$LINK: ").append(key).append(" ").append(value).append("\n"));
 		
-		if (!"".equals(SP_SCIENTIFIC_NAME()))
-			sb.append("SP$SCIENTIFIC_NAME: ").append(SP_SCIENTIFIC_NAME()).append("\n");
-		if (!"".equals(SP_LINEAGE()))
-			sb.append("SP$LINEAGE: ").append(SP_LINEAGE()).append("\n");
+		if (!"".equals(getSpScientificName()))
+			sb.append("SP$SCIENTIFIC_NAME: ").append(getSpScientificName()).append("\n");
+		if (!"".equals(getSpLineage()))
+			sb.append("SP$LINEAGE: ").append(getSpLineage()).append("\n");
 		SP_LINK().forEach((key,value) -> sb.append("SP$LINK: ").append(key).append(" ").append(value).append("\n"));
 		for (String sample : SP_SAMPLE())
 			sb.append("SP$SAMPLE: ").append(sample).append("\n");
@@ -578,9 +601,9 @@ public class Record {
 		
 		for (String ch_name : getChName())
 			sb.append("<b>CH$NAME:</b> ").append(ch_name).append("<br>\n");
-		sb.append("<b>CH$COMPOUND_CLASS:</b> ").append(String.join("; ", CH_COMPOUND_CLASS())).append("<br>\n");
-		sb.append("<b>CH$FORMULA:</b> <a href=\"http://www.chemspider.com/Search.aspx?q=").append(CH_FORMULA()).append("\" target=\"_blank\">").append(CH_FORMULA1()).append("</a><br>\n");
-		sb.append("<b>CH$EXACT_MASS:</b> ").append(CH_EXACT_MASS()).append("<br>\n");
+		sb.append("<b>CH$COMPOUND_CLASS:</b> ").append(String.join("; ", getChCompoundClass())).append("<br>\n");
+		sb.append("<b>CH$FORMULA:</b> <a href=\"http://www.chemspider.com/Search.aspx?q=").append(getChFormula()).append("\" target=\"_blank\">").append(getChFormula1()).append("</a><br>\n");
+		sb.append("<b>CH$EXACT_MASS:</b> ").append(getChExactMass()).append("<br>\n");
 		sb.append("<b>CH$SMILES:</b> ").append(CH_SMILES()).append("<br>\n");
 		sb.append("<b>CH$IUPAC:</b> ").append(CH_IUPAC()).append("<br>\n");
 		CH_LINK().forEach((key,value) -> {
@@ -632,10 +655,10 @@ public class Record {
 			}
 		});
 		
-		if (!"".equals(SP_SCIENTIFIC_NAME()))
-			sb.append("<b>SP$SCIENTIFIC_NAME:</b> ").append(SP_SCIENTIFIC_NAME()).append("<br>\n");
-		if (!"".equals(SP_LINEAGE()))
-			sb.append("<b>SP$LINEAGE:</b> ").append(SP_LINEAGE()).append("<br>\n");
+		if (!"".equals(getSpScientificName()))
+			sb.append("<b>SP$SCIENTIFIC_NAME:</b> ").append(getSpScientificName()).append("<br>\n");
+		if (!"".equals(getSpLineage()))
+			sb.append("<b>SP$LINEAGE:</b> ").append(getSpLineage()).append("<br>\n");
 		SP_LINK().forEach((key,value) -> sb.append("<b>SP$LINK:</b> ").append(key).append(" ").append(value).append("<br>\n"));
 		for (String sample : SP_SAMPLE())
 				sb.append("<b>SP$SAMPLE:</b> ").append(sample).append("<br>\n");
@@ -864,7 +887,7 @@ public class Record {
 		chemicalSubstance.addProperty("identifier", getAccession());
 		chemicalSubstance.addProperty("name", RECORD_TITLE().getFirst());
 		chemicalSubstance.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
-		chemicalSubstance.addProperty("chemicalComposition", CH_FORMULA());
+		chemicalSubstance.addProperty("chemicalComposition", getChFormula());
 		if (getChName().size() == 1)  chemicalSubstance.addProperty("alternateName", getChName().getFirst());
 		else if (!getChName().isEmpty()) chemicalSubstance.add("alternateName", gson.toJsonTree(getChName()));
 
@@ -883,8 +906,8 @@ public class Record {
 		molecularEntity.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
 		if (!CH_IUPAC().equals("N/A")) molecularEntity.addProperty("inChI", CH_IUPAC());
 		if (!CH_SMILES().equals("N/A")) molecularEntity.addProperty("smiles", CH_SMILES());
-		molecularEntity.addProperty("molecularFormula", CH_FORMULA());
-		molecularEntity.addProperty("monoisotopicMolecularWeight", CH_EXACT_MASS());
+		molecularEntity.addProperty("molecularFormula", getChFormula());
+		molecularEntity.addProperty("monoisotopicMolecularWeight", getChExactMass());
 		if (InChiKey!=null) molecularEntity.addProperty("inChIKey", InChiKey);
 		
 		molecularEntitys.add(molecularEntity);

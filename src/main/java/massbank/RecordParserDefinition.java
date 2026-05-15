@@ -1657,19 +1657,19 @@ public class RecordParserDefinition extends GrammarDefinition {
     @SuppressWarnings("unchecked")
     private Record setCH_COMPOUND_CLASS(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) record.CH_COMPOUND_CLASS((List<String>) value.getLast());
+        if (value.getLast() != null) record.setChCompoundClass((List<String>) value.getLast());
         return record;
     }
 
     private Record setCH_FORMULA(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.CH_FORMULA((String) value.getLast());
+        record.setChFormula((String) value.getLast());
         return record;
     }
 
     private Record setCH_EXACT_MASS(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.CH_EXACT_MASS((BigDecimal) value.getLast());
+        record.setChExactMass((BigDecimal) value.getLast());
         return record;
     }
 
@@ -1700,13 +1700,13 @@ public class RecordParserDefinition extends GrammarDefinition {
 
     private Record setSP_SCIENTIFIC_NAME(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) record.SP_SCIENTIFIC_NAME((String) value.getLast());
+        if (value.getLast() != null) record.setSpScientificName((String) value.getLast());
         return record;
     }
 
     private Record setSP_LINEAGE(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) record.SP_LINEAGE((String) value.getLast());
+        if (value.getLast() != null) record.setSpLineage((String) value.getLast());
         return record;
     }
 
@@ -1841,12 +1841,12 @@ public class RecordParserDefinition extends GrammarDefinition {
 
             // validate formula
             IMolecularFormula fromCH_FORMULA;
-            if (!"N/A".equals(record.CH_FORMULA())) {
-                fromCH_FORMULA = MolecularFormulaManipulator.getMolecularFormula(record.CH_FORMULA(), SilentChemObjectBuilder.getInstance());
+            if (!"N/A".equals(record.getChFormula())) {
+                fromCH_FORMULA = MolecularFormulaManipulator.getMolecularFormula(record.getChFormula(), SilentChemObjectBuilder.getInstance());
                 String StringFromCH_FORMULA = MolecularFormulaManipulator.getString(fromCH_FORMULA);
-                if (!StringFromCH_FORMULA.equals(record.CH_FORMULA())) {
+                if (!StringFromCH_FORMULA.equals(record.getChFormula())) {
                     return context.failure("Can not read formula in \"CH$FORMULA\" field correctly.\n"
-                        + "Formula from CH$FORMULA: " + record.CH_FORMULA() + "\n"
+                        + "Formula from CH$FORMULA: " + record.getChFormula() + "\n"
                         + "Formula after parsing  : " + StringFromCH_FORMULA);
                 }
             }
@@ -1920,7 +1920,7 @@ public class RecordParserDefinition extends GrammarDefinition {
                 // no N/A allowed
                 if ("N/A".equals(record.CH_SMILES()))
                     return context.failure("If CH$IUPAC is defined, CH$SMILES can not be \"N/A\".");
-                if ("N/A".equals(record.CH_FORMULA()))
+                if ("N/A".equals(record.getChFormula()))
                     return context.failure("If CH$IUPAC is defined, CH$FORMULA can not be \"N/A\".");
                 // check content of CH$SMILES for equality
                 if (InChiKeyFromCH_SMILES == null) throw new RuntimeException("unexpected condition");
@@ -1949,12 +1949,12 @@ public class RecordParserDefinition extends GrammarDefinition {
                 // check content of CH$FORMULA for equality
                 if (fromCH_IUPAC == null) throw new RuntimeException("unexpected condition");
                 String formulaFromInChI = MolecularFormulaManipulator.getString(MolecularFormulaManipulator.getMolecularFormula(fromCH_IUPAC));
-                logger.trace("Formula from CH$FORMULA: {}", record.CH_FORMULA());
+                logger.trace("Formula from CH$FORMULA: {}", record.getChFormula());
                 logger.trace("Formula from CH$IUPAC:   {}", formulaFromInChI);
-                if (!formulaFromInChI.equals(record.CH_FORMULA())) {
+                if (!formulaFromInChI.equals(record.getChFormula())) {
                     return context.failure("Formula generated from InChI string in \"CH$IUPAC\" field does not match formula in \"CH$FORMULA\".\n"
                         + "Formula from CH$IUPAC:   " + formulaFromInChI + "\n"
-                        + "Formula from CH$FORMULA: " + record.CH_FORMULA());
+                        + "Formula from CH$FORMULA: " + record.getChFormula());
                 }
             }
 
@@ -1963,7 +1963,7 @@ public class RecordParserDefinition extends GrammarDefinition {
                 if (!smilesHasWildcards) {
                     if ("N/A".equals(record.CH_IUPAC()))
                         return context.failure("If CH$SMILES is defined and without wildcards, CH$IUPAC can not be \"N/A\".");
-                    if ("N/A".equals(record.CH_FORMULA()))
+                    if ("N/A".equals(record.getChFormula()))
                         return context.failure("If CH$SMILES is defined and without wildcards, CH$FORMULA can not be \"N/A\".");
                 } else {
                     logger.trace("SMILES with wildcards defined");
