@@ -1726,7 +1726,7 @@ public class RecordParserDefinition extends GrammarDefinition {
     @SuppressWarnings("unchecked")
     private Record setSP_SAMPLE(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) record.SP_SAMPLE((List<String>) value.getLast());
+        if (value.getLast() != null) record.setSpSample((List<String>) value.getLast());
         return record;
     }
 

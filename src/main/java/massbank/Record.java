@@ -86,10 +86,10 @@ public class Record {
 	private String CH$SMILES;
 	private String CH$IUPAC;
 	private LinkedHashMap<String, String> CH$LINK; // optional
-	private String SP$SCIENTIFIC_NAME; // optional
-	private String SP$LINEAGE; // optional
+	private String spScientificName; // optional
+	private String spLineage; // optional
 	private LinkedHashMap<String, String> SP$LINK; // optional
-	private List<String> SP$SAMPLE; // optional
+	private List<String> spSample; // optional
 	private String AC$INSTRUMENT;
 	private String AC$INSTRUMENT_TYPE;
 	private String AC$MASS_SPECTROMETRY_MS_TYPE;
@@ -123,10 +123,10 @@ public class Record {
 		CH$SMILES = "";
 		CH$IUPAC = "";
 		CH$LINK = new LinkedHashMap<>(); // optional
-		SP$SCIENTIFIC_NAME = ""; // optional
-		SP$LINEAGE = ""; // optional
+		spScientificName = ""; // optional
+		spLineage = ""; // optional
 		SP$LINK = new LinkedHashMap<>(); // optional
-		SP$SAMPLE = new ArrayList<>(); // optional
+		spSample = new ArrayList<>(); // optional
 		AC$INSTRUMENT = "";
 		AC$INSTRUMENT_TYPE = "";
 		AC$MASS_SPECTROMETRY_MS_TYPE = "";
@@ -353,34 +353,22 @@ public class Record {
 	}
 	public void CH_LINK(LinkedHashMap<String, String> value) { CH$LINK=new LinkedHashMap<>(value); }
 
+
 	@Column(name = "sp_scientific_name", length = 512)
 	public String getSpScientificName() {
-		return SP$SCIENTIFIC_NAME;
+		return spScientificName;
 	}
 	public void setSpScientificName(String value) {
-		SP$SCIENTIFIC_NAME = value;
+		spScientificName = value;
 	}
 
-	public String SP_SCIENTIFIC_NAME() {
-		return getSpScientificName();
-	}
-	public void SP_SCIENTIFIC_NAME(String value) {
-		setSpScientificName(value);
-	}
 
 	@Column(name = "sp_lineage", length = 2048)
 	public String getSpLineage() {
-		return SP$LINEAGE;
+		return spLineage;
 	}
 	public void setSpLineage(String value) {
-		SP$LINEAGE = value;
-	}
-
-	public String SP_LINEAGE() {
-		return getSpLineage();
-	}
-	public void SP_LINEAGE(String value) {
-		setSpLineage(value);
+		spLineage = value;
 	}
 
 
@@ -391,11 +379,20 @@ public class Record {
 		SP$LINK = new LinkedHashMap<>(value);
 	}
 
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "sp_sample", columnDefinition = "jsonb")
+	public List<String> getSpSample() {
+		return spSample;
+	}
+	public void setSpSample(List<String> value) {
+		spSample = value == null ? new ArrayList<>() : new ArrayList<>(value);
+	}
+
 	public List<String> SP_SAMPLE() {
-		return SP$SAMPLE;
+		return getSpSample();
 	}
 	public void SP_SAMPLE(List<String> value) {
-		SP$SAMPLE = List.copyOf(value);
+		setSpSample(value);
 	}
 	
 	public String AC_INSTRUMENT() {
@@ -521,7 +518,7 @@ public class Record {
 		if (!"".equals(getSpLineage()))
 			sb.append("SP$LINEAGE: ").append(getSpLineage()).append("\n");
 		SP_LINK().forEach((key,value) -> sb.append("SP$LINK: ").append(key).append(" ").append(value).append("\n"));
-		for (String sample : SP_SAMPLE())
+		for (String sample : getSpSample())
 			sb.append("SP$SAMPLE: ").append(sample).append("\n");
 		
 		sb.append("AC$INSTRUMENT: ").append(AC_INSTRUMENT()).append("\n");
@@ -660,7 +657,7 @@ public class Record {
 		if (!"".equals(getSpLineage()))
 			sb.append("<b>SP$LINEAGE:</b> ").append(getSpLineage()).append("<br>\n");
 		SP_LINK().forEach((key,value) -> sb.append("<b>SP$LINK:</b> ").append(key).append(" ").append(value).append("<br>\n"));
-		for (String sample : SP_SAMPLE())
+		for (String sample : getSpSample())
 				sb.append("<b>SP$SAMPLE:</b> ").append(sample).append("<br>\n");
 		sb.append("<hr>\n");
 		
