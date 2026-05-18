@@ -110,8 +110,8 @@ public class RecordToJson {
 				SP$LINEAGE = "".equals(record.getSpLineage()) ? null : record.getSpLineage();
 				SP$LINK = record.SP_LINK().isEmpty() ? null : record.SP_LINK();
 				SP$SAMPLE = record.getSpSample().isEmpty() ? null : record.getSpSample();
-				AC$INSTRUMENT = record.AC_INSTRUMENT();
-				AC$INSTRUMENT_TYPE = record.AC_INSTRUMENT_TYPE();
+				AC$INSTRUMENT = record.getAcInstrument();
+				AC$INSTRUMENT_TYPE = record.getAcInstrumentType();
 				AC$MASS_SPECTROMETRY_MS_TYPE = record.AC_MASS_SPECTROMETRY_MS_TYPE();
 				AC$MASS_SPECTROMETRY_ION_MODE = record.AC_MASS_SPECTROMETRY_ION_MODE();
 				if (record.AC_MASS_SPECTROMETRY().isEmpty())

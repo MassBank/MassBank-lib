@@ -139,8 +139,8 @@ public class RecordToNIST_MSP {
                     .append(System.lineSeparator());
         }
 
-		sb.append("Instrument_type: ").append(record.AC_INSTRUMENT_TYPE()).append(System.lineSeparator());
-		sb.append("Instrument: ").append(record.AC_INSTRUMENT()).append(System.lineSeparator());
+		sb.append("Instrument_type: ").append(record.getAcInstrumentType()).append(System.lineSeparator());
+		sb.append("Instrument: ").append(record.getAcInstrument()).append(System.lineSeparator());
 		sb.append("Ion_mode: ").append(record.AC_MASS_SPECTROMETRY_ION_MODE()).append(System.lineSeparator());
 
         if (record.AC_MASS_SPECTROMETRY().stream().anyMatch(p -> "COLLISION_ENERGY".equals(p.getLeft()))) {

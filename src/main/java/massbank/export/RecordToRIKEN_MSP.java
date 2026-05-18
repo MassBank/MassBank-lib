@@ -130,8 +130,8 @@ public class RecordToRIKEN_MSP {
                         .findFirst()
                         .orElse("0"))
                 .append(System.lineSeparator());
-		sb.append("INSTRUMENTTYPE: ").append(record.AC_INSTRUMENT_TYPE()).append(System.lineSeparator());
-		sb.append("INSTRUMENT: ").append(record.AC_INSTRUMENT()).append(System.lineSeparator());
+		sb.append("INSTRUMENTTYPE: ").append(record.getAcInstrumentType()).append(System.lineSeparator());
+		sb.append("INSTRUMENT: ").append(record.getAcInstrument()).append(System.lineSeparator());
 		if (record.AC_MASS_SPECTROMETRY_ION_MODE().equals("NEGATIVE")) {
 			sb.append("IONMODE: Negative").append(System.lineSeparator());
 		} else if (record.AC_MASS_SPECTROMETRY_ION_MODE().equals("POSITIVE")) {

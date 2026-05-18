@@ -90,8 +90,8 @@ public class Record {
 	private String spLineage; // optional
 	private LinkedHashMap<String, String> SP$LINK; // optional
 	private List<String> spSample; // optional
-	private String AC$INSTRUMENT;
-	private String AC$INSTRUMENT_TYPE;
+	private String acInstrument;
+	private String acInstrumentType;
 	private String AC$MASS_SPECTROMETRY_MS_TYPE;
 	private String AC$MASS_SPECTROMETRY_ION_MODE;
 	private List<Pair<String, String>> AC$MASS_SPECTROMETRY; // optional
@@ -127,8 +127,8 @@ public class Record {
 		spLineage = ""; // optional
 		SP$LINK = new LinkedHashMap<>(); // optional
 		spSample = new ArrayList<>(); // optional
-		AC$INSTRUMENT = "";
-		AC$INSTRUMENT_TYPE = "";
+		acInstrument = "";
+		acInstrumentType = "";
 		AC$MASS_SPECTROMETRY_MS_TYPE = "";
 		AC$MASS_SPECTROMETRY_ION_MODE = "";
 		AC$MASS_SPECTROMETRY = new ArrayList<>(); // optional
@@ -149,6 +149,7 @@ public class Record {
 	public void setAccession(String accession) {
 		this.accession = accession;
 	}
+
 
 	@Transient
 	public boolean isDeprecated() {
@@ -183,7 +184,8 @@ public class Record {
 	public void RECORD_TITLE1(String value) {
 		RECORD_TITLE = new ArrayList<>(Arrays.asList(value.split("; ")));
 	}
-	
+
+
 	@Column(name = "date", length = 100)
 	public String getDate() {
 		return date;
@@ -197,6 +199,7 @@ public class Record {
 		// DATE: 2016.01.19 (Created 2006.12.21, modified 2011.05.06)
 		return date.replace("(Created ", "").replace(", modified", "").replace(")", "").split(" ");
 	}
+
 
 	@Column(name = "authors", length = 512)
 	public String getAuthors() {
@@ -379,6 +382,7 @@ public class Record {
 		SP$LINK = new LinkedHashMap<>(value);
 	}
 
+
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "sp_sample", columnDefinition = "jsonb")
 	public List<String> getSpSample() {
@@ -388,27 +392,24 @@ public class Record {
 		spSample = value == null ? new ArrayList<>() : new ArrayList<>(value);
 	}
 
-	public List<String> SP_SAMPLE() {
-		return getSpSample();
+
+	@Column(name = "ac_instrument", length = 2048)
+	public String getAcInstrument() {
+		return acInstrument;
 	}
-	public void SP_SAMPLE(List<String> value) {
-		setSpSample(value);
-	}
-	
-	public String AC_INSTRUMENT() {
-		return AC$INSTRUMENT;
-	}
-	public void AC_INSTRUMENT(String value) {
-		AC$INSTRUMENT = value;
+	public void setAcInstrument(String value) {
+		acInstrument = value;
 	}
 
-	public String AC_INSTRUMENT_TYPE() {
-		return AC$INSTRUMENT_TYPE;
+
+	@Column(name = "ac_instrument_type", length = 512)
+	public String getAcInstrumentType() {
+		return acInstrumentType;
 	}
-	public void AC_INSTRUMENT_TYPE(String value) {
-		this.AC$INSTRUMENT_TYPE = value;
+	public void setAcInstrumentType(String value) {
+		this.acInstrumentType = value;
 	}
-	
+
 	public String AC_MASS_SPECTROMETRY_MS_TYPE() {
 		return AC$MASS_SPECTROMETRY_MS_TYPE;
 	}
@@ -521,8 +522,8 @@ public class Record {
 		for (String sample : getSpSample())
 			sb.append("SP$SAMPLE: ").append(sample).append("\n");
 		
-		sb.append("AC$INSTRUMENT: ").append(AC_INSTRUMENT()).append("\n");
-		sb.append("AC$INSTRUMENT_TYPE: ").append(AC_INSTRUMENT_TYPE()).append("\n");
+		sb.append("AC$INSTRUMENT: ").append(getAcInstrument()).append("\n");
+		sb.append("AC$INSTRUMENT_TYPE: ").append(getAcInstrumentType()).append("\n");
 		sb.append("AC$MASS_SPECTROMETRY: MS_TYPE ").append(AC_MASS_SPECTROMETRY_MS_TYPE()).append("\n");
 		sb.append("AC$MASS_SPECTROMETRY: ION_MODE ").append(AC_MASS_SPECTROMETRY_ION_MODE()).append("\n");
         for (Pair<String, String> entry : AC_MASS_SPECTROMETRY()) {
@@ -661,8 +662,8 @@ public class Record {
 				sb.append("<b>SP$SAMPLE:</b> ").append(sample).append("<br>\n");
 		sb.append("<hr>\n");
 		
-		sb.append("<b>AC$INSTRUMENT:</b> ").append(AC_INSTRUMENT()).append("<br>\n");
-		sb.append("<b>AC$INSTRUMENT_TYPE:</b> ").append(AC_INSTRUMENT_TYPE()).append("<br>\n");
+		sb.append("<b>AC$INSTRUMENT:</b> ").append(getAcInstrument()).append("<br>\n");
+		sb.append("<b>AC$INSTRUMENT_TYPE:</b> ").append(getAcInstrumentType()).append("<br>\n");
 		sb.append("<b>AC$MASS_SPECTROMETRY:</b> MS_TYPE ").append(AC_MASS_SPECTROMETRY_MS_TYPE()).append("<br>\n");
 		sb.append("<b>AC$MASS_SPECTROMETRY:</b> ION_MODE ").append(AC_MASS_SPECTROMETRY_ION_MODE()).append("<br>\n");
         for (Pair<String, String> entry: AC_MASS_SPECTROMETRY()) {

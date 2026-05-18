@@ -1732,13 +1732,13 @@ public class RecordParserDefinition extends GrammarDefinition {
 
     private Record setAC_INSTRUMENT(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.AC_INSTRUMENT((String) value.getLast());
+        record.setAcInstrument((String) value.getLast());
         return record;
     }
 
     private Record setAC_INSTRUMENT_TYPE(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.AC_INSTRUMENT_TYPE((String) value.getLast());
+        record.setAcInstrumentType((String) value.getLast());
         return record;
     }
 

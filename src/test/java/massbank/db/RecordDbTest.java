@@ -111,6 +111,8 @@ class RecordDbTest {
         r.setSpScientificName("Mus musculus");
         r.setSpLineage("cellular organisms; Eukaryota; Metazoa; Chordata; Mammalia; Rodentia; Mus");
         r.setSpSample(List.of("liver", "plasma"));
+        r.setAcInstrument("Q Exactive Orbitrap");
+        r.setAcInstrumentType("LC-ESI-QTOF");
         r.setComment(List.of("First comment", "Second comment"));
 
         Record loaded = persistAndReload(r);
@@ -142,6 +144,8 @@ class RecordDbTest {
         assertEquals(expected.getSpScientificName(), actual.getSpScientificName(), () -> "SP$SCIENTIFIC_NAME mismatch for " + expected.getAccession());
         assertEquals(expected.getSpLineage(), actual.getSpLineage(), () -> "SP$LINEAGE mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getSpSample()), new ArrayList<>(actual.getSpSample()), () -> "SP$SAMPLE mismatch for " + expected.getAccession());
+        assertEquals(expected.getAcInstrument(), actual.getAcInstrument(), () -> "AC$INSTRUMENT mismatch for " + expected.getAccession());
+        assertEquals(expected.getAcInstrumentType(), actual.getAcInstrumentType(), () -> "AC$INSTRUMENT_TYPE mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getComment()), new ArrayList<>(actual.getComment()), () -> "comment mismatch for " + expected.getAccession());
     }
 }
