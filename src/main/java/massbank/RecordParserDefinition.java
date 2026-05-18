@@ -1744,13 +1744,13 @@ public class RecordParserDefinition extends GrammarDefinition {
 
     private Record setAC_MASS_SPECTROMETRY_MS_TYPE(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.AC_MASS_SPECTROMETRY_MS_TYPE((String) value.getLast());
+        record.setAcMassSpectrometryMsType((String) value.getLast());
         return record;
     }
 
     private Record setAC_MASS_SPECTROMETRY_ION_MODE(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.AC_MASS_SPECTROMETRY_ION_MODE((String) value.getLast());
+        record.setAcMassSpectrometryIonMode((String) value.getLast());
         return record;
     }
 

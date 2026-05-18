@@ -128,7 +128,7 @@ public class RecordToNIST_MSP {
                             .getRight())
                     .append(System.lineSeparator());
         }
-		sb.append("Spectrum_type: ").append(record.AC_MASS_SPECTROMETRY_MS_TYPE()).append(System.lineSeparator());
+		sb.append("Spectrum_type: ").append(record.getAcMassSpectrometryMsType()).append(System.lineSeparator());
         if (record.MS_FOCUSED_ION().stream().anyMatch(p -> "PRECURSOR_M/Z".equals(p.getLeft()))) {
             sb.append("PrecursorMZ: ")
                     .append(record.MS_FOCUSED_ION().stream()
@@ -141,7 +141,7 @@ public class RecordToNIST_MSP {
 
 		sb.append("Instrument_type: ").append(record.getAcInstrumentType()).append(System.lineSeparator());
 		sb.append("Instrument: ").append(record.getAcInstrument()).append(System.lineSeparator());
-		sb.append("Ion_mode: ").append(record.AC_MASS_SPECTROMETRY_ION_MODE()).append(System.lineSeparator());
+		sb.append("Ion_mode: ").append(record.getAcMassSpectrometryIonMode()).append(System.lineSeparator());
 
         if (record.AC_MASS_SPECTROMETRY().stream().anyMatch(p -> "COLLISION_ENERGY".equals(p.getLeft()))) {
             sb.append("Collision_energy: ")

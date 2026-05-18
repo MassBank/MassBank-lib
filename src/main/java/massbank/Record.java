@@ -92,8 +92,8 @@ public class Record {
 	private List<String> spSample; // optional
 	private String acInstrument;
 	private String acInstrumentType;
-	private String AC$MASS_SPECTROMETRY_MS_TYPE;
-	private String AC$MASS_SPECTROMETRY_ION_MODE;
+	private String acMassSpectrometryMsType;
+	private String acMassSpectrometryIonMode;
 	private List<Pair<String, String>> AC$MASS_SPECTROMETRY; // optional
 	private List<Pair<String, String>> AC$CHROMATOGRAPHY; // optional
 	private List<Pair<String, String>> MS$FOCUSED_ION; // optional
@@ -129,8 +129,8 @@ public class Record {
 		spSample = new ArrayList<>(); // optional
 		acInstrument = "";
 		acInstrumentType = "";
-		AC$MASS_SPECTROMETRY_MS_TYPE = "";
-		AC$MASS_SPECTROMETRY_ION_MODE = "";
+		acMassSpectrometryMsType = "";
+		acMassSpectrometryIonMode = "";
 		AC$MASS_SPECTROMETRY = new ArrayList<>(); // optional
 		AC$CHROMATOGRAPHY = new ArrayList<>(); // optional
 		MS$FOCUSED_ION = new ArrayList<>(); // optional
@@ -410,20 +410,25 @@ public class Record {
 		this.acInstrumentType = value;
 	}
 
-	public String AC_MASS_SPECTROMETRY_MS_TYPE() {
-		return AC$MASS_SPECTROMETRY_MS_TYPE;
+
+	@Column(name = "ac_mass_spectrometry_ms_type", length = 32)
+	public String getAcMassSpectrometryMsType() {
+		return acMassSpectrometryMsType;
 	}
-	public void AC_MASS_SPECTROMETRY_MS_TYPE(String value) {
-		AC$MASS_SPECTROMETRY_MS_TYPE = value;
+	public void setAcMassSpectrometryMsType(String value) {
+		acMassSpectrometryMsType = value;
 	}
-	
-	public String AC_MASS_SPECTROMETRY_ION_MODE() {
-		return AC$MASS_SPECTROMETRY_ION_MODE;
+
+
+	@Column(name = "ac_mass_spectrometry_ion_mode", length = 32)
+	public String getAcMassSpectrometryIonMode() {
+		return acMassSpectrometryIonMode;
 	}
-	public void AC_MASS_SPECTROMETRY_ION_MODE(String value) {
-		AC$MASS_SPECTROMETRY_ION_MODE = value;
+	public void setAcMassSpectrometryIonMode(String value) {
+		acMassSpectrometryIonMode = value;
 	}
-	
+
+
 	public List<Pair<String, String>> AC_MASS_SPECTROMETRY() {
 		return AC$MASS_SPECTROMETRY;
 	}
@@ -524,8 +529,8 @@ public class Record {
 		
 		sb.append("AC$INSTRUMENT: ").append(getAcInstrument()).append("\n");
 		sb.append("AC$INSTRUMENT_TYPE: ").append(getAcInstrumentType()).append("\n");
-		sb.append("AC$MASS_SPECTROMETRY: MS_TYPE ").append(AC_MASS_SPECTROMETRY_MS_TYPE()).append("\n");
-		sb.append("AC$MASS_SPECTROMETRY: ION_MODE ").append(AC_MASS_SPECTROMETRY_ION_MODE()).append("\n");
+		sb.append("AC$MASS_SPECTROMETRY: MS_TYPE ").append(getAcMassSpectrometryMsType()).append("\n");
+		sb.append("AC$MASS_SPECTROMETRY: ION_MODE ").append(getAcMassSpectrometryIonMode()).append("\n");
         for (Pair<String, String> entry : AC_MASS_SPECTROMETRY()) {
 			sb.append("AC$MASS_SPECTROMETRY: ")
 					.append(entry.getKey())
@@ -664,8 +669,8 @@ public class Record {
 		
 		sb.append("<b>AC$INSTRUMENT:</b> ").append(getAcInstrument()).append("<br>\n");
 		sb.append("<b>AC$INSTRUMENT_TYPE:</b> ").append(getAcInstrumentType()).append("<br>\n");
-		sb.append("<b>AC$MASS_SPECTROMETRY:</b> MS_TYPE ").append(AC_MASS_SPECTROMETRY_MS_TYPE()).append("<br>\n");
-		sb.append("<b>AC$MASS_SPECTROMETRY:</b> ION_MODE ").append(AC_MASS_SPECTROMETRY_ION_MODE()).append("<br>\n");
+		sb.append("<b>AC$MASS_SPECTROMETRY:</b> MS_TYPE ").append(getAcMassSpectrometryMsType()).append("<br>\n");
+		sb.append("<b>AC$MASS_SPECTROMETRY:</b> ION_MODE ").append(getAcMassSpectrometryIonMode()).append("<br>\n");
         for (Pair<String, String> entry: AC_MASS_SPECTROMETRY()) {
 			sb.append("<b>AC$MASS_SPECTROMETRY:</b> ")
 					.append(entry.getKey())
@@ -810,7 +815,7 @@ public class Record {
 		}
 		String InChiKey = CH_LINK().get("INCHIKEY");
 		String description = "This MassBank record with Accession " + getAccession()
-			+ " contains the " + AC_MASS_SPECTROMETRY_MS_TYPE() + " mass spectrum of " + RECORD_TITLE().getFirst()
+			+ " contains the " + getAcMassSpectrometryMsType() + " mass spectrum of " + RECORD_TITLE().getFirst()
 			+ ((InChiKey==null) ? "." : " with the InChIkey " + InChiKey + ".");
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		

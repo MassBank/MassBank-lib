@@ -113,6 +113,8 @@ class RecordDbTest {
         r.setSpSample(List.of("liver", "plasma"));
         r.setAcInstrument("Q Exactive Orbitrap");
         r.setAcInstrumentType("LC-ESI-QTOF");
+        r.setAcMassSpectrometryMsType("MS2");
+        r.setAcMassSpectrometryIonMode("POSITIVE");
         r.setComment(List.of("First comment", "Second comment"));
 
         Record loaded = persistAndReload(r);
@@ -146,6 +148,8 @@ class RecordDbTest {
         assertEquals(new ArrayList<>(expected.getSpSample()), new ArrayList<>(actual.getSpSample()), () -> "SP$SAMPLE mismatch for " + expected.getAccession());
         assertEquals(expected.getAcInstrument(), actual.getAcInstrument(), () -> "AC$INSTRUMENT mismatch for " + expected.getAccession());
         assertEquals(expected.getAcInstrumentType(), actual.getAcInstrumentType(), () -> "AC$INSTRUMENT_TYPE mismatch for " + expected.getAccession());
+        assertEquals(expected.getAcMassSpectrometryMsType(), actual.getAcMassSpectrometryMsType(), () -> "AC$MASS_SPECTROMETRY_MS_TYPE mismatch for " + expected.getAccession());
+        assertEquals(expected.getAcMassSpectrometryIonMode(), actual.getAcMassSpectrometryIonMode(), () -> "AC$MASS_SPECTROMETRY_ION_MODE mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getComment()), new ArrayList<>(actual.getComment()), () -> "comment mismatch for " + expected.getAccession());
     }
 }

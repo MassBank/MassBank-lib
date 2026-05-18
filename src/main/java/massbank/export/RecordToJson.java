@@ -112,8 +112,8 @@ public class RecordToJson {
 				SP$SAMPLE = record.getSpSample().isEmpty() ? null : record.getSpSample();
 				AC$INSTRUMENT = record.getAcInstrument();
 				AC$INSTRUMENT_TYPE = record.getAcInstrumentType();
-				AC$MASS_SPECTROMETRY_MS_TYPE = record.AC_MASS_SPECTROMETRY_MS_TYPE();
-				AC$MASS_SPECTROMETRY_ION_MODE = record.AC_MASS_SPECTROMETRY_ION_MODE();
+				AC$MASS_SPECTROMETRY_MS_TYPE = record.getAcMassSpectrometryMsType();
+				AC$MASS_SPECTROMETRY_ION_MODE = record.getAcMassSpectrometryIonMode();
 				if (record.AC_MASS_SPECTROMETRY().isEmpty())
 					AC$MASS_SPECTROMETRY = null;
 				else {
