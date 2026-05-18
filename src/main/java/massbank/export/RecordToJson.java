@@ -75,7 +75,7 @@ public class RecordToJson {
 		String AC$INSTRUMENT_TYPE;
 		String AC$MASS_SPECTROMETRY_MS_TYPE;
 		String AC$MASS_SPECTROMETRY_ION_MODE;
-		LinkedHashMap<String, String> AC$MASS_SPECTROMETRY; // optional
+		List<Record.KeyValue> AC$MASS_SPECTROMETRY; // optional
 		LinkedHashMap<String, String> AC$CHROMATOGRAPHY; // optional
 		LinkedHashMap<String, String> MS$FOCUSED_ION; // optional
 		LinkedHashMap<String, String> MS$DATA_PROCESSING; // optional
@@ -114,19 +114,7 @@ public class RecordToJson {
 				AC$INSTRUMENT_TYPE = record.getAcInstrumentType();
 				AC$MASS_SPECTROMETRY_MS_TYPE = record.getAcMassSpectrometryMsType();
 				AC$MASS_SPECTROMETRY_ION_MODE = record.getAcMassSpectrometryIonMode();
-				if (record.AC_MASS_SPECTROMETRY().isEmpty())
-					AC$MASS_SPECTROMETRY = null;
-				else {
-					AC$MASS_SPECTROMETRY = new LinkedHashMap<>();
-					for (Pair<String, String> p : record.AC_MASS_SPECTROMETRY()) {
-						if (p == null) continue;
-						String key = p.getLeft();
-						String value = p.getRight();
-						if (key != null) {
-							AC$MASS_SPECTROMETRY.put(key, value);
-						}
-					}
-				}
+				AC$MASS_SPECTROMETRY = record.getAcMassSpectrometry();
 				if (record.AC_CHROMATOGRAPHY().isEmpty())
 					AC$CHROMATOGRAPHY = null;
 				else {

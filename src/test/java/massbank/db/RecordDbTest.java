@@ -115,6 +115,10 @@ class RecordDbTest {
         r.setAcInstrumentType("LC-ESI-QTOF");
         r.setAcMassSpectrometryMsType("MS2");
         r.setAcMassSpectrometryIonMode("POSITIVE");
+        r.setAcMassSpectrometry(List.of(
+            new Record.KeyValue("COLLISION_ENERGY", "35 eV"),
+            new Record.KeyValue("RESOLUTION", "70000")
+        ));
         r.setComment(List.of("First comment", "Second comment"));
 
         Record loaded = persistAndReload(r);
@@ -150,6 +154,7 @@ class RecordDbTest {
         assertEquals(expected.getAcInstrumentType(), actual.getAcInstrumentType(), () -> "AC$INSTRUMENT_TYPE mismatch for " + expected.getAccession());
         assertEquals(expected.getAcMassSpectrometryMsType(), actual.getAcMassSpectrometryMsType(), () -> "AC$MASS_SPECTROMETRY_MS_TYPE mismatch for " + expected.getAccession());
         assertEquals(expected.getAcMassSpectrometryIonMode(), actual.getAcMassSpectrometryIonMode(), () -> "AC$MASS_SPECTROMETRY_ION_MODE mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getAcMassSpectrometry()), new ArrayList<>(actual.getAcMassSpectrometry()), () -> "AC$MASS_SPECTROMETRY mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getComment()), new ArrayList<>(actual.getComment()), () -> "comment mismatch for " + expected.getAccession());
     }
 }

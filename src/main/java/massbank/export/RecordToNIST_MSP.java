@@ -143,15 +143,12 @@ public class RecordToNIST_MSP {
 		sb.append("Instrument: ").append(record.getAcInstrument()).append(System.lineSeparator());
 		sb.append("Ion_mode: ").append(record.getAcMassSpectrometryIonMode()).append(System.lineSeparator());
 
-        if (record.AC_MASS_SPECTROMETRY().stream().anyMatch(p -> "COLLISION_ENERGY".equals(p.getLeft()))) {
-            sb.append("Collision_energy: ")
-                    .append(record.AC_MASS_SPECTROMETRY().stream()
-                            .filter(p -> "COLLISION_ENERGY".equals(p.getLeft()))
-                            .findFirst()
-                            .get()
-                            .getRight())
-                    .append(System.lineSeparator());
-        }
+		record.getAcMassSpectrometry().stream()
+			.filter(entry -> "COLLISION_ENERGY".equals(entry.key()))
+			.findFirst()
+			.ifPresent(entry -> sb.append("Collision_energy: ")
+				.append(entry.value())
+				.append(System.lineSeparator()));
 
 		sb.append("Formula: ").append(record.getChFormula()).append(System.lineSeparator());
 		sb.append("MW: ").append(Math.round(record.getChExactMass().floatValue())).append(System.lineSeparator());

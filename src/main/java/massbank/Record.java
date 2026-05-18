@@ -94,7 +94,7 @@ public class Record {
 	private String acInstrumentType;
 	private String acMassSpectrometryMsType;
 	private String acMassSpectrometryIonMode;
-	private List<Pair<String, String>> AC$MASS_SPECTROMETRY; // optional
+	private List<KeyValue> acMassSpectrometry; // optional
 	private List<Pair<String, String>> AC$CHROMATOGRAPHY; // optional
 	private List<Pair<String, String>> MS$FOCUSED_ION; // optional
 	private List<Pair<String, String>> MS$DATA_PROCESSING; // optional
@@ -131,7 +131,7 @@ public class Record {
 		acInstrumentType = "";
 		acMassSpectrometryMsType = "";
 		acMassSpectrometryIonMode = "";
-		AC$MASS_SPECTROMETRY = new ArrayList<>(); // optional
+		acMassSpectrometry = new ArrayList<>(); // optional
 		AC$CHROMATOGRAPHY = new ArrayList<>(); // optional
 		MS$FOCUSED_ION = new ArrayList<>(); // optional
 		MS$DATA_PROCESSING = new ArrayList<>(); // optional
@@ -429,10 +429,22 @@ public class Record {
 	}
 
 
-	public List<Pair<String, String>> AC_MASS_SPECTROMETRY() {
-		return AC$MASS_SPECTROMETRY;
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ac_mass_spectrometry", columnDefinition = "jsonb")
+	public List<KeyValue> getAcMassSpectrometry() {
+		return acMassSpectrometry;
 	}
-	public void AC_MASS_SPECTROMETRY(List<Pair<String, String>> value) { AC$MASS_SPECTROMETRY = value; }
+	public void setAcMassSpectrometry(List<KeyValue> value) {
+		acMassSpectrometry = new ArrayList<>();
+		if (value == null) {
+			return;
+		}
+		for (KeyValue entry : value) {
+			if (entry != null) {
+				acMassSpectrometry.add(new KeyValue(entry.key(), entry.value()));
+			}
+		}
+	}
 
 	public List<Pair<String, String>> AC_CHROMATOGRAPHY() {
 		return AC$CHROMATOGRAPHY;
@@ -531,11 +543,11 @@ public class Record {
 		sb.append("AC$INSTRUMENT_TYPE: ").append(getAcInstrumentType()).append("\n");
 		sb.append("AC$MASS_SPECTROMETRY: MS_TYPE ").append(getAcMassSpectrometryMsType()).append("\n");
 		sb.append("AC$MASS_SPECTROMETRY: ION_MODE ").append(getAcMassSpectrometryIonMode()).append("\n");
-        for (Pair<String, String> entry : AC_MASS_SPECTROMETRY()) {
+		for (KeyValue entry : getAcMassSpectrometry()) {
 			sb.append("AC$MASS_SPECTROMETRY: ")
-					.append(entry.getKey())
+					.append(entry.key())
 					.append(" ")
-					.append(entry.getValue())
+					.append(entry.value() != null ? entry.value() : "")
 					.append("\n");
 		}
         for (Pair<String, String> entry : AC_CHROMATOGRAPHY()) {
@@ -671,11 +683,11 @@ public class Record {
 		sb.append("<b>AC$INSTRUMENT_TYPE:</b> ").append(getAcInstrumentType()).append("<br>\n");
 		sb.append("<b>AC$MASS_SPECTROMETRY:</b> MS_TYPE ").append(getAcMassSpectrometryMsType()).append("<br>\n");
 		sb.append("<b>AC$MASS_SPECTROMETRY:</b> ION_MODE ").append(getAcMassSpectrometryIonMode()).append("<br>\n");
-        for (Pair<String, String> entry: AC_MASS_SPECTROMETRY()) {
+		for (KeyValue entry: getAcMassSpectrometry()) {
 			sb.append("<b>AC$MASS_SPECTROMETRY:</b> ")
-					.append(entry.getKey())
+					.append(entry.key())
 					.append(" ")
-					.append(entry.getValue())
+					.append(entry.value() != null ? entry.value() : "")
 					.append("<br>\n");
 		}
         for (Pair<String, String> entry: AC_CHROMATOGRAPHY()) {
@@ -963,4 +975,6 @@ public class Record {
 
 	public record Contributor(String ACRONYM, String SHORT_NAME, String FULL_NAME) {
 	}
+
+	public record KeyValue(String key, String value) {}
 }
