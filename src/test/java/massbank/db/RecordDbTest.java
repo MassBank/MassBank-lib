@@ -124,6 +124,10 @@ class RecordDbTest {
             new Record.KeyValue("RESOLUTION", "70000")
         ));
         r.setComment(List.of("First comment", "Second comment"));
+        r.setSpLink(List.of(
+            new Record.KeyValue("TAXON_ID", "9606"),
+            new Record.KeyValue("NCBI", "Homo sapiens")
+        ));
 
         Record loaded = persistAndReload(r);
         assertMappedFieldsEqual(r, loaded);
@@ -161,5 +165,6 @@ class RecordDbTest {
         assertEquals(expected.getAcMassSpectrometryIonMode(), actual.getAcMassSpectrometryIonMode(), () -> "AC$MASS_SPECTROMETRY_ION_MODE mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getAcMassSpectrometry()), new ArrayList<>(actual.getAcMassSpectrometry()), () -> "AC$MASS_SPECTROMETRY mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getComment()), new ArrayList<>(actual.getComment()), () -> "comment mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getSpLink()), new ArrayList<>(actual.getSpLink()), () -> "SP$LINK mismatch for " + expected.getAccession());
     }
 }

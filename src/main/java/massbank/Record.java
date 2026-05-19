@@ -88,7 +88,7 @@ public class Record {
 	private List<KeyValue> chLink; // optional
 	private String spScientificName; // optional
 	private String spLineage; // optional
-	private LinkedHashMap<String, String> SP$LINK; // optional
+	private List<KeyValue> spLink; // optional
 	private List<String> spSample; // optional
 	private String acInstrument;
 	private String acInstrumentType;
@@ -125,7 +125,7 @@ public class Record {
 		chLink = new ArrayList<>(); // optional
 		spScientificName = ""; // optional
 		spLineage = ""; // optional
-		SP$LINK = new LinkedHashMap<>(); // optional
+		spLink = new ArrayList<>(); // optional
 		spSample = new ArrayList<>(); // optional
 		acInstrument = "";
 		acInstrumentType = "";
@@ -383,11 +383,17 @@ public class Record {
 	}
 
 
-	public LinkedHashMap<String, String> SP_LINK() {
-		return SP$LINK;
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "sp_link", columnDefinition = "jsonb")
+	public List<KeyValue> getSpLink() {
+		return spLink;
 	}
-	public void SP_LINK(LinkedHashMap<String, String> value) {
-		SP$LINK = new LinkedHashMap<>(value);
+	public void setSpLink(List<KeyValue> value) {
+		spLink = new ArrayList<>();
+		if (value == null) return;
+		for (KeyValue entry : value) {
+			spLink.add(new KeyValue(entry.key(), entry.value()));
+		}
 	}
 
 
@@ -547,7 +553,13 @@ public class Record {
 			sb.append("SP$SCIENTIFIC_NAME: ").append(getSpScientificName()).append("\n");
 		if (!"".equals(getSpLineage()))
 			sb.append("SP$LINEAGE: ").append(getSpLineage()).append("\n");
-		SP_LINK().forEach((key,value) -> sb.append("SP$LINK: ").append(key).append(" ").append(value).append("\n"));
+		for (KeyValue entry : getSpLink()) {
+			sb.append("SP$LINK: ")
+				.append(entry.key())
+				.append(" ")
+				.append(entry.value() != null ? entry.value() : "")
+				.append("\n");
+		}
 		for (String sample : getSpSample())
 			sb.append("SP$SAMPLE: ").append(sample).append("\n");
 		
@@ -688,7 +700,13 @@ public class Record {
 			sb.append("<b>SP$SCIENTIFIC_NAME:</b> ").append(getSpScientificName()).append("<br>\n");
 		if (!"".equals(getSpLineage()))
 			sb.append("<b>SP$LINEAGE:</b> ").append(getSpLineage()).append("<br>\n");
-		SP_LINK().forEach((key,value) -> sb.append("<b>SP$LINK:</b> ").append(key).append(" ").append(value).append("<br>\n"));
+		for (KeyValue entry : getSpLink()) {
+			sb.append("<b>SP$LINK:</b> ")
+				.append(entry.key())
+				.append(" ")
+				.append(entry.value() != null ? entry.value() : "")
+				.append("<br>\n");
+		}
 		for (String sample : getSpSample())
 				sb.append("<b>SP$SAMPLE:</b> ").append(sample).append("<br>\n");
 		sb.append("<hr>\n");

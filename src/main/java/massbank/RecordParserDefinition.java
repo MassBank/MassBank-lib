@@ -890,7 +890,7 @@ public class RecordParserDefinition extends GrammarDefinition {
                 .seq(CharacterParser.any().plusLazy(CharacterParser.whitespace()).flatten())
                 .seq(CharacterParser.whitespace()).pick(3)
                 .seq(CharacterParser.any().plusLazy(Token.NEWLINE_PARSER).flatten())
-                .map((List<String> value) -> Pair.of(value.getFirst().trim(), value.get(1)))
+                .map((List<String> value) -> new Record.KeyValue(value.getFirst().trim(), value.get(1)))
                 .seq(Token.NEWLINE_PARSER)
                 .pick(0)
                 .plus()
@@ -1710,13 +1710,10 @@ public class RecordParserDefinition extends GrammarDefinition {
     @SuppressWarnings("unchecked")
     private Record setSP_LINK(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) {
-            LinkedHashMap<String, String> map = new LinkedHashMap<>();
-            for (Pair<String, String> pair : (List<Pair<String, String>>) value.getLast()) {
-                map.put(pair.getKey(), pair.getValue());
-            }
-            record.SP_LINK(map);
-        }
+        if (value.getLast() == null) return record;
+
+        List<Record.KeyValue> entries = (List<Record.KeyValue>) value.getLast();
+        record.setSpLink(entries);
         return record;
     }
 

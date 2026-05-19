@@ -69,7 +69,7 @@ public class RecordToJson {
 		List<Record.KeyValue> CH$LINK; // optional
 		String SP$SCIENTIFIC_NAME; // optional
 		String SP$LINEAGE; // optional
-		LinkedHashMap<String, String> SP$LINK; // optional
+		List<Record.KeyValue> SP$LINK; // optional
 		List<String> SP$SAMPLE; // optional
 		String AC$INSTRUMENT;
 		String AC$INSTRUMENT_TYPE;
@@ -108,7 +108,7 @@ public class RecordToJson {
 				CH$LINK = record.getChLink().isEmpty() ? null : record.getChLink();
 				SP$SCIENTIFIC_NAME = "".equals(record.getSpScientificName()) ? null : record.getSpScientificName();
 				SP$LINEAGE = "".equals(record.getSpLineage()) ? null : record.getSpLineage();
-				SP$LINK = record.SP_LINK().isEmpty() ? null : record.SP_LINK();
+				SP$LINK = record.getSpLink().isEmpty() ? null : record.getSpLink();
 				SP$SAMPLE = record.getSpSample().isEmpty() ? null : record.getSpSample();
 				AC$INSTRUMENT = record.getAcInstrument();
 				AC$INSTRUMENT_TYPE = record.getAcInstrumentType();
