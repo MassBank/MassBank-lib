@@ -113,8 +113,9 @@ public class RecordToNIST_MSP {
 			sb.append("Synon: ").append(tmpList.get(i)).append(System.lineSeparator());
 		
 		sb.append("DB#: ").append(record.getAccession()).append(System.lineSeparator());
-		if(record.CH_LINK().containsKey("INCHIKEY"))
-			sb.append("InChIKey: ").append(record.CH_LINK().get("INCHIKEY")).append(System.lineSeparator());
+		String inchiKey = record.getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(Record.KeyValue::value).findFirst().orElse(null);
+		if (inchiKey != null)
+			sb.append("InChIKey: ").append(inchiKey).append(System.lineSeparator());
 		sb.append("InChI: ").append(record.CH_IUPAC()).append(System.lineSeparator());
 		sb.append("SMILES: ").append(record.CH_SMILES()).append(System.lineSeparator());
 

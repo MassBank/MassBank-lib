@@ -85,7 +85,7 @@ public class Record {
 	private BigDecimal exactMass;
 	private String CH$SMILES;
 	private String CH$IUPAC;
-	private LinkedHashMap<String, String> CH$LINK; // optional
+	private List<KeyValue> chLink; // optional
 	private String spScientificName; // optional
 	private String spLineage; // optional
 	private LinkedHashMap<String, String> SP$LINK; // optional
@@ -122,7 +122,7 @@ public class Record {
 		exactMass = new BigDecimal(0);
 		CH$SMILES = "";
 		CH$IUPAC = "";
-		CH$LINK = new LinkedHashMap<>(); // optional
+		chLink = new ArrayList<>(); // optional
 		spScientificName = ""; // optional
 		spLineage = ""; // optional
 		SP$LINK = new LinkedHashMap<>(); // optional
@@ -351,10 +351,18 @@ public class Record {
 		CH$IUPAC = value;
 	}
 		
-	public LinkedHashMap<String, String> CH_LINK() {
-		return CH$LINK;
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ch_link", columnDefinition = "jsonb")
+	public List<KeyValue> getChLink() {
+		return chLink;
 	}
-	public void CH_LINK(LinkedHashMap<String, String> value) { CH$LINK=new LinkedHashMap<>(value); }
+	public void setChLink(List<KeyValue> value) {
+		chLink = new ArrayList<>();
+		if (value == null) return;
+		for (KeyValue entry : value) {
+			chLink.add(new KeyValue(entry.key(), entry.value()));
+		}
+	}
 
 
 	@Column(name = "sp_scientific_name", length = 512)
@@ -436,9 +444,7 @@ public class Record {
 	}
 	public void setAcMassSpectrometry(List<KeyValue> value) {
 		acMassSpectrometry = new ArrayList<>();
-		if (value == null) {
-			return;
-		}
+		if (value == null) return;
 		for (KeyValue entry : value) {
 			if (entry != null) {
 				acMassSpectrometry.add(new KeyValue(entry.key(), entry.value()));
@@ -529,7 +535,13 @@ public class Record {
 		sb.append("CH$EXACT_MASS: ").append(getChExactMass()).append("\n");
 		sb.append("CH$SMILES: ").append(CH_SMILES()).append("\n");
 		sb.append("CH$IUPAC: ").append(CH_IUPAC()).append("\n");
-		CH_LINK().forEach((key,value) -> sb.append("CH$LINK: ").append(key).append(" ").append(value).append("\n"));
+		for (KeyValue entry : getChLink()) {
+			sb.append("CH$LINK: ")
+				.append(entry.key())
+				.append(" ")
+				.append(entry.value() != null ? entry.value() : "")
+				.append("\n");
+		}
 		
 		if (!"".equals(getSpScientificName()))
 			sb.append("SP$SCIENTIFIC_NAME: ").append(getSpScientificName()).append("\n");
@@ -621,7 +633,9 @@ public class Record {
 		sb.append("<b>CH$EXACT_MASS:</b> ").append(getChExactMass()).append("<br>\n");
 		sb.append("<b>CH$SMILES:</b> ").append(CH_SMILES()).append("<br>\n");
 		sb.append("<b>CH$IUPAC:</b> ").append(CH_IUPAC()).append("<br>\n");
-		CH_LINK().forEach((key,value) -> {
+		for (KeyValue entry : getChLink()) {
+			String key = entry.key();
+			String value = entry.value();
 			switch(key){
 				case "CAS", "INCHIKEY":
 					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"https://www.google.com/search?q=&quot;").append(value).append("&quot;\" target=\"_blank\">").append(value).append("</a><br>\n");
@@ -668,7 +682,7 @@ public class Record {
 				default:
 					sb.append("<b>CH$LINK:</b> ").append(key).append(" ").append(value).append("<br>\n");
 			}
-		});
+		}
 		
 		if (!"".equals(getSpScientificName()))
 			sb.append("<b>SP$SCIENTIFIC_NAME:</b> ").append(getSpScientificName()).append("<br>\n");
@@ -825,7 +839,7 @@ public class Record {
 		if (isDeprecated()) {
 			return new JsonArray();
 		}
-		String InChiKey = CH_LINK().get("INCHIKEY");
+		String InChiKey = getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(KeyValue::value).findFirst().orElse(null);
 		String description = "This MassBank record with Accession " + getAccession()
 			+ " contains the " + getAcMassSpectrometryMsType() + " mass spectrum of " + RECORD_TITLE().getFirst()
 			+ ((InChiKey==null) ? "." : " with the InChIkey " + InChiKey + ".");

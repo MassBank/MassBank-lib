@@ -813,19 +813,19 @@ public class RecordParserDefinition extends GrammarDefinition {
                 .seq(ch_link_subtag)
                 .seq(Token.NEWLINE_PARSER.not()).pick(2)
                 .seq(CharacterParser.any().plusLazy(Token.NEWLINE_PARSER).flatten())
-                .map((List<String> value) -> Pair.of(value.getFirst().trim(), value.get(1)))
+                .map((List<String> value) -> new Record.KeyValue(value.getFirst().trim(), value.get(1)))
                 .seq(Token.NEWLINE_PARSER)
                 .pick(0)
                 .plus()
                 .callCC((Function<Context, Result> continuation, Context context) -> {
                     Result r = continuation.apply(context);
                     if (r.isSuccess()) {
-                        List<Pair<String, String>> p = r.get();
+                        List<Record.KeyValue> value = r.get();
                         Set<String> seenKeys = new HashSet<>();
-                        for (Pair<String, String> pair : p) {
-                            if (!seenKeys.add(pair.getKey())) {
-                                logger.error("Duplicate entry {} in CH$LINK.", pair.getKey());
-                                return context.failure("Duplicate entry " + pair.getKey() + " in CH$LINK.");
+                        for (Record.KeyValue entry : value) {
+                            if (!seenKeys.add(entry.key())) {
+                                logger.error("Duplicate entry {} in CH$LINK.", entry.key());
+                                return context.failure("Duplicate entry " + entry.key() + " in CH$LINK.");
                             }
                         }
                     }
@@ -1688,13 +1688,10 @@ public class RecordParserDefinition extends GrammarDefinition {
     @SuppressWarnings("unchecked")
     private Record setCH_LINK(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) {
-            LinkedHashMap<String, String> map = new LinkedHashMap<>();
-            for (Pair<String, String> pair : (List<Pair<String, String>>) value.getLast()) {
-                map.put(pair.getKey(), pair.getValue());
-            }
-            record.CH_LINK(map);
-        }
+        if (value.getLast() == null) return record;
+
+        List<Record.KeyValue> entries = (List<Record.KeyValue>) value.getLast();
+        record.setChLink(entries);
         return record;
     }
 
@@ -1907,9 +1904,8 @@ public class RecordParserDefinition extends GrammarDefinition {
             }
 
             // get InChIKey from CH$LINK
-            String InChiKeyFromCH_LINK = null;
-            if (record.CH_LINK().containsKey("INCHIKEY")) {
-                InChiKeyFromCH_LINK = record.CH_LINK().get("INCHIKEY");
+            String InChiKeyFromCH_LINK = record.getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(Record.KeyValue::value).findFirst().orElse(null);
+            if (InChiKeyFromCH_LINK != null) {
                 if ("N/A".equals(record.CH_IUPAC()))
                     return context.failure("If INCHIKEY is given in CH$LINK, CH$IUPAC can not be \"N/A\".");
             }
@@ -1971,8 +1967,8 @@ public class RecordParserDefinition extends GrammarDefinition {
             }
 
             // validate the format of CH$LINK ChemOnt
-            if (record.CH_LINK().containsKey("ChemOnt")) {
-                String ChemOnt = record.CH_LINK().get("ChemOnt");
+            String ChemOnt = record.getChLink().stream().filter(e -> "ChemOnt".equals(e.key())).map(Record.KeyValue::value).findFirst().orElse(null);
+            if (ChemOnt != null) {
                 String regex = "^CHEMONTID:\\d+; (.+; )*.+$";
                 if (!ChemOnt.matches(regex)) {
                     return context.failure("Invalid format for CH$LINK ChemOnt: " + ChemOnt);

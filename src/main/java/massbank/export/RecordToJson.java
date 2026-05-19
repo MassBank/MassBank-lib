@@ -66,7 +66,7 @@ public class RecordToJson {
 		BigDecimal CH$EXACT_MASS;
 		String CH$SMILES;
 		String CH$IUPAC;
-		LinkedHashMap<String, String> CH$LINK; // optional
+		List<Record.KeyValue> CH$LINK; // optional
 		String SP$SCIENTIFIC_NAME; // optional
 		String SP$LINEAGE; // optional
 		LinkedHashMap<String, String> SP$LINK; // optional
@@ -105,7 +105,7 @@ public class RecordToJson {
 				CH$EXACT_MASS = record.getChExactMass();
 				CH$SMILES = record.CH_SMILES();
 				CH$IUPAC = record.CH_IUPAC();
-				CH$LINK = record.CH_LINK().isEmpty() ? null : record.CH_LINK();
+				CH$LINK = record.getChLink().isEmpty() ? null : record.getChLink();
 				SP$SCIENTIFIC_NAME = "".equals(record.getSpScientificName()) ? null : record.getSpScientificName();
 				SP$LINEAGE = "".equals(record.getSpLineage()) ? null : record.getSpLineage();
 				SP$LINK = record.SP_LINK().isEmpty() ? null : record.SP_LINK();

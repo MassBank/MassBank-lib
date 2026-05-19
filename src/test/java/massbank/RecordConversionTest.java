@@ -234,13 +234,13 @@ Num Peaks: 3
   "CH$EXACT_MASS": 272.06847,
   "CH$SMILES": "C1[C@H](OC2\\u003dCC(\\u003dCC(\\u003dC2C1\\u003dO)O)O)C3\\u003dCC\\u003dC(C\\u003dC3)O",
   "CH$IUPAC": "InChI\\u003d1S/C15H12O5/c16-9-3-1-8(2-4-9)13-7-12(19)15-11(18)5-10(17)6-14(15)20-13/h1-6,13,16-18H,7H2/t13-/m0/s1",
-  "CH$LINK": {
-    "INCHIKEY": "FTVWIRXFELQLPI-ZDUSSCGKSA-N",
-    "KEGG": "C00509",
-    "PUBCHEM": "CID:439246",
-    "COMPTOX": "DTXSID1022392",
-    "ChemOnt": "CHEMONTID:0000337; Organic compounds; Phenylpropanoids and polyketides; Flavonoids; Flavans"
-  },
+  "CH$LINK": [
+    {"key":"INCHIKEY","value":"FTVWIRXFELQLPI-ZDUSSCGKSA-N"},
+    {"key":"KEGG","value":"C00509"},
+    {"key":"PUBCHEM","value":"CID:439246"},
+    {"key":"COMPTOX","value":"DTXSID1022392"},
+    {"key":"ChemOnt","value":"CHEMONTID:0000337; Organic compounds; Phenylpropanoids and polyketides; Flavonoids; Flavans"}
+   ],
   "AC$INSTRUMENT": "API QSTAR Pulsar i",
   "AC$INSTRUMENT_TYPE": "LC-ESI-QTOF",
   "AC$MASS_SPECTROMETRY_MS_TYPE": "MS2",

@@ -115,12 +115,13 @@ public class RecordToRIKEN_MSP {
                         .orElse("NA"))
                 .append(System.lineSeparator());
 		sb.append("FORMULA: ").append(record.getChFormula()).append(System.lineSeparator());
-		if (record.CH_LINK().containsKey("ChemOnt")) {
-			String chemOntValue = record.CH_LINK().get("ChemOnt");
+		String chemOntValue = record.getChLink().stream().filter(e -> "ChemOnt".equals(e.key())).map(Record.KeyValue::value).findFirst().orElse(null);
+		if (chemOntValue != null) {
 			String lastTerm = chemOntValue.substring(chemOntValue.lastIndexOf(";") + 1).trim();
 			sb.append("Ontology: ").append(lastTerm).append(System.lineSeparator());
 		}
-		sb.append("INCHIKEY: ").append(record.CH_LINK().getOrDefault("INCHIKEY", "N/A")).append(System.lineSeparator());
+		String inchiKey = record.getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(Record.KeyValue::value).findFirst().orElse("N/A");
+		sb.append("INCHIKEY: ").append(inchiKey).append(System.lineSeparator());
 		sb.append("INCHI: ").append(record.CH_IUPAC()).append(System.lineSeparator());
 		sb.append("SMILES: ").append(record.CH_SMILES()).append(System.lineSeparator());
         sb.append("RETENTIONTIME: ")
@@ -140,9 +141,9 @@ public class RecordToRIKEN_MSP {
 				
 		List<String> links	= new ArrayList<>();
 		
-		record.CH_LINK().forEach((key,value) -> {
-			if (!key.equals("ChemOnt")) links.add(key + ":" + value);	    
-		});
+		for (Record.KeyValue entry : record.getChLink()) {
+			if (!"ChemOnt".equals(entry.key())) links.add(entry.key() + ":" + entry.value());
+		}
 		sb.append("LINKS: ").append(String.join("; ", links)).append(System.lineSeparator());
 		
 		List<String> recordComment = new ArrayList<>(record.getComment());

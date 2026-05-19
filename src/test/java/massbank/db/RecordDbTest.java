@@ -108,6 +108,10 @@ class RecordDbTest {
         r.setChCompoundClass(List.of("Lipid", "Ceramide"));
         r.setChFormula("C12H24O12");
         r.setChExactMass(new BigDecimal("360.12678"));
+        r.setChLink(List.of(
+            new Record.KeyValue("INCHIKEY", "AAAA-BBBB"),
+            new Record.KeyValue("CAS", "123-45-6")
+        ));
         r.setSpScientificName("Mus musculus");
         r.setSpLineage("cellular organisms; Eukaryota; Metazoa; Chordata; Mammalia; Rodentia; Mus");
         r.setSpSample(List.of("liver", "plasma"));
@@ -147,6 +151,7 @@ class RecordDbTest {
         assertEquals(new ArrayList<>(expected.getChCompoundClass()), new ArrayList<>(actual.getChCompoundClass()), () -> "CH$COMPOUND_CLASS mismatch for " + expected.getAccession());
         assertEquals(expected.getChFormula(), actual.getChFormula(), () -> "CH$FORMULA mismatch for " + expected.getAccession());
         assertEquals(0, expected.getChExactMass().compareTo(actual.getChExactMass()), () -> "CH$EXACT_MASS mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getChLink()), new ArrayList<>(actual.getChLink()), () -> "CH$LINK mismatch for " + expected.getAccession());
         assertEquals(expected.getSpScientificName(), actual.getSpScientificName(), () -> "SP$SCIENTIFIC_NAME mismatch for " + expected.getAccession());
         assertEquals(expected.getSpLineage(), actual.getSpLineage(), () -> "SP$LINEAGE mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getSpSample()), new ArrayList<>(actual.getSpSample()), () -> "SP$SAMPLE mismatch for " + expected.getAccession());
