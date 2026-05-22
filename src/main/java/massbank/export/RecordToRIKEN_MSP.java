@@ -97,23 +97,23 @@ public class RecordToRIKEN_MSP {
             logger.warn("{} is deprecated. No export possible.", record.getAccession());
 			return sb.toString();
 		}
-		
+
 		sb.append("NAME: ").append(record.getChName().getFirst()).append(System.lineSeparator());
-        List<Pair<String, String>> MS_FOCUSED_ION = record.MS_FOCUSED_ION();
-        sb.append("PRECURSORMZ: ")
-                .append(MS_FOCUSED_ION.stream()
-                        .filter(p -> "PRECURSOR_M/Z".equals(p.getLeft()))
-                        .map(Pair::getRight)
-                        .findFirst()
-                        .orElse(""))
-                .append(System.lineSeparator());
-        sb.append("PRECURSORTYPE: ")
-                .append(MS_FOCUSED_ION.stream()
-                        .filter(p -> "PRECURSOR_TYPE".equals(p.getLeft()))
-                        .map(Pair::getRight)
-                        .findFirst()
-                        .orElse("NA"))
-                .append(System.lineSeparator());
+		List<Record.KeyValue> MS_FOCUSED_ION = record.getMsFocusedIon();
+		sb.append("PRECURSORMZ: ")
+			.append(MS_FOCUSED_ION.stream()
+				.filter(p -> "PRECURSOR_M/Z".equals(p.key()))
+				.map(Record.KeyValue::value)
+				.findFirst()
+				.orElse(""))
+			.append(System.lineSeparator());
+		sb.append("PRECURSORTYPE: ")
+			.append(MS_FOCUSED_ION.stream()
+				.filter(p -> "PRECURSOR_TYPE".equals(p.key()))
+				.map(Record.KeyValue::value)
+				.findFirst()
+				.orElse("NA"))
+			.append(System.lineSeparator());
 		sb.append("FORMULA: ").append(record.getChFormula()).append(System.lineSeparator());
 		String chemOntValue = record.getChLink().stream().filter(e -> "ChemOnt".equals(e.key())).map(Record.KeyValue::value).findFirst().orElse(null);
 		if (chemOntValue != null) {
@@ -124,13 +124,13 @@ public class RecordToRIKEN_MSP {
 		sb.append("INCHIKEY: ").append(inchiKey).append(System.lineSeparator());
 		sb.append("INCHI: ").append(record.CH_IUPAC()).append(System.lineSeparator());
 		sb.append("SMILES: ").append(record.CH_SMILES()).append(System.lineSeparator());
-        sb.append("RETENTIONTIME: ")
-                .append(MS_FOCUSED_ION.stream()
-                        .filter(p -> "RETENTION_TIME".equals(p.getLeft()))
-                        .map(Pair::getRight)
-                        .findFirst()
-                        .orElse("0"))
-                .append(System.lineSeparator());
+		sb.append("RETENTIONTIME: ")
+			.append(MS_FOCUSED_ION.stream()
+				.filter(p -> "RETENTION_TIME".equals(p.key()))
+				.map(Record.KeyValue::value)
+				.findFirst()
+				.orElse("0"))
+			.append(System.lineSeparator());
 		sb.append("INSTRUMENTTYPE: ").append(record.getAcInstrumentType()).append(System.lineSeparator());
 		sb.append("INSTRUMENT: ").append(record.getAcInstrument()).append(System.lineSeparator());
 		if (record.getAcMassSpectrometryIonMode().equals("NEGATIVE")) {

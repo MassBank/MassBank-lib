@@ -1277,7 +1277,7 @@ public class RecordParserDefinition extends GrammarDefinition {
                 )
                 .seq(Token.NEWLINE_PARSER.not()).pick(2)
                 .seq(CharacterParser.any().plusLazy(Token.NEWLINE_PARSER).flatten())
-                .map((List<String> value) -> Pair.of(value.getFirst().trim(), value.get(1)))
+                .map((List<String> value) -> new Record.KeyValue(value.getFirst().trim(), value.get(1)))
                 .seq(Token.NEWLINE_PARSER).pick(0)
                 .plus()
 //                .map((Object value) -> {
@@ -1429,7 +1429,7 @@ public class RecordParserDefinition extends GrammarDefinition {
                         )
                 )
                 .seq(Token.NEWLINE_PARSER).pick(2)
-                .map((List<String> value) -> Pair.of(value.getFirst().trim(), value.get(1)))
+                .map((List<String> value) -> new Record.KeyValue(value.getFirst().trim(), value.get(1)))
                 .plus()
 //                .map((Object value) -> {
 //                    System.out.println(value);
@@ -1761,20 +1761,20 @@ public class RecordParserDefinition extends GrammarDefinition {
     @SuppressWarnings("unchecked")
     private Record setAC_CHROMATOGRAPHY(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) {
-            List<Pair<String, String>> pairs = (List<Pair<String, String>>) value.getLast();
-            record.AC_CHROMATOGRAPHY(pairs);
-        }
+        if (value.getLast() == null) return record;
+
+        List<Record.KeyValue> entries = (List<Record.KeyValue>) value.getLast();
+        record.setAcChromatography(entries);
         return record;
     }
 
     @SuppressWarnings("unchecked")
     private Record setMS_FOCUSED_ION(List<?> value) {
         Record record = (Record) value.getFirst();
-        if (value.getLast() != null) {
-            List<Pair<String, String>> pairs = (List<Pair<String, String>>) value.getLast();
-            record.MS_FOCUSED_ION(pairs);
-        }
+        if (value.getLast() == null) return record;
+
+        List<Record.KeyValue> entries = (List<Record.KeyValue>) value.getLast();
+        record.setMsFocusedIon(entries);
         return record;
     }
 

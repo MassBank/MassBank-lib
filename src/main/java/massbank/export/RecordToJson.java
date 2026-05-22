@@ -76,8 +76,8 @@ public class RecordToJson {
 		String AC$MASS_SPECTROMETRY_MS_TYPE;
 		String AC$MASS_SPECTROMETRY_ION_MODE;
 		List<Record.KeyValue> AC$MASS_SPECTROMETRY; // optional
-		LinkedHashMap<String, String> AC$CHROMATOGRAPHY; // optional
-		LinkedHashMap<String, String> MS$FOCUSED_ION; // optional
+		List<Record.KeyValue> AC$CHROMATOGRAPHY; // optional
+		List<Record.KeyValue> MS$FOCUSED_ION; // optional
 		LinkedHashMap<String, String> MS$DATA_PROCESSING; // optional
 		String PK$SPLASH;
 		List<List<String>> PK$ANNOTATION; // optional
@@ -115,32 +115,8 @@ public class RecordToJson {
 				AC$MASS_SPECTROMETRY_MS_TYPE = record.getAcMassSpectrometryMsType();
 				AC$MASS_SPECTROMETRY_ION_MODE = record.getAcMassSpectrometryIonMode();
 				AC$MASS_SPECTROMETRY = record.getAcMassSpectrometry();
-				if (record.AC_CHROMATOGRAPHY().isEmpty())
-					AC$CHROMATOGRAPHY = null;
-				else {
-					AC$CHROMATOGRAPHY = new LinkedHashMap<>();
-					for (Pair<String, String> p : record.AC_CHROMATOGRAPHY()) {
-						if (p == null) continue;
-						String key = p.getLeft();
-						String value = p.getRight();
-						if (key != null) {
-							AC$CHROMATOGRAPHY.put(key, value);
-						}
-					}
-				}
-				if (record.MS_FOCUSED_ION().isEmpty())
-					MS$FOCUSED_ION = null;
-				else {
-					MS$FOCUSED_ION = new LinkedHashMap<>();
-					for (Pair<String, String> p : record.MS_FOCUSED_ION()) {
-						if (p == null) continue;
-						String key = p.getLeft();
-						String value = p.getRight();
-						if (key != null) {
-							MS$FOCUSED_ION.put(key, value);
-						}
-					}
-				}
+				AC$CHROMATOGRAPHY = record.getAcChromatography();
+				MS$FOCUSED_ION = record.getMsFocusedIon();
 				if (record.MS_DATA_PROCESSING().isEmpty())
 					MS$DATA_PROCESSING = null;
 				else {

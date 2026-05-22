@@ -128,6 +128,10 @@ class RecordDbTest {
             new Record.KeyValue("COLLISION_ENERGY", "35 eV"),
             new Record.KeyValue("RESOLUTION", "70000")
         ));
+        r.setAcChromatography(List.of(
+            new Record.KeyValue("COLUMN", "Waters Acquity UPLC BEH C18"),
+            new Record.KeyValue("FLOW_GRADIENT", "0.3 mL/min")
+        ));
 
         Record loaded = persistAndReload(r);
         assertMappedFieldsEqual(r, loaded);
@@ -166,5 +170,6 @@ class RecordDbTest {
         assertEquals(expected.getAcMassSpectrometryMsType(), actual.getAcMassSpectrometryMsType(), () -> "AC$MASS_SPECTROMETRY: MS_TYPE mismatch for " + expected.getAccession());
         assertEquals(expected.getAcMassSpectrometryIonMode(), actual.getAcMassSpectrometryIonMode(), () -> "AC$MASS_SPECTROMETRY: ION_MODE mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getAcMassSpectrometry()), new ArrayList<>(actual.getAcMassSpectrometry()), () -> "AC$MASS_SPECTROMETRY mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getAcChromatography()), new ArrayList<>(actual.getAcChromatography()), () -> "AC$CHROMATOGRAPHY mismatch for " + expected.getAccession());
     }
 }

@@ -51,7 +51,6 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -95,13 +94,13 @@ public class Record {
 	private String acMassSpectrometryMsType;
 	private String acMassSpectrometryIonMode;
 	private List<KeyValue> acMassSpectrometry; // optional
-	private List<Pair<String, String>> AC$CHROMATOGRAPHY; // optional
-	private List<Pair<String, String>> MS$FOCUSED_ION; // optional
+	private List<KeyValue> acChromatography; // optional
+	private List<KeyValue> msFocusedIon; // optional
 	private List<Pair<String, String>> MS$DATA_PROCESSING; // optional
 	private String PK$SPLASH;
 	private List<String> PK$ANNOTATION_HEADER; // optional
 	private List<Pair<BigDecimal, List<String>>> PK$ANNOTATION; // optional
-	private List<Triple<BigDecimal,BigDecimal,Integer>> PK$PEAK;
+	private List<Triple<BigDecimal, BigDecimal, Integer>> PK$PEAK;
 	
 	public Record() {
 		accession = "";
@@ -132,8 +131,8 @@ public class Record {
 		acMassSpectrometryMsType = "";
 		acMassSpectrometryIonMode = "";
 		acMassSpectrometry = new ArrayList<>(); // optional
-		AC$CHROMATOGRAPHY = new ArrayList<>(); // optional
-		MS$FOCUSED_ION = new ArrayList<>(); // optional
+		acChromatography = new ArrayList<>(); // optional
+		msFocusedIon = new ArrayList<>(); // optional
 		MS$DATA_PROCESSING = new ArrayList<>(); // optional
 		PK$SPLASH = "";
 		PK$ANNOTATION_HEADER = new ArrayList<>(); // optional
@@ -458,16 +457,32 @@ public class Record {
 		}
 	}
 
-	public List<Pair<String, String>> AC_CHROMATOGRAPHY() {
-		return AC$CHROMATOGRAPHY;
-	}
-	public void AC_CHROMATOGRAPHY(List<Pair<String, String>> value) { AC$CHROMATOGRAPHY = value; }
-	
-	public List<Pair<String, String>> MS_FOCUSED_ION() {
-		return MS$FOCUSED_ION;
-	}
-	public void MS_FOCUSED_ION(List<Pair<String, String>> value) { MS$FOCUSED_ION = value; }
-	
+	   @JdbcTypeCode(SqlTypes.JSON)
+	   @Column(name = "ac_chromatography", columnDefinition = "jsonb")
+	   public List<KeyValue> getAcChromatography() {
+			   return acChromatography;
+	   }
+	   public void setAcChromatography(List<KeyValue> value) {
+			   acChromatography = new ArrayList<>();
+			   if (value == null) return;
+			   for (KeyValue entry : value) {
+					   acChromatography.add(new KeyValue(entry.key(), entry.value()));
+			   }
+	   }
+
+	   @JdbcTypeCode(SqlTypes.JSON)
+	   @Column(name = "ms_focused_ion", columnDefinition = "jsonb")
+	   public List<KeyValue> getMsFocusedIon() {
+			   return msFocusedIon;
+	   }
+	   public void setMsFocusedIon(List<KeyValue> value) {
+			   msFocusedIon = new ArrayList<>();
+			   if (value == null) return;
+			   for (KeyValue entry : value) {
+					   msFocusedIon.add(new KeyValue(entry.key(), entry.value()));
+			   }
+	   }
+
 	public List<Pair<String, String>> MS_DATA_PROCESSING() {
 		return MS$DATA_PROCESSING;
 	}
@@ -574,19 +589,19 @@ public class Record {
 					.append(entry.value() != null ? entry.value() : "")
 					.append("\n");
 		}
-        for (Pair<String, String> entry : AC_CHROMATOGRAPHY()) {
+		for (KeyValue entry : getAcChromatography()) {
 			sb.append("AC$CHROMATOGRAPHY: ")
-					.append(entry.getKey())
-					.append(" ")
-					.append(entry.getValue())
-					.append("\n");
+				.append(entry.key())
+				.append(" ")
+				.append(entry.value() != null ? entry.value() : "")
+				.append("\n");
 		}
-        for (Pair<String, String> entry: MS_FOCUSED_ION()) {
+		for (KeyValue entry : getMsFocusedIon()) {
 			sb.append("MS$FOCUSED_ION: ")
-					.append(entry.getKey())
-					.append(" ")
-					.append(entry.getValue())
-					.append("\n");
+				.append(entry.key())
+				.append(" ")
+				.append(entry.value() != null ? entry.value() : "")
+				.append("\n");
 		}
         for (Pair<String, String> entry: MS_DATA_PROCESSING()) {
 			sb.append("MS$DATA_PROCESSING: ")
@@ -722,21 +737,21 @@ public class Record {
 					.append(entry.value() != null ? entry.value() : "")
 					.append("<br>\n");
 		}
-        for (Pair<String, String> entry: AC_CHROMATOGRAPHY()) {
+		for (KeyValue entry : getAcChromatography()) {
 			sb.append("<b>AC$CHROMATOGRAPHY:</b> ")
-					.append(entry.getKey())
-					.append(" ")
-					.append(entry.getValue())
-					.append("<br>\n");
+				.append(entry.key())
+				.append(" ")
+				.append(entry.value() != null ? entry.value() : "")
+				.append("<br>\n");
 		}
 		sb.append("<hr>\n");
 
-        for (Pair<String, String> entry: MS_FOCUSED_ION()) {
+		for (KeyValue entry : getMsFocusedIon()) {
 			sb.append("<b>MS$FOCUSED_ION:</b> ")
-					.append(entry.getKey())
-					.append(" ")
-					.append(entry.getValue())
-					.append("<br>\n");
+				.append(entry.key())
+				.append(" ")
+				.append(entry.value() != null ? entry.value() : "")
+				.append("<br>\n");
 		}
         for (Pair<String, String> entry: MS_DATA_PROCESSING()) {
 			sb.append("<b>MS$DATA_PROCESSING:</b> ")
@@ -745,7 +760,7 @@ public class Record {
 					.append(entry.getValue())
 					.append("<br>\n");
 		}
-		if (!MS_FOCUSED_ION().isEmpty() || !MS_DATA_PROCESSING().isEmpty()) sb.append("<hr>\n");
+		if (!getMsFocusedIon().isEmpty() || !MS_DATA_PROCESSING().isEmpty()) sb.append("<hr>\n");
 		
 		sb.append("<b>PK$SPLASH:</b> <a href=\"http://www.google.com/search?q=").append(PK_SPLASH()).append("\" target=\"_blank\">").append(PK_SPLASH()).append("</a><br>\n");
 		if (!PK_ANNOTATION_HEADER().isEmpty()) {

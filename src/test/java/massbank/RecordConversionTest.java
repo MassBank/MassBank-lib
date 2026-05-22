@@ -246,9 +246,10 @@ Num Peaks: 3
   "AC$MASS_SPECTROMETRY_MS_TYPE": "MS2",
   "AC$MASS_SPECTROMETRY_ION_MODE": "POSITIVE",
   "AC$MASS_SPECTROMETRY": [{"key":"COLLISION_ENERGY","value":"15 eV"},{"key":"IONIZATION","value":"ESI"}],
-  "MS$FOCUSED_ION": {
-    "PRECURSOR_TYPE": "[M+H]+"
-  },
+  "AC$CHROMATOGRAPHY":[],
+  "MS$FOCUSED_ION":[
+    {"key":"PRECURSOR_TYPE","value":"[M+H]+"}
+  ],
   "PK$SPLASH": "splash10-00di-0090000000-ed08d01208992e5a7a9f",
   "PK$NUM_PEAK": 4,
   "PK$PEAK": [
