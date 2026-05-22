@@ -96,7 +96,7 @@ public class Record {
 	private List<KeyValue> acMassSpectrometry; // optional
 	private List<KeyValue> acChromatography; // optional
 	private List<KeyValue> msFocusedIon; // optional
-	private List<Pair<String, String>> MS$DATA_PROCESSING; // optional
+	private List<KeyValue> msDataProcessing; // optional
 	private String PK$SPLASH;
 	private List<String> PK$ANNOTATION_HEADER; // optional
 	private List<Pair<BigDecimal, List<String>>> PK$ANNOTATION; // optional
@@ -133,7 +133,7 @@ public class Record {
 		acMassSpectrometry = new ArrayList<>(); // optional
 		acChromatography = new ArrayList<>(); // optional
 		msFocusedIon = new ArrayList<>(); // optional
-		MS$DATA_PROCESSING = new ArrayList<>(); // optional
+		msDataProcessing = new ArrayList<>(); // optional
 		PK$SPLASH = "";
 		PK$ANNOTATION_HEADER = new ArrayList<>(); // optional
 		PK$ANNOTATION = new ArrayList<>(); // optional
@@ -457,37 +457,45 @@ public class Record {
 		}
 	}
 
-	   @JdbcTypeCode(SqlTypes.JSON)
-	   @Column(name = "ac_chromatography", columnDefinition = "jsonb")
-	   public List<KeyValue> getAcChromatography() {
-			   return acChromatography;
-	   }
-	   public void setAcChromatography(List<KeyValue> value) {
-			   acChromatography = new ArrayList<>();
-			   if (value == null) return;
-			   for (KeyValue entry : value) {
-					   acChromatography.add(new KeyValue(entry.key(), entry.value()));
-			   }
-	   }
-
-	   @JdbcTypeCode(SqlTypes.JSON)
-	   @Column(name = "ms_focused_ion", columnDefinition = "jsonb")
-	   public List<KeyValue> getMsFocusedIon() {
-			   return msFocusedIon;
-	   }
-	   public void setMsFocusedIon(List<KeyValue> value) {
-			   msFocusedIon = new ArrayList<>();
-			   if (value == null) return;
-			   for (KeyValue entry : value) {
-					   msFocusedIon.add(new KeyValue(entry.key(), entry.value()));
-			   }
-	   }
-
-	public List<Pair<String, String>> MS_DATA_PROCESSING() {
-		return MS$DATA_PROCESSING;
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ac_chromatography", columnDefinition = "jsonb")
+	public List<KeyValue> getAcChromatography() {
+		return acChromatography;
 	}
-	public void MS_DATA_PROCESSING(List<Pair<String, String>> value) { MS$DATA_PROCESSING = value;
+	public void setAcChromatography(List<KeyValue> value) {
+		acChromatography = new ArrayList<>();
+		if (value == null) return;
+		for (KeyValue entry : value) {
+			acChromatography.add(new KeyValue(entry.key(), entry.value()));
+		}
 	}
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ms_focused_ion", columnDefinition = "jsonb")
+	public List<KeyValue> getMsFocusedIon() {
+		return msFocusedIon;
+	}
+	public void setMsFocusedIon(List<KeyValue> value) {
+		msFocusedIon = new ArrayList<>();
+		if (value == null) return;
+		for (KeyValue entry : value) {
+			msFocusedIon.add(new KeyValue(entry.key(), entry.value()));
+		}
+	}
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ms_data_processing", columnDefinition = "jsonb")
+	public List<KeyValue> getMsDataProcessing() {
+		return msDataProcessing;
+	}
+	public void setMsDataProcessing(List<KeyValue> value) {
+		msDataProcessing = new ArrayList<>();
+		if (value == null) return;
+		for (KeyValue entry : value) {
+			msDataProcessing.add(new KeyValue(entry.key(), entry.value()));
+		}
+	}
+
 
 	public String PK_SPLASH() {
 		return PK$SPLASH;
@@ -603,12 +611,12 @@ public class Record {
 				.append(entry.value() != null ? entry.value() : "")
 				.append("\n");
 		}
-        for (Pair<String, String> entry: MS_DATA_PROCESSING()) {
+		for (KeyValue entry: getMsDataProcessing()) {
 			sb.append("MS$DATA_PROCESSING: ")
-					.append(entry.getKey())
-					.append(" ")
-					.append(entry.getValue())
-					.append("\n");
+				.append(entry.key())
+				.append(" ")
+				.append(entry.value())
+				.append("\n");
 		}
 
 		sb.append("PK$SPLASH: ").append(PK_SPLASH()).append("\n");
@@ -753,14 +761,14 @@ public class Record {
 				.append(entry.value() != null ? entry.value() : "")
 				.append("<br>\n");
 		}
-        for (Pair<String, String> entry: MS_DATA_PROCESSING()) {
+		for (KeyValue entry: getMsDataProcessing()) {
 			sb.append("<b>MS$DATA_PROCESSING:</b> ")
-					.append(entry.getKey())
-					.append(" ")
-					.append(entry.getValue())
-					.append("<br>\n");
+				.append(entry.key())
+				.append(" ")
+				.append(entry.value())
+				.append("<br>\n");
 		}
-		if (!getMsFocusedIon().isEmpty() || !MS_DATA_PROCESSING().isEmpty()) sb.append("<hr>\n");
+		if (!getMsFocusedIon().isEmpty() || !getMsDataProcessing().isEmpty()) sb.append("<hr>\n");
 		
 		sb.append("<b>PK$SPLASH:</b> <a href=\"http://www.google.com/search?q=").append(PK_SPLASH()).append("\" target=\"_blank\">").append(PK_SPLASH()).append("</a><br>\n");
 		if (!PK_ANNOTATION_HEADER().isEmpty()) {
@@ -1025,3 +1033,5 @@ public class Record {
 
 	public record KeyValue(String key, String value) {}
 }
+
+

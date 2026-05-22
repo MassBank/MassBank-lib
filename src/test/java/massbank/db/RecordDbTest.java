@@ -132,6 +132,14 @@ class RecordDbTest {
             new Record.KeyValue("COLUMN", "Waters Acquity UPLC BEH C18"),
             new Record.KeyValue("FLOW_GRADIENT", "0.3 mL/min")
         ));
+        r.setMsFocusedIon(List.of(
+            new Record.KeyValue("PRECURSOR_TYPE", "[M+H]+"),
+            new Record.KeyValue("PRECURSOR_M/Z", "123.456")
+        ));
+        r.setMsDataProcessing(List.of(
+            new Record.KeyValue("DEISOTOPING", "done"),
+            new Record.KeyValue("CENTROIDING", "raw")
+        ));
 
         Record loaded = persistAndReload(r);
         assertMappedFieldsEqual(r, loaded);
@@ -171,5 +179,7 @@ class RecordDbTest {
         assertEquals(expected.getAcMassSpectrometryIonMode(), actual.getAcMassSpectrometryIonMode(), () -> "AC$MASS_SPECTROMETRY: ION_MODE mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getAcMassSpectrometry()), new ArrayList<>(actual.getAcMassSpectrometry()), () -> "AC$MASS_SPECTROMETRY mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getAcChromatography()), new ArrayList<>(actual.getAcChromatography()), () -> "AC$CHROMATOGRAPHY mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getMsFocusedIon()), new ArrayList<>(actual.getMsFocusedIon()), () -> "MS$FOCUSED_ION mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getMsDataProcessing()), new ArrayList<>(actual.getMsDataProcessing()), () -> "MS$DATA_PROCESSING mismatch for " + expected.getAccession());
     }
 }

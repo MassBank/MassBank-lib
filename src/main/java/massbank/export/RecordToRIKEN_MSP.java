@@ -154,7 +154,7 @@ public class RecordToRIKEN_MSP {
 				
 		sb.append("Comment: ").append(String.join("; ", recordComment)).append(System.lineSeparator());
 		sb.append("Splash: ").append(record.PK_SPLASH()).append(System.lineSeparator());
-		
+
 		sb.append("Num Peaks" + ": ").append(record.PK_NUM_PEAK()).append(System.lineSeparator());
 		for(Triple<BigDecimal,BigDecimal,Integer> peak : record.PK_PEAK())
 			sb.append(peak.getLeft().toPlainString()).append("\t").append(peak.getMiddle().toPlainString()).append(System.lineSeparator());

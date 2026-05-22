@@ -78,7 +78,7 @@ public class RecordToJson {
 		List<Record.KeyValue> AC$MASS_SPECTROMETRY; // optional
 		List<Record.KeyValue> AC$CHROMATOGRAPHY; // optional
 		List<Record.KeyValue> MS$FOCUSED_ION; // optional
-		LinkedHashMap<String, String> MS$DATA_PROCESSING; // optional
+		List<Record.KeyValue> MS$DATA_PROCESSING; // optional
 		String PK$SPLASH;
 		List<List<String>> PK$ANNOTATION; // optional
 		Integer PK$NUM_PEAK;
@@ -117,19 +117,7 @@ public class RecordToJson {
 				AC$MASS_SPECTROMETRY = record.getAcMassSpectrometry();
 				AC$CHROMATOGRAPHY = record.getAcChromatography();
 				MS$FOCUSED_ION = record.getMsFocusedIon();
-				if (record.MS_DATA_PROCESSING().isEmpty())
-					MS$DATA_PROCESSING = null;
-				else {
-					MS$DATA_PROCESSING = new LinkedHashMap<>();
-					for (Pair<String, String> p : record.MS_DATA_PROCESSING()) {
-						if (p == null) continue;
-						String key = p.getLeft();
-						String value = p.getRight();
-						if (key != null) {
-							MS$DATA_PROCESSING.put(key, value);
-						}
-					}
-				}
+				MS$DATA_PROCESSING = record.getMsDataProcessing();
 				PK$SPLASH = record.PK_SPLASH();
 				if (record.PK_ANNOTATION().isEmpty())
 					PK$ANNOTATION = null;

@@ -250,6 +250,7 @@ Num Peaks: 3
   "MS$FOCUSED_ION":[
     {"key":"PRECURSOR_TYPE","value":"[M+H]+"}
   ],
+  "MS$DATA_PROCESSING":[],
   "PK$SPLASH": "splash10-00di-0090000000-ed08d01208992e5a7a9f",
   "PK$NUM_PEAK": 4,
   "PK$PEAK": [
