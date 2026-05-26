@@ -46,9 +46,9 @@ public class RecordParserTest {
     void testRecord2() throws IOException {
         ParseResult res = parseRecord("MSBNK-LCSB-LU092805.txt");
         assertTrue(res.result().isSuccess());
-        assertEquals("MSBNK-LCSB-LU092805", ((Record) res.result().get()).getAccession());
-        assertTrue(((Record) res.result().get()).isDeprecated());
-        assertEquals("2022-02-08 possible mixed spectra", ((Record) res.result().get()).DEPRECATED());
+        assertInstanceOf(DeprecatedRecord.class, res.result().get());
+        assertEquals("MSBNK-LCSB-LU092805", ((DeprecatedRecord) res.result().get()).getAccession());
+        assertEquals("2022-02-08 possible mixed spectra", ((DeprecatedRecord) res.result().get()).getDeprecated());
         assertEquals(res.content(), res.result().get().toString());
     }
 
@@ -74,9 +74,9 @@ public class RecordParserTest {
     void testRecord5() throws IOException {
         ParseResult res = parseRecord("MSBNK-test-TST00003.txt");
         assertTrue(res.result().isSuccess());
-        assertEquals("MSBNK-test-TST00003", ((Record) res.result().get()).getAccession());
-        assertTrue(((Record) res.result().get()).isDeprecated());
-        assertEquals("2019-11-25 Wrong MS measurement assigned", ((Record) res.result().get()).DEPRECATED());
+        assertInstanceOf(DeprecatedRecord.class, res.result().get());
+        assertEquals("MSBNK-test-TST00003", ((DeprecatedRecord) res.result().get()).getAccession());
+        assertEquals("2019-11-25 Wrong MS measurement assigned", ((DeprecatedRecord) res.result().get()).getDeprecated());
         assertEquals(res.content(), res.result().get().toString());
     }
 

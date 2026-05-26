@@ -1,6 +1,6 @@
 package massbank.db;
 
-import massbank.Record;
+import massbank.AbstractRecord;
 
 import java.util.List;
 
@@ -11,15 +11,15 @@ public class RecordService {
         this.recordRepository = recordRepository;
     }
 
-    public Record save(Record record) {
+    public AbstractRecord save(AbstractRecord record) {
         return recordRepository.save(record);
     }
 
-    public List<Record> findAll() {
+    public List<AbstractRecord> findAll() {
         return recordRepository.findAll();
     }
 
-    public Record findById(String accession) {
+    public AbstractRecord findById(String accession) {
         return recordRepository.findById(accession)
                 .orElseThrow(() -> new RuntimeException("Record not found"));
     }

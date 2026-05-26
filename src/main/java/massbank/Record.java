@@ -44,6 +44,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,11 +59,9 @@ import java.util.regex.Pattern;
 @Entity
 @Access(AccessType.PROPERTY)
 public class Record extends AbstractRecord {
-    private static final Logger logger = LogManager.getLogger(Record.class);
+	private static final Logger logger = LogManager.getLogger(Record.class);
 
-	private boolean isDeprecated;
-	private String DEPRECATED;
-	private String deprecated_content;
+	private List<String> recordTitle;
 	private String date;
 	private String authors;
 	private String license;
@@ -95,9 +94,8 @@ public class Record extends AbstractRecord {
 	private List<Triple<BigDecimal, BigDecimal, Integer>> PK$PEAK;
 	
 	public Record() {
-        isDeprecated = false;
-		DEPRECATED = "";
-		deprecated_content = "";
+		super();
+		recordTitle = new ArrayList<>();
 		date = "";
 		authors = "";
 		license = "";
@@ -130,25 +128,20 @@ public class Record extends AbstractRecord {
 		PK$PEAK = new ArrayList<>();
 	}
 
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "record_title", columnDefinition = "jsonb")
+	public List<String> getRecordTitle() {
+		return recordTitle;
+	}
+	public void setRecordTitle(List<String> recordTitle) {
+		this.recordTitle = recordTitle;
+	}
 	@Transient
-	public boolean isDeprecated() {
-		return isDeprecated;
+	public String getRecordTitle1() {
+		return recordTitle == null ? "" : String.join("; ", recordTitle);
 	}
-	public void isDeprecated(boolean value) {
-        isDeprecated = value;
-	}
-    public String DEPRECATED() {
-        return DEPRECATED;
-    }
-    public void DEPRECATED(String value) {
-        DEPRECATED = value;
-    }
-    // everything after the line with "DEPRECATED: "
-	public String DEPRECATED_CONTENT() {
-		return deprecated_content;
-	}
-	public void DEPRECATED_CONTENT(String value) {
-		deprecated_content = value;
+	public void setRecordTitle1(String value) {
+		recordTitle = value == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(value.split("; ")));
 	}
 
 
@@ -502,13 +495,6 @@ public class Record extends AbstractRecord {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("ACCESSION: ").append(getAccession()).append("\n");
-		if (isDeprecated()) {
-			sb.append("DEPRECATED: ")
-                .append(DEPRECATED())
-                .append("\n")
-                .append(DEPRECATED_CONTENT());
-			return sb.toString();
-		}
 		sb.append("RECORD_TITLE: ").append(getRecordTitle1()).append("\n");
 		sb.append("DATE: ").append(getDate()).append("\n");
 		sb.append("AUTHORS: ").append(getAuthors()).append("\n");
@@ -844,9 +830,6 @@ public class Record extends AbstractRecord {
 	//https://github.com/BioSchemas/specifications/issues/198
 	
 	public JsonArray createStructuredDataJsonArray() {
-		if (isDeprecated()) {
-			return new JsonArray();
-		}
 		String InChiKey = getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(KeyValue::value).findFirst().orElse(null);
 		String description = "This MassBank record with Accession " + getAccession()
 			+ " contains the " + getAcMassSpectrometryMsType() + " mass spectrum of " + getRecordTitle().getFirst()
@@ -1000,5 +983,7 @@ public class Record extends AbstractRecord {
 
 	public record KeyValue(String key, String value) {}
 }
+
+
 
 

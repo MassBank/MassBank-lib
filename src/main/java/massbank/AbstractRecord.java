@@ -22,13 +22,6 @@ package massbank;
 
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Abstract base class for all MassBank records (standard and deprecated).
  * <p>
@@ -49,10 +42,6 @@ public abstract class AbstractRecord {
     @Column(name = "accession", nullable = false, length = 105, unique = true)
     protected String accession;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "record_title", columnDefinition = "jsonb")
-    protected List<String> recordTitle;
-
     public String getAccession() {
         return accession;
     }
@@ -61,20 +50,4 @@ public abstract class AbstractRecord {
         this.accession = accession;
     }
 
-    public List<String> getRecordTitle() {
-        return recordTitle;
-    }
-
-    public void setRecordTitle(List<String> recordTitle) {
-        this.recordTitle = recordTitle;
-    }
-
-    public String getRecordTitle1() {
-        return String.join("; ", recordTitle);
-    }
-
-    public void setRecordTitle1(String value) {
-        recordTitle = new ArrayList<>(Arrays.asList(value.split("; ")));
-    }
 }
-

@@ -20,6 +20,7 @@
  ******************************************************************************/
 package massbank.export;
 
+import massbank.AbstractRecord;
 import massbank.Record;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.Logger;
@@ -97,16 +98,16 @@ public class RecordToNIST_MSP {
 	
 	/**
 	 * A plain converter Record to String with NIST msp.
-	 * @param record to convert
+	 * @param abstractRecord to convert
 	 */
-	public static String convert(Record record) {
+	public static String convert(AbstractRecord abstractRecord) {
 		StringBuilder sb = new StringBuilder();
-		
-		if (record.isDeprecated()) {
-			logger.warn(record.getAccession() + " is deprecated. No export possible.");
+		if (abstractRecord instanceof massbank.DeprecatedRecord) {
+			logger.warn(abstractRecord.getAccession() + " is deprecated. No export possible.");
 			return sb.toString();
 		}
-		
+
+		Record record = (Record) abstractRecord;
 		List<String> tmpList	= record.getChName();
 		sb.append("Name: ").append(tmpList.getFirst()).append(System.lineSeparator());
 		for(int i = 1; i < tmpList.size(); i++)

@@ -1816,11 +1816,11 @@ public class RecordParserDefinition extends GrammarDefinition {
     }
 
     @SuppressWarnings("unchecked")
-    private Record setDEPRECATED(List<?> value) {
-        Record record = (Record) value.getFirst();
-        record.isDeprecated(true);
-        record.DEPRECATED( ((List<String>)value.getLast()).get(0));
-        record.DEPRECATED_CONTENT( ((List<String>)value.getLast()).get(2));
+    private DeprecatedRecord setDEPRECATED(List<?> value) {
+        DeprecatedRecord record = new DeprecatedRecord();
+        record.setAccession(((Record) value.getFirst()).getAccession());
+        record.setDeprecated(((List<String>)value.getLast()).get(0));
+        record.setDeprecatedContent(((List<String>)value.getLast()).get(2));
         return record;
     }
 

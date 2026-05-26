@@ -22,6 +22,7 @@ package massbank.export;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import massbank.AbstractRecord;
 import massbank.Record;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
@@ -83,13 +84,15 @@ public class RecordToJson {
 		Integer PK$NUM_PEAK;
 		List<List<String>> PK$PEAK;
 
-		RecordJsonSerializer(Record record) {
-			ACCESSION = record.getAccession();
-			if (record.isDeprecated()) {
-                isDeprecated = Boolean.TRUE;
-                DEPRECATED = record.DEPRECATED();
-				DEPRECATED_CONTENT = record.DEPRECATED_CONTENT();
+		RecordJsonSerializer(AbstractRecord abstractRecord) {
+			ACCESSION = abstractRecord.getAccession();
+			if (abstractRecord instanceof massbank.DeprecatedRecord) {
+				massbank.DeprecatedRecord dr = (massbank.DeprecatedRecord) abstractRecord;
+				isDeprecated = Boolean.TRUE;
+				DEPRECATED = dr.getDeprecated();
+				DEPRECATED_CONTENT = dr.getDeprecatedContent();
 			} else {
+				Record record =  (Record) abstractRecord;
 				RECORD_TITLE = record.getRecordTitle();
 				DATE = record.getDate();
 				AUTHORS = record.getAuthors();

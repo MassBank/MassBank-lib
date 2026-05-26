@@ -20,6 +20,7 @@
  ******************************************************************************/
 package massbank.export;
 
+import massbank.AbstractRecord;
 import massbank.Record;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
@@ -88,16 +89,16 @@ public class RecordToRIKEN_MSP {
 	
 	/**
 	 * A plain converter Record to String with RIKEN PRIME msp.
-	 * @param record to convert
+	 * @param abstractRecord to convert
 	 */
-	public static String convert(Record record) {
+	public static String convert(AbstractRecord abstractRecord) {
 		StringBuilder sb = new StringBuilder();
-		
-		if (record.isDeprecated()) {
-            logger.warn("{} is deprecated. No export possible.", record.getAccession());
+		if (abstractRecord instanceof massbank.DeprecatedRecord) {
+			logger.warn(abstractRecord.getAccession() + " is deprecated. No export possible.");
 			return sb.toString();
 		}
 
+		Record record = (Record) abstractRecord;
 		sb.append("NAME: ").append(record.getChName().getFirst()).append(System.lineSeparator());
 		List<Record.KeyValue> MS_FOCUSED_ION = record.getMsFocusedIon();
 		sb.append("PRECURSORMZ: ")

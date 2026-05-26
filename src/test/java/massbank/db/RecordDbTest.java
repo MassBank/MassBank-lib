@@ -2,6 +2,8 @@ package massbank.db;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import massbank.AbstractRecord;
+import massbank.DeprecatedRecord;
 import massbank.Record;
 import massbank.RecordParserTest;
 import org.junit.jupiter.api.AfterAll;
@@ -86,8 +88,8 @@ class RecordDbTest {
         for (Path file : recordFiles) {
             RecordParserTest.ParseResult res = RecordParserTest.parseRecord(file.getFileName().toString());
             assertTrue(res.result().isSuccess());
-            Record record = res.result().get();
-            Record loaded = persistAndReload(record);
+            AbstractRecord record = res.result().get();
+            AbstractRecord loaded = persistAndReload(record);
             assertMappedFieldsEqual(record, loaded);
         }
 
@@ -142,11 +144,11 @@ class RecordDbTest {
             new Record.KeyValue("CENTROIDING", "raw")
         ));
 
-        Record loaded = persistAndReload(r);
+        Record loaded = (Record) persistAndReload(r);
         assertMappedFieldsEqual(r, loaded);
     }
 
-    private Record persistAndReload(Record record) {
+    private AbstractRecord persistAndReload(AbstractRecord record) {
         repository.saveAndFlush(record);
         entityManager.flush();
         entityManager.clear();
@@ -155,33 +157,40 @@ class RecordDbTest {
                 .orElseThrow(() -> new AssertionError("record not found: " + record.getAccession()));
     }
 
-    private static void assertMappedFieldsEqual(Record expected, Record actual) {
+    private static void assertMappedFieldsEqual(AbstractRecord expected, AbstractRecord actual) {
         assertNotNull(actual, "loaded record is null");
         assertEquals(expected.getAccession(), actual.getAccession(), () -> "ACCESSION mismatch for " + expected.getAccession());
-        assertEquals(expected.getRecordTitle(), actual.getRecordTitle(), () -> "RECORD_TITLE mismatch for " + expected.getAccession());
-        assertEquals(expected.getDate(), actual.getDate(), () -> "DATE mismatch for " + expected.getAccession());
-        assertEquals(expected.getAuthors(), actual.getAuthors(), () -> "AUTHORS mismatch for " + expected.getAccession());
-        assertEquals(expected.getLicense(), actual.getLicense(), () -> "LICENSE mismatch for " + expected.getAccession());
-        assertEquals(expected.getCopyright(), actual.getCopyright(), () -> "COPYRIGHT mismatch for " + expected.getAccession());
-        assertEquals(expected.getPublication(), actual.getPublication(), () -> "PUBLICATION mismatch for " + expected.getAccession());
-        assertEquals(expected.getProject(), actual.getProject(), () -> "PROJECT mismatch for " + expected.getAccession());
-        assertEquals(new ArrayList<>(expected.getComment()), new ArrayList<>(actual.getComment()), () -> "COMMENT mismatch for " + expected.getAccession());
-        assertEquals(new ArrayList<>(expected.getChName()), new ArrayList<>(actual.getChName()), () -> "CH$NAME mismatch for " + expected.getAccession());
-        assertEquals(new ArrayList<>(expected.getChCompoundClass()), new ArrayList<>(actual.getChCompoundClass()), () -> "CH$COMPOUND_CLASS mismatch for " + expected.getAccession());
-        assertEquals(expected.getChFormula(), actual.getChFormula(), () -> "CH$FORMULA mismatch for " + expected.getAccession());
-        assertEquals(0, expected.getChExactMass().compareTo(actual.getChExactMass()), () -> "CH$EXACT_MASS mismatch for " + expected.getAccession());
-        assertEquals(new ArrayList<>(expected.getChLink()), new ArrayList<>(actual.getChLink()), () -> "CH$LINK mismatch for " + expected.getAccession());
-        assertEquals(expected.getSpScientificName(), actual.getSpScientificName(), () -> "SP$SCIENTIFIC_NAME mismatch for " + expected.getAccession());
-        assertEquals(expected.getSpLineage(), actual.getSpLineage(), () -> "SP$LINEAGE mismatch for " + expected.getAccession());
-        assertEquals(new ArrayList<>(expected.getSpLink()), new ArrayList<>(actual.getSpLink()), () -> "SP$LINK mismatch for " + expected.getAccession());
-        assertEquals(new ArrayList<>(expected.getSpSample()), new ArrayList<>(actual.getSpSample()), () -> "SP$SAMPLE mismatch for " + expected.getAccession());
-        assertEquals(expected.getAcInstrument(), actual.getAcInstrument(), () -> "AC$INSTRUMENT mismatch for " + expected.getAccession());
-        assertEquals(expected.getAcInstrumentType(), actual.getAcInstrumentType(), () -> "AC$INSTRUMENT_TYPE mismatch for " + expected.getAccession());
-        assertEquals(expected.getAcMassSpectrometryMsType(), actual.getAcMassSpectrometryMsType(), () -> "AC$MASS_SPECTROMETRY: MS_TYPE mismatch for " + expected.getAccession());
-        assertEquals(expected.getAcMassSpectrometryIonMode(), actual.getAcMassSpectrometryIonMode(), () -> "AC$MASS_SPECTROMETRY: ION_MODE mismatch for " + expected.getAccession());
-        assertEquals(new ArrayList<>(expected.getAcMassSpectrometry()), new ArrayList<>(actual.getAcMassSpectrometry()), () -> "AC$MASS_SPECTROMETRY mismatch for " + expected.getAccession());
-        assertEquals(new ArrayList<>(expected.getAcChromatography()), new ArrayList<>(actual.getAcChromatography()), () -> "AC$CHROMATOGRAPHY mismatch for " + expected.getAccession());
-        assertEquals(new ArrayList<>(expected.getMsFocusedIon()), new ArrayList<>(actual.getMsFocusedIon()), () -> "MS$FOCUSED_ION mismatch for " + expected.getAccession());
-        assertEquals(new ArrayList<>(expected.getMsDataProcessing()), new ArrayList<>(actual.getMsDataProcessing()), () -> "MS$DATA_PROCESSING mismatch for " + expected.getAccession());
+        if (expected instanceof Record exp && actual instanceof Record act) {
+            assertEquals(exp.getRecordTitle(), act.getRecordTitle(), () -> "RECORD_TITLE mismatch for " + expected.getAccession());
+            assertEquals(exp.getDate(), act.getDate(), () -> "DATE mismatch for " + expected.getAccession());
+            assertEquals(exp.getAuthors(), act.getAuthors(), () -> "AUTHORS mismatch for " + expected.getAccession());
+            assertEquals(exp.getLicense(), act.getLicense(), () -> "LICENSE mismatch for " + expected.getAccession());
+            assertEquals(exp.getCopyright(), act.getCopyright(), () -> "COPYRIGHT mismatch for " + expected.getAccession());
+            assertEquals(exp.getPublication(), act.getPublication(), () -> "PUBLICATION mismatch for " + expected.getAccession());
+            assertEquals(exp.getProject(), act.getProject(), () -> "PROJECT mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getComment()), new ArrayList<>(act.getComment()), () -> "COMMENT mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getChName()), new ArrayList<>(act.getChName()), () -> "CH$NAME mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getChCompoundClass()), new ArrayList<>(act.getChCompoundClass()), () -> "CH$COMPOUND_CLASS mismatch for " + expected.getAccession());
+            assertEquals(exp.getChFormula(), act.getChFormula(), () -> "CH$FORMULA mismatch for " + expected.getAccession());
+            assertEquals(0, exp.getChExactMass().compareTo(act.getChExactMass()), () -> "CH$EXACT_MASS mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getChLink()), new ArrayList<>(act.getChLink()), () -> "CH$LINK mismatch for " + expected.getAccession());
+            assertEquals(exp.getSpScientificName(), act.getSpScientificName(), () -> "SP$SCIENTIFIC_NAME mismatch for " + expected.getAccession());
+            assertEquals(exp.getSpLineage(), act.getSpLineage(), () -> "SP$LINEAGE mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getSpLink()), new ArrayList<>(act.getSpLink()), () -> "SP$LINK mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getSpSample()), new ArrayList<>(act.getSpSample()), () -> "SP$SAMPLE mismatch for " + expected.getAccession());
+            assertEquals(exp.getAcInstrument(), act.getAcInstrument(), () -> "AC$INSTRUMENT mismatch for " + expected.getAccession());
+            assertEquals(exp.getAcInstrumentType(), act.getAcInstrumentType(), () -> "AC$INSTRUMENT_TYPE mismatch for " + expected.getAccession());
+            assertEquals(exp.getAcMassSpectrometryMsType(), act.getAcMassSpectrometryMsType(), () -> "AC$MASS_SPECTROMETRY: MS_TYPE mismatch for " + expected.getAccession());
+            assertEquals(exp.getAcMassSpectrometryIonMode(), act.getAcMassSpectrometryIonMode(), () -> "AC$MASS_SPECTROMETRY: ION_MODE mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getAcMassSpectrometry()), new ArrayList<>(act.getAcMassSpectrometry()), () -> "AC$MASS_SPECTROMETRY mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getAcChromatography()), new ArrayList<>(act.getAcChromatography()), () -> "AC$CHROMATOGRAPHY mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getMsFocusedIon()), new ArrayList<>(act.getMsFocusedIon()), () -> "MS$FOCUSED_ION mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getMsDataProcessing()), new ArrayList<>(act.getMsDataProcessing()), () -> "MS$DATA_PROCESSING mismatch for " + expected.getAccession());
+        } else if (expected instanceof DeprecatedRecord exp && actual instanceof DeprecatedRecord act) {
+            assertEquals(exp.getDeprecated(), act.getDeprecated(), () -> "DEPRECATED mismatch for " + expected.getAccession());
+            assertEquals(exp.getDeprecatedContent(), act.getDeprecatedContent(), () -> "DEPRECATED_CONTENT mismatch for " + expected.getAccession());
+        } else {
+            fail("Record type mismatch: " + expected.getClass() + " vs " + actual.getClass());
+        }
     }
 }
