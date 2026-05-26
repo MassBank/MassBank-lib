@@ -1600,7 +1600,7 @@ public class RecordParserDefinition extends GrammarDefinition {
 
     private Record setRECORD_TITLE(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.RECORD_TITLE1((String) value.getLast());
+        record.setRecordTitle1((String) value.getLast());
         return record;
     }
 
@@ -2009,7 +2009,7 @@ public class RecordParserDefinition extends GrammarDefinition {
             }
 
             // max 600 characters are supported in database for RECORD_TITLE
-            if (record.RECORD_TITLE1().length() > 600) {
+            if (record.getRecordTitle1().length() > 600) {
                 return context.failure("RECORD_TITLE length exceeds database limit of 600 characters.");
             }
 

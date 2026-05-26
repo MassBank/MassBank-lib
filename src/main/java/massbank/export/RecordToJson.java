@@ -34,7 +34,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -91,7 +90,7 @@ public class RecordToJson {
                 DEPRECATED = record.DEPRECATED();
 				DEPRECATED_CONTENT = record.DEPRECATED_CONTENT();
 			} else {
-				RECORD_TITLE = record.RECORD_TITLE();
+				RECORD_TITLE = record.getRecordTitle();
 				DATE = record.getDate();
 				AUTHORS = record.getAuthors();
 				LICENSE = record.getLicense();

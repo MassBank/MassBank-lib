@@ -25,19 +25,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.dan2097.jnainchi.InchiStatus;
-import jakarta.persistence.Access;
-import jakarta.persistence.AccessType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import jakarta.persistence.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
@@ -50,27 +44,25 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * This class keeps all data of a record.
+ *
  * @author rmeier
  * @version 01-12-2022
  */
+
 @Entity
-@Table(name = "massbank-records")
 @Access(AccessType.PROPERTY)
-public class Record {
+public class Record extends AbstractRecord {
     private static final Logger logger = LogManager.getLogger(Record.class);
 
-	private String accession;
 	private boolean isDeprecated;
 	private String DEPRECATED;
 	private String deprecated_content;
-	private List<String> RECORD_TITLE;
 	private String date;
 	private String authors;
 	private String license;
@@ -103,11 +95,9 @@ public class Record {
 	private List<Triple<BigDecimal, BigDecimal, Integer>> PK$PEAK;
 	
 	public Record() {
-		accession = "";
         isDeprecated = false;
 		DEPRECATED = "";
 		deprecated_content = "";
-		RECORD_TITLE = new ArrayList<>();
 		date = "";
 		authors = "";
 		license = "";
@@ -140,16 +130,6 @@ public class Record {
 		PK$PEAK = new ArrayList<>();
 	}
 
-	@Id
-	@Column(name="accession", nullable = false, length = 105, unique = true)
-	public String getAccession() {
-		return accession;
-	}
-	public void setAccession(String accession) {
-		this.accession = accession;
-	}
-
-
 	@Transient
 	public boolean isDeprecated() {
 		return isDeprecated;
@@ -169,19 +149,6 @@ public class Record {
 	}
 	public void DEPRECATED_CONTENT(String value) {
 		deprecated_content = value;
-	}
-	
-	public List<String> RECORD_TITLE() {
-		return RECORD_TITLE;
-	}
-	public String RECORD_TITLE1() {
-		return String.join("; ", RECORD_TITLE);
-	}
-	public void RECORD_TITLE(List<String> value) {
-        RECORD_TITLE = List.copyOf(value);
-	}
-	public void RECORD_TITLE1(String value) {
-		RECORD_TITLE = new ArrayList<>(Arrays.asList(value.split("; ")));
 	}
 
 
@@ -542,7 +509,7 @@ public class Record {
                 .append(DEPRECATED_CONTENT());
 			return sb.toString();
 		}
-		sb.append("RECORD_TITLE: ").append(RECORD_TITLE1()).append("\n");
+		sb.append("RECORD_TITLE: ").append(getRecordTitle1()).append("\n");
 		sb.append("DATE: ").append(getDate()).append("\n");
 		sb.append("AUTHORS: ").append(getAuthors()).append("\n");
 		sb.append("LICENSE: ").append(getLicense()).append("\n");
@@ -647,7 +614,7 @@ public class Record {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("<b>ACCESSION:</b> ").append(getAccession()).append("<br>\n")
-            .append("<b>RECORD_TITLE:</b> ").append(RECORD_TITLE1()).append("<br>\n")
+            .append("<b>RECORD_TITLE:</b> ").append(getRecordTitle1()).append("<br>\n")
 			.append("<b>DATE:</b> ").append(getDate()).append("<br>\n")
 			.append("<b>AUTHORS:</b> ").append(getAuthors()).append("<br>\n")
 			.append("<b>LICENSE:</b> ").append(getLicenseLink()).append("<br>\n");
@@ -882,7 +849,7 @@ public class Record {
 		}
 		String InChiKey = getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(KeyValue::value).findFirst().orElse(null);
 		String description = "This MassBank record with Accession " + getAccession()
-			+ " contains the " + getAcMassSpectrometryMsType() + " mass spectrum of " + RECORD_TITLE().getFirst()
+			+ " contains the " + getAcMassSpectrometryMsType() + " mass spectrum of " + getRecordTitle().getFirst()
 			+ ((InChiKey==null) ? "." : " with the InChIkey " + InChiKey + ".");
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		
@@ -895,7 +862,7 @@ public class Record {
 		dataset.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession() + "#Dataset");
 		dataset.addProperty("description", description);
 		dataset.addProperty("identifier", getAccession());
-		dataset.addProperty("name", RECORD_TITLE1());
+		dataset.addProperty("name", getRecordTitle1());
 		
 		JsonArray keywords = new JsonArray();
 		keywords.add(gson.fromJson(
@@ -955,7 +922,7 @@ public class Record {
 				gson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/ChemicalSubstance/0.4-RELEASE\" }", JsonObject.class));
 		chemicalSubstance.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession() + "#ChemicalSubstance");
 		chemicalSubstance.addProperty("identifier", getAccession());
-		chemicalSubstance.addProperty("name", RECORD_TITLE().getFirst());
+		chemicalSubstance.addProperty("name", getRecordTitle().getFirst());
 		chemicalSubstance.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
 		chemicalSubstance.addProperty("chemicalComposition", getChFormula());
 		if (getChName().size() == 1)  chemicalSubstance.addProperty("alternateName", getChName().getFirst());
@@ -972,7 +939,7 @@ public class Record {
 		molecularEntity.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession()
 				+ "#" + (InChiKey!=null ? InChiKey : "MolecularEntity"));
 		molecularEntity.addProperty("identifier", getAccession());
-		molecularEntity.addProperty("name", RECORD_TITLE().getFirst());
+		molecularEntity.addProperty("name", getRecordTitle().getFirst());
 		molecularEntity.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
 		if (!CH_IUPAC().equals("N/A")) molecularEntity.addProperty("inChI", CH_IUPAC());
 		if (!CH_SMILES().equals("N/A")) molecularEntity.addProperty("smiles", CH_SMILES());

@@ -98,6 +98,7 @@ class RecordDbTest {
     void saveAndLoadManuallyCreatedRecord() {
         Record r = new Record();
         r.setAccession("TEST-001");
+        r.setRecordTitle(List.of("Naringenin", "LC-ESI-QTOF", "MS2", "CE:15 eV", "[M+H]+"));
         r.setDate("2026.05.12 (Created 2026.05.12)");
         r.setAuthors("Test Author");
         r.setLicense("CC BY-SA");
@@ -157,6 +158,7 @@ class RecordDbTest {
     private static void assertMappedFieldsEqual(Record expected, Record actual) {
         assertNotNull(actual, "loaded record is null");
         assertEquals(expected.getAccession(), actual.getAccession(), () -> "ACCESSION mismatch for " + expected.getAccession());
+        assertEquals(expected.getRecordTitle(), actual.getRecordTitle(), () -> "RECORD_TITLE mismatch for " + expected.getAccession());
         assertEquals(expected.getDate(), actual.getDate(), () -> "DATE mismatch for " + expected.getAccession());
         assertEquals(expected.getAuthors(), actual.getAuthors(), () -> "AUTHORS mismatch for " + expected.getAccession());
         assertEquals(expected.getLicense(), actual.getLicense(), () -> "LICENSE mismatch for " + expected.getAccession());

@@ -38,7 +38,7 @@ public class RecordParserTest {
         ParseResult res = parseRecord("MSBNK-IPB_Halle-PB000122.txt");
         assertTrue(res.result().isSuccess());
         assertEquals("MSBNK-IPB_Halle-PB000122", ((Record) res.result().get()).getAccession());
-        assertEquals("Naringenin; LC-ESI-QTOF; MS2; CE:15 eV; [M+H]+", ((Record) res.result().get()).RECORD_TITLE1());
+        assertEquals("Naringenin; LC-ESI-QTOF; MS2; CE:15 eV; [M+H]+", ((Record) res.result().get()).getRecordTitle1());
         assertEquals(res.content(), res.result().get().toString());
     }
 
@@ -57,7 +57,7 @@ public class RecordParserTest {
         ParseResult res = parseRecord("MSBNK-test-TST00001.txt");
         assertTrue(res.result().isSuccess());
         assertEquals("MSBNK-test-TST00001", ((Record) res.result().get()).getAccession());
-        assertEquals("Fiscalin C; LC-ESI-ITFT; MS2; CE: 30; R=17500; [M+H]+", ((Record) res.result().get()).RECORD_TITLE1());
+        assertEquals("Fiscalin C; LC-ESI-ITFT; MS2; CE: 30; R=17500; [M+H]+", ((Record) res.result().get()).getRecordTitle1());
         assertEquals(res.content(), res.result().get().toString());
     }
 
@@ -66,7 +66,7 @@ public class RecordParserTest {
         ParseResult res = parseRecord("MSBNK-test-TST00002.txt");
         assertTrue(res.result().isSuccess());
         assertEquals("MSBNK-test-TST00002", ((Record) res.result().get()).getAccession());
-        assertEquals("Disialoganglioside GD1a; MALDI-TOF; MS; Pos", ((Record) res.result().get()).RECORD_TITLE1());
+        assertEquals("Disialoganglioside GD1a; MALDI-TOF; MS; Pos", ((Record) res.result().get()).getRecordTitle1());
         assertEquals(res.content(), res.result().get().toString());
     }
 
