@@ -105,8 +105,8 @@ public class RecordToJson {
 				CH$COMPOUND_CLASS = record.getChCompoundClass();
 				CH$FORMULA = record.getChFormula();
 				CH$EXACT_MASS = record.getChExactMass();
-				CH$SMILES = record.CH_SMILES();
-				CH$IUPAC = record.CH_IUPAC();
+				CH$SMILES = record.getChSMILES();
+				CH$IUPAC = record.getChIUPAC();
 				CH$LINK = record.getChLink().isEmpty() ? null : record.getChLink();
 				SP$SCIENTIFIC_NAME = "".equals(record.getSpScientificName()) ? null : record.getSpScientificName();
 				SP$LINEAGE = "".equals(record.getSpLineage()) ? null : record.getSpLineage();
@@ -120,7 +120,7 @@ public class RecordToJson {
 				AC$CHROMATOGRAPHY = record.getAcChromatography();
 				MS$FOCUSED_ION = record.getMsFocusedIon();
 				MS$DATA_PROCESSING = record.getMsDataProcessing();
-				PK$SPLASH = record.PK_SPLASH();
+				PK$SPLASH = record.getPkSPLASH();
 				if (record.PK_ANNOTATION().isEmpty())
 					PK$ANNOTATION = null;
 				else {

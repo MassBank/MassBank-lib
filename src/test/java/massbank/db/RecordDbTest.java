@@ -112,6 +112,8 @@ class RecordDbTest {
         r.setChCompoundClass(List.of("Lipid", "Ceramide"));
         r.setChFormula("C12H24O12");
         r.setChExactMass(new BigDecimal("360.12678"));
+        r.setChSMILES("C1[C@H](OC2=CC(=CC(=C2C1=O)O)O)C3=CC=C(C=C3)O");
+        r.setChIUPAC("InChI=1S/C15H12O5/c16-9-3-1-8(2-4-9)13-7-12(19)15-11(18)5-10(17)6-14(15)20-13/h1-6,13,16-18H,7H2/t13-/m0/s1");
         r.setChLink(List.of(
             new Record.KeyValue("INCHIKEY", "AAAA-BBBB"),
             new Record.KeyValue("CAS", "123-45-6")
@@ -173,6 +175,8 @@ class RecordDbTest {
             assertEquals(new ArrayList<>(exp.getChCompoundClass()), new ArrayList<>(act.getChCompoundClass()), () -> "CH$COMPOUND_CLASS mismatch for " + expected.getAccession());
             assertEquals(exp.getChFormula(), act.getChFormula(), () -> "CH$FORMULA mismatch for " + expected.getAccession());
             assertEquals(0, exp.getChExactMass().compareTo(act.getChExactMass()), () -> "CH$EXACT_MASS mismatch for " + expected.getAccession());
+            assertEquals(exp.getChSMILES(), act.getChSMILES(), () -> "CH$SMILES mismatch for " + expected.getAccession());
+            assertEquals(exp.getChIUPAC(), act.getChIUPAC(), () -> "CH$IUPAC mismatch for " + expected.getAccession());
             assertEquals(new ArrayList<>(exp.getChLink()), new ArrayList<>(act.getChLink()), () -> "CH$LINK mismatch for " + expected.getAccession());
             assertEquals(exp.getSpScientificName(), act.getSpScientificName(), () -> "SP$SCIENTIFIC_NAME mismatch for " + expected.getAccession());
             assertEquals(exp.getSpLineage(), act.getSpLineage(), () -> "SP$LINEAGE mismatch for " + expected.getAccession());

@@ -1675,13 +1675,13 @@ public class RecordParserDefinition extends GrammarDefinition {
 
     private Record setCH_SMILES(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.CH_SMILES((String) value.getLast());
+        record.setChSMILES((String) value.getLast());
         return record;
     }
 
     private Record setCH_IUPAC(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.CH_IUPAC((String) value.getLast());
+        record.setChIUPAC((String) value.getLast());
         return record;
     }
 
@@ -1790,7 +1790,7 @@ public class RecordParserDefinition extends GrammarDefinition {
 
     private Record setPK_SPLASH(List<?> value) {
         Record record = (Record) value.getFirst();
-        record.PK_SPLASH((String) value.getLast());
+        record.setPkSPLASH((String) value.getLast());
         return record;
     }
 
@@ -1849,9 +1849,9 @@ public class RecordParserDefinition extends GrammarDefinition {
             IAtomContainer fromCH_SMILES;
             String InChiKeyFromCH_SMILES = null;
             boolean smilesHasWildcards = false;
-            if (!"N/A".equals(record.CH_SMILES())) {
+            if (!"N/A".equals(record.getChSMILES())) {
                 try {
-                    fromCH_SMILES = new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(record.CH_SMILES());
+                    fromCH_SMILES = new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(record.getChSMILES());
                 } catch (InvalidSmilesException e) {
                     return context.failure("Can not parse SMILES string in \"CH$SMILES\" field.\nError from CDK:\n" + e.getMessage());
                 }
@@ -1868,7 +1868,7 @@ public class RecordParserDefinition extends GrammarDefinition {
                             logger.warn("InChI warning: {}", inchiGen.getMessage());
                         } else if (ret == InchiStatus.ERROR) {
                             // InChI generation failed
-                            return context.failure("Can not create InChIKey from SMILES string in \"CH$SMILES\" field. InChI generation failed: " + ret + " [" + inchiGen.getMessage() + "] for " + record.CH_SMILES() + ".");
+                            return context.failure("Can not create InChIKey from SMILES string in \"CH$SMILES\" field. InChI generation failed: " + ret + " [" + inchiGen.getMessage() + "] for " + record.getChSMILES() + ".");
                         }
                         InChiKeyFromCH_SMILES = inchiGen.getInchiKey();
                     } catch (CDKException e) {
@@ -1880,9 +1880,9 @@ public class RecordParserDefinition extends GrammarDefinition {
             // validate InChI
             IAtomContainer fromCH_IUPAC = null;
             String InChiKeyFromCH_IUPAC = null;
-            if (!"N/A".equals(record.CH_IUPAC())) {
+            if (!"N/A".equals(record.getChIUPAC())) {
                 try {
-                    InChIToStructure intoStruct = InChIGeneratorFactory.getInstance().getInChIToStructure(record.CH_IUPAC(), SilentChemObjectBuilder.getInstance());
+                    InChIToStructure intoStruct = InChIGeneratorFactory.getInstance().getInChIToStructure(record.getChIUPAC(), SilentChemObjectBuilder.getInstance());
                     InchiStatus ret = intoStruct.getStatus();
                     if (ret == InchiStatus.WARNING) {
                         // Structure generated, but with warning message
@@ -1890,28 +1890,28 @@ public class RecordParserDefinition extends GrammarDefinition {
                         //logger.warn(callback.ACCESSION());
                     } else if (ret == InchiStatus.ERROR) {
                         // Structure generation failed
-                        return context.failure("Can not parse InChI string in \"CH$IUPAC\" field. Structure generation failed.\nError:\n" + intoStruct.getMessage() + " for " + record.CH_IUPAC() + ".");
+                        return context.failure("Can not parse InChI string in \"CH$IUPAC\" field. Structure generation failed.\nError:\n" + intoStruct.getMessage() + " for " + record.getChIUPAC() + ".");
                     }
                     fromCH_IUPAC = intoStruct.getAtomContainer();
                 } catch (CDKException e) {
                     return context.failure("Can not parse InChI string in \"CH$IUPAC\" field.\nError from CDK:\n" + e.getMessage());
                 }
                 // create an InChiKey
-                InChiKeyFromCH_IUPAC = JnaInchi.inchiToInchiKey(record.CH_IUPAC()).getInchiKey();
+                InChiKeyFromCH_IUPAC = JnaInchi.inchiToInchiKey(record.getChIUPAC()).getInchiKey();
             }
 
             // get InChIKey from CH$LINK
             String InChiKeyFromCH_LINK = record.getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(Record.KeyValue::value).findFirst().orElse(null);
             if (InChiKeyFromCH_LINK != null) {
-                if ("N/A".equals(record.CH_IUPAC()))
+                if ("N/A".equals(record.getChIUPAC()))
                     return context.failure("If INCHIKEY is given in CH$LINK, CH$IUPAC can not be \"N/A\".");
             }
 
             // if any structural information is in CH$IUPAC, then CH$FORMULA, CH$SMILES CH$LINK: INCHIKEY must be defined and match
-            if (!"N/A".equals(record.CH_IUPAC())) {
+            if (!"N/A".equals(record.getChIUPAC())) {
                 if (InChiKeyFromCH_IUPAC == null) throw new RuntimeException("unexpected condition");
                 // no N/A allowed
-                if ("N/A".equals(record.CH_SMILES()))
+                if ("N/A".equals(record.getChSMILES()))
                     return context.failure("If CH$IUPAC is defined, CH$SMILES can not be \"N/A\".");
                 if ("N/A".equals(record.getChFormula()))
                     return context.failure("If CH$IUPAC is defined, CH$FORMULA can not be \"N/A\".");
@@ -1951,10 +1951,10 @@ public class RecordParserDefinition extends GrammarDefinition {
                 }
             }
 
-            if (!"N/A".equals(record.CH_SMILES())) {
+            if (!"N/A".equals(record.getChSMILES())) {
                 // N/A in CH$IUPAC or CH$FORMULA are only allowed if SMILES string contains wildcards
                 if (!smilesHasWildcards) {
-                    if ("N/A".equals(record.CH_IUPAC()))
+                    if ("N/A".equals(record.getChIUPAC()))
                         return context.failure("If CH$SMILES is defined and without wildcards, CH$IUPAC can not be \"N/A\".");
                     if ("N/A".equals(record.getChFormula()))
                         return context.failure("If CH$SMILES is defined and without wildcards, CH$FORMULA can not be \"N/A\".");
@@ -1987,7 +1987,7 @@ public class RecordParserDefinition extends GrammarDefinition {
             Splash splashFactory = SplashFactory.create();
             Spectrum spectrum = new SpectrumImpl(ions, SpectraType.MS);
             String splash_from_peaks = splashFactory.splashIt(spectrum);
-            String splash_from_record = record.PK_SPLASH();
+            String splash_from_record = record.getPkSPLASH();
             if (!splash_from_peaks.equals(splash_from_record)) {
                 return context.failure("SPLASH from record file does not match SPLASH calculated from peaklist. "
                     + splash_from_record + " defined in record file, but " + splash_from_peaks + " calculated from peaks.");

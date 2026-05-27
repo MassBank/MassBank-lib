@@ -1,22 +1,22 @@
 /*******************************************************************************
  * Copyright (C) 2025 MassBank consortium
- * 
+ *
  * This file is part of MassBank.
- * 
+ *
  * MassBank is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  ******************************************************************************/
 package massbank;
 
@@ -57,42 +57,117 @@ import java.util.regex.Pattern;
  */
 
 @Entity
-@Access(AccessType.PROPERTY)
 public class Record extends AbstractRecord {
 	private static final Logger logger = LogManager.getLogger(Record.class);
 
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "record_title", columnDefinition = "jsonb")
 	private List<String> recordTitle;
+
+	@Column(name = "date", length = 100)
 	private String date;
+
+	@Column(name = "authors", length = 512)
 	private String authors;
+
+	@Column(name = "license", length = 64)
 	private String license;
+
+	@Column(name = "copyright", length = 2048)
 	private String copyright; // optional
+
+	@Column(name = "publication", length = 2048)
 	private String publication; // optional
+
+	@Column(name = "project", length = 512)
 	private String project; // optional
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "comment", columnDefinition = "jsonb")
 	private List<String> comment; // optional
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ch_name", columnDefinition = "jsonb")
 	private List<String> chName;
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ch_compound_class", columnDefinition = "jsonb")
 	private List<String> chCompoundClass; // optional
+
+	@Column(name = "ch_formula", length = 512)
 	private String chFormula;
+
+	@Column(name = "ch_exact_mass", precision = 20, scale = 10)
 	private BigDecimal exactMass;
-	private String CH$SMILES;
-	private String CH$IUPAC;
+
+	@Column(name = "ch_smiles", length = 2048)
+	private String chSMILES;
+
+	@Column(name = "ch_iupac", length = 2048)
+	private String chIUPAC;
+
+	@ElementCollection
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ch_link", columnDefinition = "jsonb")
 	private List<KeyValue> chLink; // optional
+
+	@Column(name = "sp_scientific_name", length = 512)
 	private String spScientificName; // optional
+
+	@Column(name = "sp_lineage", length = 2048)
 	private String spLineage; // optional
+
+	@ElementCollection
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "sp_link", columnDefinition = "jsonb")
 	private List<KeyValue> spLink; // optional
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "sp_sample", columnDefinition = "jsonb")
 	private List<String> spSample; // optional
+
+	@Column(name = "ac_instrument", length = 2048)
 	private String acInstrument;
+
+	@Column(name = "ac_instrument_type", length = 512)
 	private String acInstrumentType;
+
+	@Column(name = "ac_mass_spectrometry_ms_type", length = 32)
 	private String acMassSpectrometryMsType;
+
+	@Column(name = "ac_mass_spectrometry_ion_mode", length = 32)
 	private String acMassSpectrometryIonMode;
+
+	@ElementCollection
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ac_mass_spectrometry", columnDefinition = "jsonb")
 	private List<KeyValue> acMassSpectrometry; // optional
+
+	@ElementCollection
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ac_chromatography", columnDefinition = "jsonb")
 	private List<KeyValue> acChromatography; // optional
+
+	@ElementCollection
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ms_focused_ion", columnDefinition = "jsonb")
 	private List<KeyValue> msFocusedIon; // optional
+
+	@ElementCollection
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "ms_data_processing", columnDefinition = "jsonb")
 	private List<KeyValue> msDataProcessing; // optional
-	private String PK$SPLASH;
+
+	@Column(name = "pk_splash", length = 128)
+	private String pkSplash;
+
+	@Transient
 	private List<String> PK$ANNOTATION_HEADER; // optional
+	@Transient
 	private List<Pair<BigDecimal, List<String>>> PK$ANNOTATION; // optional
+	@Transient
 	private List<Triple<BigDecimal, BigDecimal, Integer>> PK$PEAK;
-	
+
 	public Record() {
 		super();
 		recordTitle = new ArrayList<>();
@@ -107,8 +182,8 @@ public class Record extends AbstractRecord {
 		chCompoundClass = new ArrayList<>();
 		chFormula = "";
 		exactMass = new BigDecimal(0);
-		CH$SMILES = "";
-		CH$IUPAC = "";
+		chSMILES = "";
+		chIUPAC = "";
 		chLink = new ArrayList<>(); // optional
 		spScientificName = ""; // optional
 		spLineage = ""; // optional
@@ -122,21 +197,20 @@ public class Record extends AbstractRecord {
 		acChromatography = new ArrayList<>(); // optional
 		msFocusedIon = new ArrayList<>(); // optional
 		msDataProcessing = new ArrayList<>(); // optional
-		PK$SPLASH = "";
+		pkSplash = "";
 		PK$ANNOTATION_HEADER = new ArrayList<>(); // optional
 		PK$ANNOTATION = new ArrayList<>(); // optional
 		PK$PEAK = new ArrayList<>();
 	}
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "record_title", columnDefinition = "jsonb")
+
 	public List<String> getRecordTitle() {
 		return recordTitle;
 	}
 	public void setRecordTitle(List<String> recordTitle) {
 		this.recordTitle = recordTitle;
 	}
-	@Transient
+
 	public String getRecordTitle1() {
 		return recordTitle == null ? "" : String.join("; ", recordTitle);
 	}
@@ -145,7 +219,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@Column(name = "date", length = 100)
 	public String getDate() {
 		return date;
 	}
@@ -160,7 +233,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@Column(name = "authors", length = 512)
 	public String getAuthors() {
 		return authors;
 	}
@@ -169,7 +241,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@Column(name = "license", length = 64)
 	public String getLicense() {
 		return license;
 	}
@@ -178,7 +249,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@Column(name = "copyright", length = 2048)
 	public String getCopyright() {
 		return copyright;
 	}
@@ -187,16 +257,14 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@Column(name = "publication", length = 2048)
 	public String getPublication() {
 		return publication;
 	}
 	public void setPublication(String value) {
-        publication = value;
+		publication = value;
 	}
-	
-	
-	@Column(name = "project", length = 512)
+
+
 	public String getProject() {
 		return project;
 	}
@@ -205,28 +273,22 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "comment", columnDefinition = "jsonb")
 	public List<String> getComment() {
 		return comment;
 	}
 	public void setComment(List<String> value) {
-	        comment = value == null ? new ArrayList<>() : new ArrayList<>(value);
+		comment = value == null ? new ArrayList<>() : new ArrayList<>(value);
 	}
-	
-	
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "ch_name", columnDefinition = "jsonb")
+
+
 	public List<String> getChName() {
 		return chName;
 	}
 	public void setChName(List<String> value) {
 		chName = value == null ? new ArrayList<>() : new ArrayList<>(value);
 	}
-	
-	
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "ch_compound_class", columnDefinition = "jsonb")
+
+
 	public List<String> getChCompoundClass() {
 		return chCompoundClass;
 	}
@@ -234,29 +296,23 @@ public class Record extends AbstractRecord {
 		chCompoundClass = value == null ? new ArrayList<>() : new ArrayList<>(value);
 	}
 
-	
-	/**
-	* Returns the molecular formula as a String.
-	*/
-	@Column(name = "ch_formula", length = 512)
+
 	public String getChFormula() {
 		return chFormula;
 	}
 	public void setChFormula(String value) {
 		chFormula = value;
 	}
-
 	/**
-	* Returns the molecular formula as a String with HTML sup tags.
-	*/
+	 * Returns the molecular formula as a String with HTML sup tags.
+	 */
 	@Transient
 	public String getChFormula1() {
 		IMolecularFormula m = MolecularFormulaManipulator.getMolecularFormula(getChFormula(), SilentChemObjectBuilder.getInstance());
 		return MolecularFormulaManipulator.getHTML(m);
 	}
 
-	
-	@Column(name = "ch_exact_mass", precision = 20, scale = 10)
+
 	public BigDecimal getChExactMass() {
 		return exactMass;
 	}
@@ -264,54 +320,52 @@ public class Record extends AbstractRecord {
 		exactMass = value;
 	}
 
-	
-	public String CH_SMILES() {
-		return CH$SMILES;
+
+	public String getChSMILES() {
+		return chSMILES;
 	}
 	public IAtomContainer CH_SMILES_obj() {
-		if ("N/A".equals(CH$SMILES)) return SilentChemObjectBuilder.getInstance().newAtomContainer();
+		if ("N/A".equals(chSMILES)) return SilentChemObjectBuilder.getInstance().newAtomContainer();
 		try {
-			return new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(CH$SMILES);
+			return new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(chSMILES);
 		} catch (InvalidSmilesException e) {
-            logger.error("Structure generation from SMILES failed. Error: {} for {}.", e.getMessage(), CH$SMILES);
+			logger.error("Structure generation from SMILES failed. Error: {} for {}.", e.getMessage(), chSMILES);
 			return SilentChemObjectBuilder.getInstance().newAtomContainer();
 		}
 	}
-	public void CH_SMILES(String value) {
-		CH$SMILES = value;
+	public void setChSMILES(String value) {
+		chSMILES = value;
 	}
-	
-	
-	public String CH_IUPAC() {
-		return CH$IUPAC;
+
+
+	public String getChIUPAC() {
+		return chIUPAC;
 	}
 	public IAtomContainer CH_IUPAC_obj() {
-		if ("N/A".equals(CH$IUPAC)) return SilentChemObjectBuilder.getInstance().newAtomContainer();
+		if ("N/A".equals(chIUPAC)) return SilentChemObjectBuilder.getInstance().newAtomContainer();
 		try {
 			// Get InChIToStructure
-			InChIToStructure intostruct = InChIGeneratorFactory.getInstance().getInChIToStructure(CH$IUPAC, SilentChemObjectBuilder.getInstance());
+			InChIToStructure intostruct = InChIGeneratorFactory.getInstance().getInChIToStructure(chIUPAC, SilentChemObjectBuilder.getInstance());
 			InchiStatus ret = intostruct.getStatus();
 			if (ret == InchiStatus.WARNING) {
 				// Structure generated, but with warning message
-                logger.warn("InChI warning: {} converting {}.", intostruct.getMessage(), CH$IUPAC);
-			} 
-			else if (ret == InchiStatus.ERROR) {
+				logger.warn("InChI warning: {} converting {}.", intostruct.getMessage(), chIUPAC);
+			} else if (ret == InchiStatus.ERROR) {
 				// Structure generation failed
-                logger.error("Structure generation failed: {} converting {}.", intostruct.getMessage(), CH$IUPAC);
-				return  SilentChemObjectBuilder.getInstance().newAtomContainer();
+				logger.error("Structure generation failed: {} converting {}.", intostruct.getMessage(), chIUPAC);
+				return SilentChemObjectBuilder.getInstance().newAtomContainer();
 			}
 			return intostruct.getAtomContainer();
 		} catch (CDKException e) {
-            logger.error("Structure generation from InChI failed. Error: {} for {}.", e.getMessage(), CH$IUPAC);
-			return  SilentChemObjectBuilder.getInstance().newAtomContainer();
-		}		 			
+			logger.error("Structure generation from InChI failed. Error: {} for {}.", e.getMessage(), chIUPAC);
+			return SilentChemObjectBuilder.getInstance().newAtomContainer();
+		}
 	}
-	public void CH_IUPAC(String value) {
-		CH$IUPAC = value;
+	public void setChIUPAC(String value) {
+		chIUPAC = value;
 	}
-		
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "ch_link", columnDefinition = "jsonb")
+
+
 	public List<KeyValue> getChLink() {
 		return chLink;
 	}
@@ -324,7 +378,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@Column(name = "sp_scientific_name", length = 512)
 	public String getSpScientificName() {
 		return spScientificName;
 	}
@@ -333,7 +386,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@Column(name = "sp_lineage", length = 2048)
 	public String getSpLineage() {
 		return spLineage;
 	}
@@ -342,8 +394,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "sp_link", columnDefinition = "jsonb")
 	public List<KeyValue> getSpLink() {
 		return spLink;
 	}
@@ -356,8 +406,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "sp_sample", columnDefinition = "jsonb")
 	public List<String> getSpSample() {
 		return spSample;
 	}
@@ -366,7 +414,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@Column(name = "ac_instrument", length = 2048)
 	public String getAcInstrument() {
 		return acInstrument;
 	}
@@ -375,7 +422,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@Column(name = "ac_instrument_type", length = 512)
 	public String getAcInstrumentType() {
 		return acInstrumentType;
 	}
@@ -384,7 +430,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@Column(name = "ac_mass_spectrometry_ms_type", length = 32)
 	public String getAcMassSpectrometryMsType() {
 		return acMassSpectrometryMsType;
 	}
@@ -393,7 +438,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@Column(name = "ac_mass_spectrometry_ion_mode", length = 32)
 	public String getAcMassSpectrometryIonMode() {
 		return acMassSpectrometryIonMode;
 	}
@@ -402,8 +446,6 @@ public class Record extends AbstractRecord {
 	}
 
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "ac_mass_spectrometry", columnDefinition = "jsonb")
 	public List<KeyValue> getAcMassSpectrometry() {
 		return acMassSpectrometry;
 	}
@@ -417,8 +459,6 @@ public class Record extends AbstractRecord {
 		}
 	}
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "ac_chromatography", columnDefinition = "jsonb")
 	public List<KeyValue> getAcChromatography() {
 		return acChromatography;
 	}
@@ -430,8 +470,6 @@ public class Record extends AbstractRecord {
 		}
 	}
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "ms_focused_ion", columnDefinition = "jsonb")
 	public List<KeyValue> getMsFocusedIon() {
 		return msFocusedIon;
 	}
@@ -443,8 +481,6 @@ public class Record extends AbstractRecord {
 		}
 	}
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "ms_data_processing", columnDefinition = "jsonb")
 	public List<KeyValue> getMsDataProcessing() {
 		return msDataProcessing;
 	}
@@ -457,12 +493,13 @@ public class Record extends AbstractRecord {
 	}
 
 
-	public String PK_SPLASH() {
-		return PK$SPLASH;
+	public String getPkSPLASH() {
+		return pkSplash;
 	}
-	public void PK_SPLASH(String value) {
-		PK$SPLASH = value;
+	public void setPkSPLASH(String value) {
+		pkSplash = value;
 	}
+
 
 	public List<String> PK_ANNOTATION_HEADER() {
 		return PK$ANNOTATION_HEADER;
@@ -515,8 +552,8 @@ public class Record extends AbstractRecord {
 		}
 		sb.append("CH$FORMULA: ").append(getChFormula()).append("\n");
 		sb.append("CH$EXACT_MASS: ").append(getChExactMass()).append("\n");
-		sb.append("CH$SMILES: ").append(CH_SMILES()).append("\n");
-		sb.append("CH$IUPAC: ").append(CH_IUPAC()).append("\n");
+		sb.append("CH$SMILES: ").append(getChSMILES()).append("\n");
+		sb.append("CH$IUPAC: ").append(getChIUPAC()).append("\n");
 		for (KeyValue entry : getChLink()) {
 			sb.append("CH$LINK: ")
 				.append(entry.key())
@@ -572,7 +609,7 @@ public class Record extends AbstractRecord {
 				.append("\n");
 		}
 
-		sb.append("PK$SPLASH: ").append(PK_SPLASH()).append("\n");
+		sb.append("PK$SPLASH: ").append(getPkSPLASH()).append("\n");
 		if (!PK_ANNOTATION_HEADER().isEmpty()) {
 			sb.append("PK$ANNOTATION:");
 			for (String annotation_header_item : PK_ANNOTATION_HEADER())
@@ -619,8 +656,8 @@ public class Record extends AbstractRecord {
 		sb.append("<b>CH$COMPOUND_CLASS:</b> ").append(String.join("; ", getChCompoundClass())).append("<br>\n");
 		sb.append("<b>CH$FORMULA:</b> <a href=\"http://www.chemspider.com/Search.aspx?q=").append(getChFormula()).append("\" target=\"_blank\">").append(getChFormula1()).append("</a><br>\n");
 		sb.append("<b>CH$EXACT_MASS:</b> ").append(getChExactMass()).append("<br>\n");
-		sb.append("<b>CH$SMILES:</b> ").append(CH_SMILES()).append("<br>\n");
-		sb.append("<b>CH$IUPAC:</b> ").append(CH_IUPAC()).append("<br>\n");
+		sb.append("<b>CH$SMILES:</b> ").append(getChSMILES()).append("<br>\n");
+		sb.append("<b>CH$IUPAC:</b> ").append(getChIUPAC()).append("<br>\n");
 		for (KeyValue entry : getChLink()) {
 			String key = entry.key();
 			String value = entry.value();
@@ -723,7 +760,7 @@ public class Record extends AbstractRecord {
 		}
 		if (!getMsFocusedIon().isEmpty() || !getMsDataProcessing().isEmpty()) sb.append("<hr>\n");
 		
-		sb.append("<b>PK$SPLASH:</b> <a href=\"http://www.google.com/search?q=").append(PK_SPLASH()).append("\" target=\"_blank\">").append(PK_SPLASH()).append("</a><br>\n");
+		sb.append("<b>PK$SPLASH:</b> <a href=\"http://www.google.com/search?q=").append(getPkSPLASH()).append("\" target=\"_blank\">").append(getPkSPLASH()).append("</a><br>\n");
 		if (!PK_ANNOTATION_HEADER().isEmpty()) {
 			sb.append("<b>PK$ANNOTATION:</b>");
 			for (String annotation_header_item : PK_ANNOTATION_HEADER())
@@ -924,8 +961,8 @@ public class Record extends AbstractRecord {
 		molecularEntity.addProperty("identifier", getAccession());
 		molecularEntity.addProperty("name", getRecordTitle().getFirst());
 		molecularEntity.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
-		if (!CH_IUPAC().equals("N/A")) molecularEntity.addProperty("inChI", CH_IUPAC());
-		if (!CH_SMILES().equals("N/A")) molecularEntity.addProperty("smiles", CH_SMILES());
+		if (!getChIUPAC().equals("N/A")) molecularEntity.addProperty("inChI", getChIUPAC());
+		if (!getChSMILES().equals("N/A")) molecularEntity.addProperty("smiles", getChSMILES());
 		molecularEntity.addProperty("molecularFormula", getChFormula());
 		molecularEntity.addProperty("monoisotopicMolecularWeight", getChExactMass());
 		if (InChiKey!=null) molecularEntity.addProperty("inChIKey", InChiKey);

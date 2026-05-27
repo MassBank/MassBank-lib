@@ -22,7 +22,6 @@ package massbank.export;
 
 import massbank.AbstractRecord;
 import massbank.Record;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -34,7 +33,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /*
 RIKEN PRIME *.msp format II:
@@ -123,8 +121,8 @@ public class RecordToRIKEN_MSP {
 		}
 		String inchiKey = record.getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(Record.KeyValue::value).findFirst().orElse("N/A");
 		sb.append("INCHIKEY: ").append(inchiKey).append(System.lineSeparator());
-		sb.append("INCHI: ").append(record.CH_IUPAC()).append(System.lineSeparator());
-		sb.append("SMILES: ").append(record.CH_SMILES()).append(System.lineSeparator());
+		sb.append("INCHI: ").append(record.getChIUPAC()).append(System.lineSeparator());
+		sb.append("SMILES: ").append(record.getChSMILES()).append(System.lineSeparator());
 		sb.append("RETENTIONTIME: ")
 			.append(MS_FOCUSED_ION.stream()
 				.filter(p -> "RETENTION_TIME".equals(p.key()))
@@ -154,7 +152,7 @@ public class RecordToRIKEN_MSP {
 		recordComment.add(0, "DB#="+record.getAccession()+"; origin=MassBank");
 				
 		sb.append("Comment: ").append(String.join("; ", recordComment)).append(System.lineSeparator());
-		sb.append("Splash: ").append(record.PK_SPLASH()).append(System.lineSeparator());
+		sb.append("Splash: ").append(record.getPkSPLASH()).append(System.lineSeparator());
 
 		sb.append("Num Peaks" + ": ").append(record.PK_NUM_PEAK()).append(System.lineSeparator());
 		for(Triple<BigDecimal,BigDecimal,Integer> peak : record.PK_PEAK())
