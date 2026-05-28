@@ -6,8 +6,10 @@ import massbank.AbstractRecord;
 import massbank.DeprecatedRecord;
 import massbank.Record;
 import massbank.RecordParserTest;
+import massbank.Peak;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -29,7 +31,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
@@ -85,12 +86,24 @@ class RecordDbTest {
         }
         assertFalse(recordFiles.isEmpty(), "No .txt files in src/test/resources found");
 
+        // 1. Alle Records einlesen und persistieren
+        List<AbstractRecord> expectedRecords = new ArrayList<>();
         for (Path file : recordFiles) {
             RecordParserTest.ParseResult res = RecordParserTest.parseRecord(file.getFileName().toString());
             assertTrue(res.result().isSuccess());
             AbstractRecord record = res.result().get();
-            AbstractRecord loaded = persistAndReload(record);
-            assertMappedFieldsEqual(record, loaded);
+            expectedRecords.add(record);
+            repository.save(record);
+        }
+        repository.flush();
+        entityManager.flush();
+        entityManager.clear();
+
+        // 2. Alle Records laden und vergleichen
+        for (AbstractRecord expected : expectedRecords) {
+            AbstractRecord loaded = repository.findById(expected.getAccession())
+                    .orElseThrow(() -> new AssertionError("record not found: " + expected.getAccession()));
+            assertMappedFieldsEqual(expected, loaded);
         }
 
         assertEquals(recordFiles.size(), repository.count(), "unexpected number of persisted fixture records");
@@ -146,9 +159,16 @@ class RecordDbTest {
             new Record.KeyValue("CENTROIDING", "raw")
         ));
 
+        r.addPeak(new Peak(BigDecimal.valueOf(147.044), BigDecimal.valueOf(218.845), 20));
+        r.addPeak(new Peak(BigDecimal.valueOf(153.019), BigDecimal.valueOf(316.545), 30));
+        r.addPeak(new Peak(BigDecimal.valueOf(273.076), BigDecimal.valueOf(10000.000), 999));
+        r.addPeak(new Peak(BigDecimal.valueOf(274.083), BigDecimal.valueOf(318.003), 30));
+
+
         Record loaded = (Record) persistAndReload(r);
         assertMappedFieldsEqual(r, loaded);
     }
+
 
     private AbstractRecord persistAndReload(AbstractRecord record) {
         repository.saveAndFlush(record);
@@ -190,11 +210,54 @@ class RecordDbTest {
             assertEquals(new ArrayList<>(exp.getAcChromatography()), new ArrayList<>(act.getAcChromatography()), () -> "AC$CHROMATOGRAPHY mismatch for " + expected.getAccession());
             assertEquals(new ArrayList<>(exp.getMsFocusedIon()), new ArrayList<>(act.getMsFocusedIon()), () -> "MS$FOCUSED_ION mismatch for " + expected.getAccession());
             assertEquals(new ArrayList<>(exp.getMsDataProcessing()), new ArrayList<>(act.getMsDataProcessing()), () -> "MS$DATA_PROCESSING mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getPkPeak()), new ArrayList<>(act.getPkPeak()), () -> "PK$PEAK mismatch for " + expected.getAccession());
         } else if (expected instanceof DeprecatedRecord exp && actual instanceof DeprecatedRecord act) {
             assertEquals(exp.getDeprecated(), act.getDeprecated(), () -> "DEPRECATED mismatch for " + expected.getAccession());
             assertEquals(exp.getDeprecatedContent(), act.getDeprecatedContent(), () -> "DEPRECATED_CONTENT mismatch for " + expected.getAccession());
         } else {
             fail("Record type mismatch: " + expected.getClass() + " vs " + actual.getClass());
+        }
+    }
+
+    @Disabled("Runs only for manual regression checks")
+    @Test
+    void saveAndLoadFixtureRecords_compareFileAndSerialized() throws IOException {
+        Path resourcesDir = Paths.get("src/test/resources");
+        assertTrue(Files.exists(resourcesDir), "src/test/resources not found");
+
+        List<Path> recordFiles;
+        try (Stream<Path> paths = Files.walk(resourcesDir)) {
+            recordFiles = paths
+                    .filter(p -> p.toString().endsWith(".txt"))
+                    .filter(p -> p.getFileName().toString().startsWith("MSBNK-"))
+                    .toList();
+        }
+        assertFalse(recordFiles.isEmpty(), "No .txt files in src/test/resources found");
+
+        // 1. Alle Records einlesen und persistieren
+        List<String> originalContents = new ArrayList<>();
+        List<String> accessions = new ArrayList<>();
+        for (Path file : recordFiles) {
+            String fileContent = Files.readString(file);
+            originalContents.add(fileContent);
+            RecordParserTest.ParseResult res = RecordParserTest.parseRecord(file.getFileName().toString());
+            assertTrue(res.result().isSuccess());
+            AbstractRecord record = res.result().get();
+            accessions.add(record.getAccession());
+            repository.save(record);
+        }
+        repository.flush();
+        entityManager.flush();
+        entityManager.clear();
+
+        // 2. Alle Records laden und serialisieren
+        for (int i = 0; i < accessions.size(); i++) {
+            String accession = accessions.get(i);
+            String original = originalContents.get(i).replaceAll("\\r\\n", "\\n").trim();
+            AbstractRecord loaded = repository.findById(accession)
+                    .orElseThrow(() -> new AssertionError("record not found: " + accession));
+            String serialized = loaded.toString().replaceAll("\\r\\n", "\\n").trim();
+            assertEquals(original, serialized, () -> "File/serialization mismatch for " + accession);
         }
     }
 }

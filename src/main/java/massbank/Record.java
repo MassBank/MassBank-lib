@@ -165,8 +165,11 @@ public class Record extends AbstractRecord {
 	private List<String> PK$ANNOTATION_HEADER; // optional
 	@Transient
 	private List<Pair<BigDecimal, List<String>>> PK$ANNOTATION; // optional
-	@Transient
-	private List<Triple<BigDecimal, BigDecimal, Integer>> PK$PEAK;
+
+	@OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OrderBy("mz ASC")
+	private List<Peak> pkPeak = new ArrayList<>();
+
 
 	public Record() {
 		super();
@@ -200,7 +203,6 @@ public class Record extends AbstractRecord {
 		pkSplash = "";
 		PK$ANNOTATION_HEADER = new ArrayList<>(); // optional
 		PK$ANNOTATION = new ArrayList<>(); // optional
-		PK$PEAK = new ArrayList<>();
 	}
 
 
@@ -517,15 +519,23 @@ public class Record extends AbstractRecord {
 	}
 
 	public int PK_NUM_PEAK() {
-		return PK$PEAK.size();
+		return pkPeak.size();
 	}
 
-	// PK_PEAK is a List with Triple values M/Z, intensity, rel. intensity
-	public List<Triple<BigDecimal,BigDecimal,Integer>> PK_PEAK() {
-		return PK$PEAK;
+
+	public void addPeak(Peak peak) {
+		pkPeak.add(peak);
+		peak.setRecord(this);
 	}
-	public void PK_PEAK_ADD_LINE(Triple<BigDecimal,BigDecimal,Integer> peak) {
-		PK$PEAK.add(peak);
+	public void removePeak(Peak peak) {
+		pkPeak.remove(peak);
+		peak.setRecord(null);
+	}
+	public List<Peak> getPkPeak() {
+		return pkPeak;
+	}
+	public void setPkPeak(List<Peak> peaks) {
+		this.pkPeak = peaks;
 	}
 
 	public String toString() {
@@ -622,11 +632,11 @@ public class Record extends AbstractRecord {
 
 		sb.append("PK$NUM_PEAK: ").append(PK_NUM_PEAK()).append("\n");
 		sb.append("PK$PEAK: m/z int. rel.int.\n");
-		for (Triple<BigDecimal,BigDecimal,Integer> peak : PK_PEAK()) {
-			String intensity1 = peak.getMiddle().toPlainString();
-			String intensity2 = peak.getMiddle().toString();
+		for (Peak peak : getPkPeak()) {
+			String intensity1 = String.valueOf(peak.getIntensity());
+			String intensity2 = String.valueOf(peak.getIntensity());
 			String intensity = (intensity1.length() <  intensity2.length() ) ? intensity1 : intensity2;
-			sb.append("  ").append(peak.getLeft()).append(" ").append(intensity).append(" ").append(peak.getRight()).append("\n");
+			sb.append("  ").append(peak.getMz()).append(" ").append(intensity).append(" ").append(peak.getRelIntensity()).append("\n");
 		}
 		sb.append("//\n");
 
@@ -772,8 +782,8 @@ public class Record extends AbstractRecord {
 		}
 		sb.append("<b>PK$NUM_PEAK:</b> ").append(PK_NUM_PEAK()).append("<br>\n");
 		sb.append("<b>PK$PEAK:</b> m/z int. rel.int.<br>\n");
-		for (Triple<BigDecimal,BigDecimal,Integer> peak : PK_PEAK()) {
-			sb.append("&nbsp;&nbsp;").append(peak.getLeft()).append("&nbsp;").append(peak.getMiddle()).append("&nbsp;").append(peak.getRight()).append("<br>\n");
+		for (Peak peak : getPkPeak()) {
+			sb.append("&nbsp;&nbsp;").append(peak.getMz()).append("&nbsp;").append(peak.getIntensity()).append("&nbsp;").append(peak.getRelIntensity()).append("<br>\n");
 		}
 		
 		sb.append("//");
@@ -993,8 +1003,8 @@ public class Record extends AbstractRecord {
         // convert a list of lists [[mz, int, rel.int], [...], ...]
         // to String "mz,rel.int@mz,rel.int@..."
 		List<String> peaks = new ArrayList<>();
-		for (Triple<BigDecimal,BigDecimal,Integer> peak : PK_PEAK()) {
-			peaks.add(peak.getLeft()+","+peak.getRight());
+		for (Peak peak : getPkPeak()) {
+			peaks.add(peak.getMz()+","+peak.getRelIntensity());
 		}
 		return String.join("@", peaks);
 	}
@@ -1002,10 +1012,10 @@ public class Record extends AbstractRecord {
 	public JsonObject createPeakListData() {
 		JsonObject result = new JsonObject();
 		JsonArray peaklist = new JsonArray();
-		for (Triple<BigDecimal,BigDecimal,Integer> peak : PK_PEAK()) {
+		for (Peak peak : getPkPeak()) {
 			JsonObject jsonPeak = new JsonObject();
-			jsonPeak.addProperty("intensity",peak.getRight());
-			jsonPeak.addProperty("mz", peak.getLeft());
+			jsonPeak.addProperty("intensity",peak.getRelIntensity());
+			jsonPeak.addProperty("mz", peak.getMz());
 			peaklist.add(jsonPeak);
 		}
 		result.add("peaks", peaklist);
@@ -1020,6 +1030,8 @@ public class Record extends AbstractRecord {
 
 	public record KeyValue(String key, String value) {}
 }
+
+
 
 
 

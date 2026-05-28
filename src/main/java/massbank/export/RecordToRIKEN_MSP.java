@@ -21,6 +21,7 @@
 package massbank.export;
 
 import massbank.AbstractRecord;
+import massbank.Peak;
 import massbank.Record;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.Logger;
@@ -155,9 +156,8 @@ public class RecordToRIKEN_MSP {
 		sb.append("Splash: ").append(record.getPkSPLASH()).append(System.lineSeparator());
 
 		sb.append("Num Peaks" + ": ").append(record.PK_NUM_PEAK()).append(System.lineSeparator());
-		for(Triple<BigDecimal,BigDecimal,Integer> peak : record.PK_PEAK())
-			sb.append(peak.getLeft().toPlainString()).append("\t").append(peak.getMiddle().toPlainString()).append(System.lineSeparator());
-		
+		for(Peak peak : record.getPkPeak())
+			sb.append(peak.getMz().toString()).append("\t").append(peak.getIntensity().toString()).append(System.lineSeparator());
 		return sb.toString();
 	}
 

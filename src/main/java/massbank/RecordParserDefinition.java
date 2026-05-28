@@ -1577,7 +1577,8 @@ public class RecordParserDefinition extends GrammarDefinition {
                         .seq(
                             ref("uint_primitive")
                         )
-                        .map((List<String> value) -> Triple.of(new BigDecimal(value.getFirst()),
+                        .map((List<String> value) -> new Peak(
+                            new BigDecimal(value.getFirst()),
                             new BigDecimal(value.get(1)),
                             Integer.parseInt(value.get(2))))
                         .seq(Token.NEWLINE_PARSER)
@@ -1809,8 +1810,8 @@ public class RecordParserDefinition extends GrammarDefinition {
     @SuppressWarnings("unchecked")
     private Record setPK_PEAK(List<?> value) {
         Record record = (Record) value.getFirst();
-        for (Triple<BigDecimal, BigDecimal, Integer> peak : (List<Triple<BigDecimal, BigDecimal, Integer>>) value.get(2)) {
-            record.PK_PEAK_ADD_LINE(peak);
+        for (Peak peak : (List<Peak>) value.get(2)) {
+            record.addPeak(peak);
         }
         return record;
     }
@@ -1973,7 +1974,7 @@ public class RecordParserDefinition extends GrammarDefinition {
             }
 
             // validate the number of peaks in the peaklist
-            List<Triple<BigDecimal, BigDecimal, Integer>> pk_peak = record.PK_PEAK();
+            List<Peak> pk_peak = record.getPkPeak();
             if (pk_peak.size() != record.PK_NUM_PEAK()) {
                 return context.failure("Incorrect number of peaks in peaklist. " + record.PK_NUM_PEAK()
                     + " peaks are declared in PK$NUM_PEAK line, but " + pk_peak.size() + " peaks are found.");
@@ -1981,8 +1982,8 @@ public class RecordParserDefinition extends GrammarDefinition {
 
             // validate the SPLASH
             List<Ion> ions = new ArrayList<>();
-            for (Triple<BigDecimal, BigDecimal, Integer> peak : pk_peak) {
-                ions.add(new Ion(peak.getLeft().doubleValue(), peak.getMiddle().doubleValue()));
+            for (Peak peak : pk_peak) {
+                ions.add(new Ion(peak.getMz().doubleValue(), peak.getIntensity().doubleValue()));
             }
             Splash splashFactory = SplashFactory.create();
             Spectrum spectrum = new SpectrumImpl(ions, SpectraType.MS);
@@ -1995,7 +1996,7 @@ public class RecordParserDefinition extends GrammarDefinition {
 
             // check peak sorting
             for (int i = 0; i < pk_peak.size() - 1; i++) {
-                if ((pk_peak.get(i).getLeft().compareTo(pk_peak.get(i + 1).getLeft())) >= 0) {
+                if (Double.compare(pk_peak.get(i).getMz().doubleValue(), pk_peak.get(i + 1).getMz().doubleValue()) >= 0) {
                     return context.failure("The peaks in the peak list are not sorted.\n"
                         + "Error in line " + pk_peak.get(i).toString() + ".");
                 }

@@ -23,6 +23,7 @@ package massbank.export;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import massbank.AbstractRecord;
+import massbank.Peak;
 import massbank.Record;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
@@ -135,13 +136,13 @@ public class RecordToJson {
 				}
 				PK$NUM_PEAK = record.PK_NUM_PEAK();
 				PK$PEAK = new ArrayList<List<String>>();
-				for (Triple<BigDecimal, BigDecimal, Integer> triple : record.PK_PEAK()) {
-					List<String> peakLine = new ArrayList<String>();
-					peakLine.add(triple.getLeft().toString());
-					peakLine.add(triple.getMiddle().toString());
-					peakLine.add(triple.getRight().toString());
-					PK$PEAK.add(peakLine);
-				}
+							   for (Peak peak : record.getPkPeak()) {
+								   List<String> peakLine = new ArrayList<String>();
+								   peakLine.add(peak.getMz().toString());
+								   peakLine.add(peak.getIntensity().toString());
+								   peakLine.add(peak.getRelIntensity().toString());
+								   PK$PEAK.add(peakLine);
+							   }
 			}
 		}
 	}
