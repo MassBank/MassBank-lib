@@ -7,6 +7,7 @@ import massbank.DeprecatedRecord;
 import massbank.Record;
 import massbank.RecordParserTest;
 import massbank.Peak;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -159,6 +160,12 @@ class RecordDbTest {
             new Record.KeyValue("CENTROIDING", "raw")
         ));
 
+        r.setPkAnnotationHeader(List.of("m/z", "ion"));
+        r.PK_ANNOTATION_ADD_LINE(Pair.of(new BigDecimal("1278.12"), List.of("[LH-2NeuAc+Na]+")));
+        r.PK_ANNOTATION_ADD_LINE(Pair.of(new BigDecimal("1306.21"), List.of("[M-2NeuAc+Na]+")));
+        r.PK_ANNOTATION_ADD_LINE(Pair.of(new BigDecimal("1597.12"), List.of("[M-NeuAc+Na]+")));
+        r.PK_ANNOTATION_ADD_LINE(Pair.of(new BigDecimal("1860.16"), List.of("[LH+Na]+")));
+
         r.addPeak(new Peak(BigDecimal.valueOf(147.044), BigDecimal.valueOf(218.845), 20));
         r.addPeak(new Peak(BigDecimal.valueOf(153.019), BigDecimal.valueOf(316.545), 30));
         r.addPeak(new Peak(BigDecimal.valueOf(273.076), BigDecimal.valueOf(10000.000), 999));
@@ -210,6 +217,8 @@ class RecordDbTest {
             assertEquals(new ArrayList<>(exp.getAcChromatography()), new ArrayList<>(act.getAcChromatography()), () -> "AC$CHROMATOGRAPHY mismatch for " + expected.getAccession());
             assertEquals(new ArrayList<>(exp.getMsFocusedIon()), new ArrayList<>(act.getMsFocusedIon()), () -> "MS$FOCUSED_ION mismatch for " + expected.getAccession());
             assertEquals(new ArrayList<>(exp.getMsDataProcessing()), new ArrayList<>(act.getMsDataProcessing()), () -> "MS$DATA_PROCESSING mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.getPkAnnotationHeader()), new ArrayList<>(act.getPkAnnotationHeader()), () -> "PK$ANNOTATION header mismatch for " + expected.getAccession());
+            assertEquals(new ArrayList<>(exp.PK_ANNOTATION()), new ArrayList<>(act.PK_ANNOTATION()), () -> "PK$ANNOTATION rows mismatch for " + expected.getAccession());
             assertEquals(new ArrayList<>(exp.getPkPeak()), new ArrayList<>(act.getPkPeak()), () -> "PK$PEAK mismatch for " + expected.getAccession());
         } else if (expected instanceof DeprecatedRecord exp && actual instanceof DeprecatedRecord act) {
             assertEquals(exp.getDeprecated(), act.getDeprecated(), () -> "DEPRECATED mismatch for " + expected.getAccession());

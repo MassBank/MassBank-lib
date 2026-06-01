@@ -1799,7 +1799,7 @@ public class RecordParserDefinition extends GrammarDefinition {
     private Record setPK_ANNOTATION(List<?> value) {
         Record record = (Record) value.getFirst();
         if (value.get(1) != null) {
-            record.PK_ANNOTATION_HEADER((List<String>) ((List<?>) value.get(1)).get(0));
+            record.setPkAnnotationHeader((List<String>) ((List<?>) value.get(1)).get(0));
             for (Pair<BigDecimal, List<String>> annotationLine : (List<Pair<BigDecimal, List<String>>>) ((List<?>) value.get(1)).get(1)) {
                 record.PK_ANNOTATION_ADD_LINE(annotationLine);
             }
@@ -2042,7 +2042,7 @@ public class RecordParserDefinition extends GrammarDefinition {
             }
 
             // validate the count of PK$ANNOTATION items per line
-            List<String> pk_annotation_header = record.PK_ANNOTATION_HEADER();
+            List<String> pk_annotation_header = record.getPkAnnotationHeader();
             for (Pair<BigDecimal, List<String>> pkAnnotationLine : pk_annotation) {
                 if (pk_annotation_header.size() != pkAnnotationLine.getRight().size() + 1) {
                     StringBuilder sb = new StringBuilder();
@@ -2053,7 +2053,7 @@ public class RecordParserDefinition extends GrammarDefinition {
                         .append(" fields found.\n")
                         .append("Defined by:\n")
                         .append("PK$ANNOTATION:");
-                    for (String pk_annotation_headerItem : record.PK_ANNOTATION_HEADER())
+                    for (String pk_annotation_headerItem : record.getPkAnnotationHeader())
                         sb.append(" ").append(pk_annotation_headerItem);
                     sb.append("  ").append(pkAnnotationLine.getLeft()).append(" ").append(String.join(" ", pkAnnotationLine.getRight()));
                     return context.failure(sb.toString());

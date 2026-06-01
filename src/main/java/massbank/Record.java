@@ -27,7 +27,6 @@ import com.google.gson.JsonObject;
 import io.github.dan2097.jnainchi.InchiStatus;
 import jakarta.persistence.*;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -161,10 +160,9 @@ public class Record extends AbstractRecord {
 	@Column(name = "pk_splash", length = 128)
 	private String pkSplash;
 
-	@Transient
-	private List<String> PK$ANNOTATION_HEADER; // optional
-	@Transient
-	private List<Pair<BigDecimal, List<String>>> PK$ANNOTATION; // optional
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "pk_annotation", columnDefinition = "jsonb")
+	private PeakAnnotationTable pkAnnotationTable = new PeakAnnotationTable();
 
 	@OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
 	@OrderBy("mz ASC")
@@ -201,8 +199,7 @@ public class Record extends AbstractRecord {
 		msFocusedIon = new ArrayList<>(); // optional
 		msDataProcessing = new ArrayList<>(); // optional
 		pkSplash = "";
-		PK$ANNOTATION_HEADER = new ArrayList<>(); // optional
-		PK$ANNOTATION = new ArrayList<>(); // optional
+		pkAnnotationTable = new PeakAnnotationTable();
 	}
 
 
@@ -494,7 +491,6 @@ public class Record extends AbstractRecord {
 		}
 	}
 
-
 	public String getPkSPLASH() {
 		return pkSplash;
 	}
@@ -502,20 +498,44 @@ public class Record extends AbstractRecord {
 		pkSplash = value;
 	}
 
-
-	public List<String> PK_ANNOTATION_HEADER() {
-		return PK$ANNOTATION_HEADER;
+	public PeakAnnotationTable getPkAnnotationTable() {
+		if (pkAnnotationTable == null) pkAnnotationTable = new PeakAnnotationTable();
+		return pkAnnotationTable;
 	}
-	public void PK_ANNOTATION_HEADER(List<String> value) {
-		PK$ANNOTATION_HEADER = List.copyOf(value);
+	public void setPkAnnotationTable(PeakAnnotationTable table) {
+		pkAnnotationTable = table == null
+				? new PeakAnnotationTable()
+				: new PeakAnnotationTable(table.getHeader(), table.getRows());
 	}
+	public List<String> getPkAnnotationHeader() { return getPkAnnotationTable().getHeader(); }
+	public void setPkAnnotationHeader(List<String> header) { getPkAnnotationTable().setHeader(header); }
+	public List<PeakAnnotationRow> getPkAnnotation() { return getPkAnnotationTable().getRows(); }
+	public void setPkAnnotation(List<PeakAnnotationRow> annotation) { getPkAnnotationTable().setRows(annotation); }
 
 	// PK_ANNOTATION is a two-dimensional List
 	public List<Pair<BigDecimal, List<String>>> PK_ANNOTATION() {
-		return PK$ANNOTATION;
+		List<Pair<BigDecimal, List<String>>> result = new ArrayList<>();
+		for (PeakAnnotationRow row : getPkAnnotation()) {
+			result.add(Pair.of(row.getMz(), new ArrayList<>(row.getColumns())));
+		}
+		return result;
 	}
 	public void PK_ANNOTATION_ADD_LINE(Pair<BigDecimal, List<String>> annotation) {
-		PK$ANNOTATION.add(annotation);
+		if (annotation == null) return;
+		getPkAnnotation().add(new PeakAnnotationRow(annotation.getLeft(), annotation.getRight()));
+	}
+	public void setPK_ANNOTATION(List<Pair<BigDecimal, List<String>>> annotationList) {
+		List<PeakAnnotationRow> rows = new ArrayList<>();
+		if (annotationList == null) {
+			setPkAnnotation(rows);
+			return;
+		}
+		for (Pair<BigDecimal, List<String>> pair : annotationList) {
+			if (pair != null) {
+				rows.add(new PeakAnnotationRow(pair.getLeft(), pair.getRight()));
+			}
+		}
+		setPkAnnotation(rows);
 	}
 
 	public int PK_NUM_PEAK() {
@@ -620,9 +640,9 @@ public class Record extends AbstractRecord {
 		}
 
 		sb.append("PK$SPLASH: ").append(getPkSPLASH()).append("\n");
-		if (!PK_ANNOTATION_HEADER().isEmpty()) {
+		if (!getPkAnnotationHeader().isEmpty()) {
 			sb.append("PK$ANNOTATION:");
-			for (String annotation_header_item : PK_ANNOTATION_HEADER())
+			for (String annotation_header_item : getPkAnnotationHeader())
 				sb.append(" ").append(annotation_header_item);
 			sb.append("\n");
 			for (Pair<BigDecimal, List<String>> annotation_line :  PK_ANNOTATION()) {
@@ -771,14 +791,14 @@ public class Record extends AbstractRecord {
 		if (!getMsFocusedIon().isEmpty() || !getMsDataProcessing().isEmpty()) sb.append("<hr>\n");
 		
 		sb.append("<b>PK$SPLASH:</b> <a href=\"http://www.google.com/search?q=").append(getPkSPLASH()).append("\" target=\"_blank\">").append(getPkSPLASH()).append("</a><br>\n");
-		if (!PK_ANNOTATION_HEADER().isEmpty()) {
+		if (!getPkAnnotationHeader().isEmpty()) {
 			sb.append("<b>PK$ANNOTATION:</b>");
-			for (String annotation_header_item : PK_ANNOTATION_HEADER())
+			for (String annotation_header_item : getPkAnnotationHeader())
 				sb.append(" ").append(annotation_header_item);
 			sb.append("<br>\n");
-			for (Pair<BigDecimal, List<String>> annotation_line :  PK$ANNOTATION) {
+			for (Pair<BigDecimal, List<String>> annotation_line :  PK_ANNOTATION()) {
 				sb.append("&nbsp;&nbsp;").append(annotation_line.getLeft()).append("&nbsp;").append(String.join("&nbsp;", annotation_line.getRight())).append("<br>\n");
-  		}
+	  }
 		}
 		sb.append("<b>PK$NUM_PEAK:</b> ").append(PK_NUM_PEAK()).append("<br>\n");
 		sb.append("<b>PK$PEAK:</b> m/z int. rel.int.<br>\n");
@@ -1028,11 +1048,49 @@ public class Record extends AbstractRecord {
 	public record Contributor(String ACRONYM, String SHORT_NAME, String FULL_NAME) {
 	}
 
+
 	public record KeyValue(String key, String value) {}
+
+	public static class PeakAnnotationRow {
+		private BigDecimal mz;
+		private List<String> columns = new ArrayList<>();
+
+		public PeakAnnotationRow() {}
+		public PeakAnnotationRow(BigDecimal mz, List<String> columns) {
+			this.mz = mz;
+			setColumns(columns);
+		}
+		public BigDecimal getMz() { return mz; }
+		public void setMz(BigDecimal mz) { this.mz = mz; }
+		public List<String> getColumns() { return columns; }
+		public void setColumns(List<String> columns) {
+			this.columns = columns == null ? new ArrayList<>() : new ArrayList<>(columns);
+		}
+	}
+
+	public static class PeakAnnotationTable {
+		private List<String> header = new ArrayList<>();
+		private List<PeakAnnotationRow> rows = new ArrayList<>();
+
+		public PeakAnnotationTable() {}
+		public PeakAnnotationTable(List<String> header, List<PeakAnnotationRow> rows) {
+			setHeader(header);
+			setRows(rows);
+		}
+		public List<String> getHeader() { return header; }
+		public void setHeader(List<String> header) {
+			this.header = header == null ? new ArrayList<>() : new ArrayList<>(header);
+		}
+		public List<PeakAnnotationRow> getRows() { return rows; }
+		public void setRows(List<PeakAnnotationRow> rows) {
+			this.rows = new ArrayList<>();
+			if (rows == null) return;
+			for (PeakAnnotationRow row : rows) {
+				if (row != null) {
+					this.rows.add(new PeakAnnotationRow(row.getMz(), row.getColumns()));
+				}
+			}
+		}
+	}
 }
-
-
-
-
-
 

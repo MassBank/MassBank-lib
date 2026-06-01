@@ -126,7 +126,7 @@ public class RecordToJson {
 					PK$ANNOTATION = null;
 				else {
 					PK$ANNOTATION = new ArrayList<List<String>>();
-					PK$ANNOTATION.add(record.PK_ANNOTATION_HEADER());
+					PK$ANNOTATION.add(record.getPkAnnotationHeader());
 					for (Pair<BigDecimal, List<String>> pair : record.PK_ANNOTATION()) {
 						List<String> annotationLine = new ArrayList<String>();
 						annotationLine.add(pair.getKey().toString());
