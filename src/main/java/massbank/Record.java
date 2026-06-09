@@ -45,6 +45,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,6 +57,7 @@ import java.util.regex.Pattern;
  */
 
 @Entity
+@DiscriminatorValue("RECORD")
 public class Record extends AbstractRecord {
 	private static final Logger logger = LogManager.getLogger(Record.class);
 
@@ -175,9 +177,9 @@ public class Record extends AbstractRecord {
 		date = "";
 		authors = "";
 		license = "";
-		copyright = ""; // optional
-		publication = ""; // optional
-		project = ""; // optional
+		copyright = null; // optional
+		publication = null; // optional
+		project = null; // optional
 		comment = new ArrayList<>(); // optional
 		chName = new ArrayList<>();
 		chCompoundClass = new ArrayList<>();
@@ -186,8 +188,8 @@ public class Record extends AbstractRecord {
 		chSMILES = "";
 		chIUPAC = "";
 		chLink = new ArrayList<>(); // optional
-		spScientificName = ""; // optional
-		spLineage = ""; // optional
+		spScientificName = null; // optional
+		spLineage = null; // optional
 		spLink = new ArrayList<>(); // optional
 		spSample = new ArrayList<>(); // optional
 		acInstrument = "";
@@ -249,26 +251,35 @@ public class Record extends AbstractRecord {
 
 
 	public String getCopyright() {
+		return orEmpty(copyright);
+	}
+	public String getCopyrightNullable() {
 		return copyright;
 	}
 	public void setCopyright(String value) {
-		copyright = value;
+		copyright = nullIfBlank(value);
 	}
 
 
 	public String getPublication() {
+		return orEmpty(publication);
+	}
+	public String getPublicationNullable() {
 		return publication;
 	}
 	public void setPublication(String value) {
-		publication = value;
+		publication = nullIfBlank(value);
 	}
 
 
 	public String getProject() {
+		return orEmpty(project);
+	}
+	public String getProjectNullable() {
 		return project;
 	}
 	public void setProject(String value) {
-		project = value;
+		project = nullIfBlank(value);
 	}
 
 
@@ -378,18 +389,24 @@ public class Record extends AbstractRecord {
 
 
 	public String getSpScientificName() {
+		return orEmpty(spScientificName);
+	}
+	public String getSpScientificNameNullable() {
 		return spScientificName;
 	}
 	public void setSpScientificName(String value) {
-		spScientificName = value;
+		spScientificName = nullIfBlank(value);
 	}
 
 
 	public String getSpLineage() {
+		return orEmpty(spLineage);
+	}
+	public String getSpLineageNullable() {
 		return spLineage;
 	}
 	public void setSpLineage(String value) {
-		spLineage = value;
+		spLineage = nullIfBlank(value);
 	}
 
 
@@ -544,18 +561,35 @@ public class Record extends AbstractRecord {
 
 
 	public void addPeak(Peak peak) {
-		pkPeak.add(peak);
+		Objects.requireNonNull(peak, "peak must not be null");
+		if (peak.getRecord() != null) {
+			throw new IllegalStateException("addPeak only accepts detached peaks");
+		}
 		peak.setRecord(this);
+		pkPeak.add(peak);
 	}
 	public void removePeak(Peak peak) {
+		Objects.requireNonNull(peak, "peak must not be null");
+		if (!pkPeak.contains(peak)) {
+			throw new IllegalStateException("peak is not part of this record");
+		}
+		if (peak.getRecord() != this) {
+			throw new IllegalStateException("peak back-reference does not match this record");
+		}
 		pkPeak.remove(peak);
 		peak.setRecord(null);
 	}
 	public List<Peak> getPkPeak() {
-		return pkPeak;
+		return List.copyOf(pkPeak);
 	}
 	public void setPkPeak(List<Peak> peaks) {
-		this.pkPeak = peaks;
+		List<Peak> newPeaks = peaks == null ? new ArrayList<>() : new ArrayList<>(peaks);
+		for (Peak peak : new ArrayList<>(pkPeak)) {
+			removePeak(peak);
+		}
+		for (Peak peak : newPeaks) {
+			addPeak(peak);
+		}
 	}
 
 	public String toString() {
@@ -566,11 +600,11 @@ public class Record extends AbstractRecord {
 		sb.append("DATE: ").append(getDate()).append("\n");
 		sb.append("AUTHORS: ").append(getAuthors()).append("\n");
 		sb.append("LICENSE: ").append(getLicense()).append("\n");
-		if (!"".equals(getCopyright()))
+		if (hasText(copyright))
 			sb.append("COPYRIGHT: ").append(getCopyright()).append("\n");
-		if (!"".equals(getPublication()))
+		if (hasText(publication))
 			sb.append("PUBLICATION: ").append(getPublication()).append("\n");
-		if (!"".equals(getProject()))
+		if (hasText(project))
 			sb.append("PROJECT: ").append(getProject()).append("\n");
 		for (String comment : getComment())
 			sb.append("COMMENT: ").append(comment).append("\n");
@@ -592,9 +626,9 @@ public class Record extends AbstractRecord {
 				.append("\n");
 		}
 		
-		if (!"".equals(getSpScientificName()))
+		if (hasText(spScientificName))
 			sb.append("SP$SCIENTIFIC_NAME: ").append(getSpScientificName()).append("\n");
-		if (!"".equals(getSpLineage()))
+		if (hasText(spLineage))
 			sb.append("SP$LINEAGE: ").append(getSpLineage()).append("\n");
 		for (KeyValue entry : getSpLink()) {
 			sb.append("SP$LINK: ")
@@ -671,11 +705,11 @@ public class Record extends AbstractRecord {
 			.append("<b>DATE:</b> ").append(getDate()).append("<br>\n")
 			.append("<b>AUTHORS:</b> ").append(getAuthors()).append("<br>\n")
 			.append("<b>LICENSE:</b> ").append(getLicenseLink()).append("<br>\n");
-		if (!getCopyright().isEmpty())
+		if (hasText(copyright))
 			sb.append("<b>COPYRIGHT:</b> ").append(getCopyright()).append("<br>\n");
-		if (!getPublication().isEmpty())
+		if (hasText(publication))
         	sb.append("<b>PUBLICATION:</b> ").append(getPublicationLink()).append("<br>\n");
-		if (!getProject().isEmpty())
+		if (hasText(project))
 			sb.append("<b>PROJECT:</b> ").append(getProject()).append("<br>\n");
 		for (String comment : getComment())
 			sb.append("<b>COMMENT:</b> ").append(comment).append("<br>\n");
@@ -739,9 +773,9 @@ public class Record extends AbstractRecord {
 			}
 		}
 		
-		if (!"".equals(getSpScientificName()))
+		if (hasText(spScientificName))
 			sb.append("<b>SP$SCIENTIFIC_NAME:</b> ").append(getSpScientificName()).append("<br>\n");
-		if (!"".equals(getSpLineage()))
+		if (hasText(spLineage))
 			sb.append("<b>SP$LINEAGE:</b> ").append(getSpLineage()).append("<br>\n");
 		for (KeyValue entry : getSpLink()) {
 			sb.append("<b>SP$LINK:</b> ")
@@ -847,6 +881,22 @@ public class Record extends AbstractRecord {
 		return pub;
 	}
 
+	@Transient
+	private static String nullIfBlank(String value) {
+		if (value == null) return null;
+		return value.isBlank() ? null : value;
+	}
+
+	@Transient
+	private static String orEmpty(String value) {
+		return value == null ? "" : value;
+	}
+
+	@Transient
+	private static boolean hasText(String value) {
+		return value != null && !value.isBlank();
+	}
+
 //	[
 //	{
 //	"identifier": "LQB00001",
@@ -877,7 +927,7 @@ public class Record extends AbstractRecord {
 //	"@type": "Dataset"
 //	}
 //	]
-	
+
 //	Thanks for the contribution of markup within MassBank. As discussed in PR 274 there are some refinements that should be made.
 //
 //	Add DataCatalog and Dataset markup to the landing page https://massbank.eu/MassBank/
@@ -895,7 +945,7 @@ public class Record extends AbstractRecord {
 //	Once you've made these refinements, we'll be able to add you to the DataRecord, Dataset, and DataCatalog list of live deploys.
 
 	//https://github.com/BioSchemas/specifications/issues/198
-	
+
 	public JsonArray createStructuredDataJsonArray() {
 		String InChiKey = getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(KeyValue::value).findFirst().orElse(null);
 		String description = "This MassBank record with Accession " + getAccession()
@@ -913,7 +963,7 @@ public class Record extends AbstractRecord {
 		dataset.addProperty("description", description);
 		dataset.addProperty("identifier", getAccession());
 		dataset.addProperty("name", getRecordTitle1());
-		
+
 		JsonArray keywords = new JsonArray();
 		keywords.add(gson.fromJson(
 			"""
@@ -1093,4 +1143,6 @@ public class Record extends AbstractRecord {
 		}
 	}
 }
+
+
 

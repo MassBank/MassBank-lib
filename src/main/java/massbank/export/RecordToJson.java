@@ -98,9 +98,9 @@ public class RecordToJson {
 				DATE = record.getDate();
 				AUTHORS = record.getAuthors();
 				LICENSE = record.getLicense();
-				COPYRIGHT = "".equals(record.getCopyright()) ? null : record.getCopyright();
-				PUBLICATION = "".equals(record.getPublication()) ? null : record.getPublication();
-				PROJECT = "".equals(record.getProject()) ? null : record.getProject();
+				COPYRIGHT = record.getCopyrightNullable();
+				PUBLICATION = record.getPublicationNullable();
+				PROJECT = record.getProjectNullable();
 				COMMENT = record.getComment().isEmpty() ? null : record.getComment();
 				CH$NAME = record.getChName();
 				CH$COMPOUND_CLASS = record.getChCompoundClass();
@@ -109,8 +109,8 @@ public class RecordToJson {
 				CH$SMILES = record.getChSMILES();
 				CH$IUPAC = record.getChIUPAC();
 				CH$LINK = record.getChLink().isEmpty() ? null : record.getChLink();
-				SP$SCIENTIFIC_NAME = "".equals(record.getSpScientificName()) ? null : record.getSpScientificName();
-				SP$LINEAGE = "".equals(record.getSpLineage()) ? null : record.getSpLineage();
+				SP$SCIENTIFIC_NAME = record.getSpScientificNameNullable();
+				SP$LINEAGE = record.getSpLineageNullable();
 				SP$LINK = record.getSpLink().isEmpty() ? null : record.getSpLink();
 				SP$SAMPLE = record.getSpSample().isEmpty() ? null : record.getSpSample();
 				AC$INSTRUMENT = record.getAcInstrument();

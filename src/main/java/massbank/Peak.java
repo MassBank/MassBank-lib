@@ -108,7 +108,10 @@ public class Peak {
         return record;
     }
 
-    public void setRecord(Record record) {
+    void setRecord(Record record) {
+        if (this.record != null && record != null && this.record != record) {
+            throw new IllegalStateException("peak must be detached via setRecord(null) before assigning a different record");
+        }
         this.record = record;
     }
 

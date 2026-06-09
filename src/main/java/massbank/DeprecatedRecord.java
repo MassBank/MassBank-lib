@@ -22,10 +22,12 @@ package massbank;
 
 import com.google.gson.JsonArray;
 import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Lob;
 
 @Entity
+@DiscriminatorValue("DEPRECATED")
 public class DeprecatedRecord extends AbstractRecord {
 
     @Column(name = "deprecated", length = 200)

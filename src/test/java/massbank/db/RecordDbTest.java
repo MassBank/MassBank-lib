@@ -176,6 +176,95 @@ class RecordDbTest {
         assertMappedFieldsEqual(r, loaded);
     }
 
+    @Test
+    void setPkPeakMaintainsBidirectionalAssociation() {
+        Record r = new Record();
+        r.setAccession("TEST-PEAK-SETTER");
+        r.setRecordTitle(List.of("Peak setter regression"));
+        r.setDate("2026.06.09");
+        r.setAuthors("Test Author");
+        r.setLicense("CC0");
+        r.setChName(List.of("Peak setter regression"));
+        r.setChFormula("C1H1");
+        r.setChExactMass(new BigDecimal("1.0000000000"));
+        r.setChSMILES("N/A");
+        r.setChIUPAC("N/A");
+        r.setAcInstrument("Instrument");
+        r.setAcInstrumentType("MS");
+        r.setAcMassSpectrometryMsType("MS2");
+        r.setAcMassSpectrometryIonMode("POSITIVE");
+        r.setPkSPLASH("splash10-0002-0900000000-00000000000000000000");
+
+        Peak first = new Peak(new BigDecimal("100.0"), new BigDecimal("200.0"), 10);
+        Peak second = new Peak(new BigDecimal("200.0"), new BigDecimal("300.0"), 20);
+
+        r.setPkPeak(List.of(first, second));
+
+        assertSame(r, first.getRecord(), "first peak should reference owning record before persistence");
+        assertSame(r, second.getRecord(), "second peak should reference owning record before persistence");
+
+        Record loaded = (Record) persistAndReload(r);
+
+        assertEquals(2, loaded.getPkPeak().size(), "unexpected number of peaks after reload");
+        for (Peak peak : loaded.getPkPeak()) {
+            assertSame(loaded, peak.getRecord(), "loaded peak should reference loaded owning record");
+        }
+    }
+
+    @Test
+    void addPeakWithNullThrows() {
+        Record r = new Record();
+        NullPointerException ex = assertThrows(NullPointerException.class, () -> r.addPeak(null));
+        assertEquals("peak must not be null", ex.getMessage());
+    }
+
+    @Test
+    void removePeakWithNullThrows() {
+        Record r = new Record();
+        NullPointerException ex = assertThrows(NullPointerException.class, () -> r.removePeak(null));
+        assertEquals("peak must not be null", ex.getMessage());
+    }
+
+    @Test
+    void addPeakFromDifferentRecordThrows() {
+        Record ownerA = new Record();
+        ownerA.setAccession("A-001");
+        Record ownerB = new Record();
+        ownerB.setAccession("B-001");
+        Peak peak = new Peak(BigDecimal.valueOf(100.0), BigDecimal.valueOf(200.0), 10);
+
+        ownerA.addPeak(peak);
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> ownerB.addPeak(peak));
+        assertEquals("addPeak only accepts detached peaks", ex.getMessage());
+    }
+
+    @Test
+    void addPeakAlreadyOwnedBySameRecordThrows() {
+        Record owner = new Record();
+        owner.setAccession("A-004");
+        Peak peak = new Peak(BigDecimal.valueOf(103.0), BigDecimal.valueOf(203.0), 13);
+
+        owner.addPeak(peak);
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> owner.addPeak(peak));
+        assertEquals("addPeak only accepts detached peaks", ex.getMessage());
+    }
+
+    @Test
+    void removePeakNotInRecordThrows() {
+        Record ownerA = new Record();
+        ownerA.setAccession("A-002");
+        Record ownerB = new Record();
+        ownerB.setAccession("B-002");
+        Peak peak = new Peak(BigDecimal.valueOf(101.0), BigDecimal.valueOf(201.0), 11);
+
+        ownerA.addPeak(peak);
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> ownerB.removePeak(peak));
+        assertEquals("peak is not part of this record", ex.getMessage());
+    }
+
 
     private AbstractRecord persistAndReload(AbstractRecord record) {
         repository.saveAndFlush(record);

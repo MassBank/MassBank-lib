@@ -2003,10 +2003,8 @@ public class RecordParserDefinition extends GrammarDefinition {
             }
 
             // max 2048 characters are supported in database for PUBLICATION
-            if (record.getPublication() != null) {
-                if (record.getPublication().length() > 2048) {
-                    return context.failure("PUBLICATION length exceeds database limit of 2048 characters.");
-                }
+            if (record.getPublication().length() > 2048) {
+                return context.failure("PUBLICATION length exceeds database limit of 2048 characters.");
             }
 
             // max 600 characters are supported in database for RECORD_TITLE
