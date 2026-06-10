@@ -57,13 +57,13 @@ import java.util.regex.Pattern;
  */
 
 @Entity
-@DiscriminatorValue("RECORD")
+@Table(name = "massbank-records")
 public class Record extends AbstractRecord {
 	private static final Logger logger = LogManager.getLogger(Record.class);
 
 	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "record_title", columnDefinition = "jsonb")
-	private List<String> recordTitle;
+	@Column(name = "record_title", columnDefinition = "jsonb", nullable = false)
+	private List<String> recordTitle = new ArrayList<>();
 
 	@Column(name = "date", length = 100)
 	private String date;
@@ -173,7 +173,6 @@ public class Record extends AbstractRecord {
 
 	public Record() {
 		super();
-		recordTitle = new ArrayList<>();
 		date = "";
 		authors = "";
 		license = "";
@@ -206,12 +205,11 @@ public class Record extends AbstractRecord {
 
 
 	public List<String> getRecordTitle() {
-		return recordTitle;
+		return List.copyOf(recordTitle);
 	}
 	public void setRecordTitle(List<String> recordTitle) {
-		this.recordTitle = recordTitle;
+		this.recordTitle = recordTitle == null ? new ArrayList<>() : new ArrayList<>(recordTitle);
 	}
-
 	public String getRecordTitle1() {
 		return recordTitle == null ? "" : String.join("; ", recordTitle);
 	}

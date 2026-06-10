@@ -22,52 +22,66 @@ package massbank;
 
 import com.google.gson.JsonArray;
 import jakarta.persistence.Column;
-import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 
+/**
+ * Represents a deprecated MassBank record.
+ * <p>
+ * Deprecated entries are resolved by accession and can be rendered as plain
+ * text via {@link #toString()}. They intentionally only deprecation metadata
+ * and the original textual payload.
+ *
+ * @author rmeier
+ * @version 10-06-2026
+ */
 @Entity
-@DiscriminatorValue("DEPRECATED")
+@Table(name = "massbank-deprecated-records")
 public class DeprecatedRecord extends AbstractRecord {
 
-    @Column(name = "deprecated", length = 200)
+    @Column(name = "deprecated", nullable = false, length = 200)
     private String deprecated;
     @Lob
-    @Column(name = "deprecated_content")
+    @Column(name = "deprecated_content", nullable = false)
     private String deprecatedContent;
 
-    public DeprecatedRecord() {
-        super();
-        // deprecated Felder initialisieren
-        this.deprecated = "";
-        this.deprecatedContent = "";
+    @Override
+    protected void validateState() {
+        super.validateState();
+        if (deprecated == null || deprecated.isBlank()) {
+            throw new IllegalStateException("Missing required field: deprecated");
+        }
+        if (deprecatedContent == null || deprecatedContent.isBlank()) {
+            throw new IllegalStateException("Missing required field: deprecatedContent");
+        }
     }
 
     public String getDeprecated() {
         return deprecated;
     }
-
     public void setDeprecated(String deprecated) {
+        if (deprecated == null || deprecated.isBlank()) {
+            throw new IllegalStateException("Missing required field: deprecated");
+        }
         this.deprecated = deprecated;
     }
 
     public String getDeprecatedContent() {
         return deprecatedContent;
     }
-
     public void setDeprecatedContent(String deprecatedContent) {
+        if (deprecatedContent == null || deprecatedContent.isBlank()) {
+            throw new IllegalStateException("Missing required field: deprecatedContent");
+        }
         this.deprecatedContent = deprecatedContent;
     }
 
+    @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("ACCESSION: ").append(getAccession()).append("\n");
-        sb.append("DEPRECATED: ")
-            .append(getDeprecated())
-            .append("\n")
-            .append(getDeprecatedContent());
-        return sb.toString();
+        return "ACCESSION: " + getAccession() + "\n"
+                + "DEPRECATED: " + getDeprecated() + "\n"
+                + getDeprecatedContent();
     }
 
     public JsonArray createStructuredDataJsonArray() {

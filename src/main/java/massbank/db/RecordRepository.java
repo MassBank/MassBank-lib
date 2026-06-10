@@ -1,7 +1,7 @@
 package massbank.db;
 
+import massbank.Record;
 import org.springframework.data.jpa.repository.JpaRepository;
-import massbank.AbstractRecord;
 
-public interface RecordRepository extends JpaRepository<AbstractRecord, String> {
+public interface RecordRepository extends JpaRepository<Record, String> {
 }

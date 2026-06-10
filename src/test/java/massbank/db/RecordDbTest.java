@@ -18,6 +18,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -37,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
+@Import(RecordService.class)
 class RecordDbTest {
 
     @SpringBootConfiguration
@@ -68,7 +70,13 @@ class RecordDbTest {
     }
 
     @Autowired
-    private RecordRepository repository;
+    private RecordService recordService;
+
+    @Autowired
+    private RecordRepository recordRepository;
+
+    @Autowired
+    private DeprecatedRecordRepository deprecatedRecordRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -94,20 +102,20 @@ class RecordDbTest {
             assertTrue(res.result().isSuccess());
             AbstractRecord record = res.result().get();
             expectedRecords.add(record);
-            repository.save(record);
+            recordService.save(record);
         }
-        repository.flush();
+        recordRepository.flush();
+        deprecatedRecordRepository.flush();
         entityManager.flush();
         entityManager.clear();
 
         // 2. Alle Records laden und vergleichen
         for (AbstractRecord expected : expectedRecords) {
-            AbstractRecord loaded = repository.findById(expected.getAccession())
-                    .orElseThrow(() -> new AssertionError("record not found: " + expected.getAccession()));
+            AbstractRecord loaded = recordService.findById(expected.getAccession());
             assertMappedFieldsEqual(expected, loaded);
         }
 
-        assertEquals(recordFiles.size(), repository.count(), "unexpected number of persisted fixture records");
+        assertEquals(recordFiles.size(), recordRepository.count() + deprecatedRecordRepository.count(), "unexpected number of persisted fixture records");
     }
 
     @Test
@@ -267,12 +275,13 @@ class RecordDbTest {
 
 
     private AbstractRecord persistAndReload(AbstractRecord record) {
-        repository.saveAndFlush(record);
+        recordService.save(record);
+        recordRepository.flush();
+        deprecatedRecordRepository.flush();
         entityManager.flush();
         entityManager.clear();
 
-        return repository.findById(record.getAccession())
-                .orElseThrow(() -> new AssertionError("record not found: " + record.getAccession()));
+        return recordService.findById(record.getAccession());
     }
 
     private static void assertMappedFieldsEqual(AbstractRecord expected, AbstractRecord actual) {
@@ -342,9 +351,10 @@ class RecordDbTest {
             assertTrue(res.result().isSuccess());
             AbstractRecord record = res.result().get();
             accessions.add(record.getAccession());
-            repository.save(record);
+            recordService.save(record);
         }
-        repository.flush();
+        recordRepository.flush();
+        deprecatedRecordRepository.flush();
         entityManager.flush();
         entityManager.clear();
 
@@ -352,8 +362,7 @@ class RecordDbTest {
         for (int i = 0; i < accessions.size(); i++) {
             String accession = accessions.get(i);
             String original = originalContents.get(i).replaceAll("\\r\\n", "\\n").trim();
-            AbstractRecord loaded = repository.findById(accession)
-                    .orElseThrow(() -> new AssertionError("record not found: " + accession));
+            AbstractRecord loaded = recordService.findById(accession);
             String serialized = loaded.toString().replaceAll("\\r\\n", "\\n").trim();
             assertEquals(original, serialized, () -> "File/serialization mismatch for " + accession);
         }

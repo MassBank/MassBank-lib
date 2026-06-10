@@ -20,23 +20,23 @@
  ******************************************************************************/
 package massbank;
 
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 
 /**
  * Abstract base class for all MassBank records (standard and deprecated).
  * <p>
- * This class defines the common properties of all records and is configured
- * for Single Table Inheritance (STI) with a discriminator column for inheritance.
- * The concrete type (standard or deprecated) is implemented by the subclasses
- * Record and DeprecatedRecord.
+ * This class defines common properties of all records and is used as
+ * mapped superclass for concrete entity tables.
  *
  * @author rmeier
- * @version 22-15-2026
+ * @version 10-06-2026
  */
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "record_type")
-@Entity
-@Table(name = "massbank-records")
+@MappedSuperclass
 public abstract class AbstractRecord {
     @Id
     @Column(name = "accession", nullable = false, length = 105, unique = true)
@@ -45,9 +45,18 @@ public abstract class AbstractRecord {
     public String getAccession() {
         return accession;
     }
-
     public void setAccession(String accession) {
+        if (accession == null || accession.isBlank()) {
+            throw new IllegalStateException("Missing required field: accession");
+        }
         this.accession = accession;
     }
 
+    @PrePersist
+    @PreUpdate
+    protected void validateState() {
+        if (accession == null || accession.isBlank()) {
+            throw new IllegalStateException("Missing required field: accession");
+        }
+    }
 }
