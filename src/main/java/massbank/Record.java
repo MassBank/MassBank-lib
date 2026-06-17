@@ -98,7 +98,7 @@ public class Record extends AbstractRecord {
 	@Column(name = "ch_formula", length = 512)
 	private String chFormula;
 
-	@Column(name = "ch_exact_mass", precision = 20, scale = 10)
+	@Column(name = "ch_exact_mass", columnDefinition = "numeric")
 	private BigDecimal exactMass;
 
 	@Column(name = "ch_smiles", length = 2048)

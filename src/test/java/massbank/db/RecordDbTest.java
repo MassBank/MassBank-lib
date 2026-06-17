@@ -326,7 +326,6 @@ class RecordDbTest {
         }
     }
 
-    @Disabled("Runs only for manual regression checks")
     @Test
     void saveAndLoadFixtureRecords_compareFileAndSerialized() throws IOException {
         Path resourcesDir = Paths.get("src/test/resources");

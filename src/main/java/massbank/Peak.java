@@ -23,14 +23,11 @@ package massbank;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 /**
  * This class represents a single peak in a mass spectrum, containing the measured mass-to-charge ratio (mz),
- * intensity, and relative intensity. The scale (number of decimal places) for mz and intensity is
- * managed internally to ensure scientific accuracy and correct persistence. This class is a JPA entity
- * and is used for database storage and retrieval of peak data. The public API does not expose scale fields;
- * scale is automatically tracked and restored on load.
+ * intensity, and relative intensity. This class is a JPA entity
+ * and is used for database storage and retrieval of peak data.
  *
  * @author rmeier
  * @version 28-05-2026
@@ -41,20 +38,15 @@ public class Peak {
     @Id
     @GeneratedValue
     private Long id;
-    @Column(nullable = false, precision = 20, scale = 10)
+    @Column(nullable = false, columnDefinition = "numeric")
     private BigDecimal mz;
-    @Column(nullable = false, precision = 20, scale = 10)
+    @Column(nullable = false, columnDefinition = "numeric")
     private BigDecimal intensity;
     @Column(name = "rel_intensity", nullable = false)
     private Integer relIntensity;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "record_id", nullable = false)
     private Record record;
-    @Column(name = "mz_scale", nullable = false)
-    private Integer mzScale;
-    @Column(name = "intensity_scale", nullable = false)
-    private Integer intensityScale;
-
     public Peak() {
     }
 
@@ -62,16 +54,6 @@ public class Peak {
         setMz(mz);
         setIntensity(intensity);
         setRelIntensity(relIntensity);
-    }
-
-    @PostLoad
-    private void restoreScaleAfterLoad() {
-        if (mz != null && mzScale != null) {
-            mz = mz.setScale(mzScale, RoundingMode.UNNECESSARY);
-        }
-        if (intensity != null && intensityScale != null) {
-            intensity = intensity.setScale(intensityScale, RoundingMode.UNNECESSARY);
-        }
     }
 
     protected Long getId() {
@@ -84,7 +66,6 @@ public class Peak {
 
     public void setMz(BigDecimal mz) {
         this.mz = mz;
-        this.mzScale = mz != null ? mz.scale() : 0;
     }
 
     public BigDecimal getIntensity() {
@@ -93,7 +74,6 @@ public class Peak {
 
     public void setIntensity(BigDecimal intensity) {
         this.intensity = intensity;
-        this.intensityScale = intensity != null ? intensity.scale() : 0;
     }
 
     public Integer getRelIntensity() {
@@ -136,15 +116,4 @@ public class Peak {
         return result;
     }
 
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (!(o instanceof Peak)) return false;
-//        return id != null && id.equals(((Peak) o).getId());
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return getClass().hashCode();
-//    }
 }
