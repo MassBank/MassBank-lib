@@ -26,7 +26,6 @@ import massbank.AbstractRecord;
 import massbank.Peak;
 import massbank.Record;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 

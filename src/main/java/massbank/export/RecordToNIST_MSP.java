@@ -23,7 +23,6 @@ package massbank.export;
 import massbank.AbstractRecord;
 import massbank.Peak;
 import massbank.Record;
-import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -181,7 +180,7 @@ There is one mandatory field, namely Parent=<m/z>, which is the precursor ion m/
 		for(Peak peak : record.getPkPeak()) {
 			if (peak.getMz().compareTo(new BigDecimal(1)) >= 0) {
 				numPeaks++;
-				peaklist.append(peak.getMz().doubleValue()).append(" ").append(peak.getRelIntensity()).append(System.lineSeparator());
+				peaklist.append(peak.getMz().toString()).append(" ").append(peak.getRelIntensity()).append(System.lineSeparator());
 			}
 		}
 		sb.append("Num Peaks: ").append(numPeaks).append(System.lineSeparator());
