@@ -43,6 +43,56 @@ public class RecordServiceImplementation implements RecordService {
     }
 
     @Override
+    public void deleteAll() {
+        // Keep operation atomic and flush in-between to make DB state transitions explicit.
+        deprecatedRecordRepository.deleteAllInBatch();
+        deprecatedRecordRepository.flush();
+        // deleteAll triggers entity removal and therefore honors cascades to dependent peak rows.
+        recordRepository.deleteAll();
+        recordRepository.flush();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countAll() {
+        return countActive() + countDeprecated();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countActive() {
+        return recordRepository.count();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countDeprecated() {
+        return deprecatedRecordRepository.count();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getAllAccessions() {
+        List<String> accessions = new ArrayList<>();
+        accessions.addAll(recordRepository.findAllAccessions());
+        accessions.addAll(deprecatedRecordRepository.findAllAccessions());
+        return accessions;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Record> findAllActive() {
+        return recordRepository.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Record findByIdAsRecord(String accession) {
+        return recordRepository.findById(accession)
+                .orElseThrow(() -> new RuntimeException("Active record not found"));
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<AbstractRecord> findAll() {
         List<AbstractRecord> all = new ArrayList<>();

@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -82,15 +83,33 @@ class RecordDbTest {
 
     @Test
     void saveAndLoadManuallyCreatedRecord_compareMappedFields() {
-        Record r = createManualRecordFixture();
+        Record r = createManualRecordFixture("TEST-001");
 
         Record loaded = (Record) persistAndReload(r);
         assertMappedFieldsEqual(r, loaded);
     }
 
-    private static Record createManualRecordFixture() {
+    @Test
+    void saveAbstractRecord_supportsRecordAndDeprecatedRecord() {
+        recordService.deleteAll();
+
+        Record activeRecord = createManualRecordFixture("TEST-002");
+        DeprecatedRecord deprecatedRecord = createDeprecatedRecordFixture("TEST-DEPRECATED-001");
+
+        AbstractRecord savedActive = recordService.save(activeRecord);
+        AbstractRecord savedDeprecated = recordService.save(deprecatedRecord);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertInstanceOf(Record.class, savedActive);
+        assertInstanceOf(DeprecatedRecord.class, savedDeprecated);
+        assertInstanceOf(Record.class, recordService.findById(activeRecord.getAccession()));
+        assertInstanceOf(DeprecatedRecord.class, recordService.findById(deprecatedRecord.getAccession()));
+    }
+
+    private static Record createManualRecordFixture(String accession) {
         Record r = new Record();
-        r.setAccession("TEST-001");
+        r.setAccession(accession);
         r.setRecordTitle(List.of("Naringenin", "LC-ESI-QTOF", "MS2", "CE:15 eV", "[M+H]+"));
         r.setDate("2026.05.12 (Created 2026.05.12)");
         r.setAuthors("Test Author");
@@ -150,6 +169,20 @@ class RecordDbTest {
         return r;
     }
 
+    private static DeprecatedRecord createDeprecatedRecordFixture(String accession) {
+        DeprecatedRecord deprecatedRecord = new DeprecatedRecord();
+        deprecatedRecord.setAccession(accession);
+        deprecatedRecord.setDeprecated("This record was deprecated and superseded by TEST-SUCCESSOR-001.");
+        deprecatedRecord.setDeprecatedContent("""
+        RECORD_TITLE: 11-HDoHE; LC-ESI-QTOF; MS2; CE: 20.0; R=N/A; [M-H]-
+        DATE: 2026.05.12 (Created 2026.05.12)
+        AUTHORS: Test Author
+        DATE: 2018.11.21
+        AUTHORS: Nils Hoffmann, Dominik Kopczynski, Bing Peng
+        LICENSE: CC BY-SA""");
+        return deprecatedRecord;
+    }
+
     @Test
     void saveAndLoadAllFixtureRecords_compareMappedFields() throws IOException {
         List<Path> recordFiles = loadFixtureRecordFiles();
@@ -160,8 +193,65 @@ class RecordDbTest {
             assertMappedFieldsEqual(expected, loaded);
         }
 
-        assertEquals(recordFiles.size(), recordRepository.count() + deprecatedRecordRepository.count(),
+        assertEquals(recordFiles.size(), recordService.countAll(),
                 "unexpected number of persisted fixture records");
+    }
+
+
+    @Test
+    void countMethods_returnConsistentValuesAcrossBothTables() {
+        recordService.deleteAll();
+
+        recordService.save(createManualRecordFixture("TEST-ACTIVE-COUNT-001"));
+        recordService.save(createManualRecordFixture("TEST-ACTIVE-COUNT-002"));
+        recordService.save(createDeprecatedRecordFixture("TEST-DEPRECATED-COUNT-001"));
+
+        assertEquals(2L, recordService.countActive());
+        assertEquals(1L, recordService.countDeprecated());
+        assertEquals(3L, recordService.countAll());
+    }
+
+    @Test
+    void getAllAccessions_returnsAccessionsFromBothTables() {
+        recordService.deleteAll();
+
+        recordService.save(createManualRecordFixture("TEST-ACCESSION-ACTIVE-001"));
+        recordService.save(createDeprecatedRecordFixture("TEST-ACCESSION-DEPRECATED-001"));
+
+        Set<String> accessions = Set.copyOf(recordService.getAllAccessions());
+        assertEquals(Set.of("TEST-ACCESSION-ACTIVE-001", "TEST-ACCESSION-DEPRECATED-001"), accessions);
+    }
+
+    @Test
+    void activeRecordApis_returnOnlyActiveRecords() {
+        recordService.deleteAll();
+
+        Record active = createManualRecordFixture("TEST-ACTIVE-API-001");
+        recordService.save(active);
+        recordService.save(createDeprecatedRecordFixture("TEST-ACTIVE-API-DEPRECATED-001"));
+
+        List<Record> activeRecords = recordService.findAllActive();
+        assertEquals(1, activeRecords.size());
+        assertEquals("TEST-ACTIVE-API-001", activeRecords.get(0).getAccession());
+
+        Record loadedActive = recordService.findByIdAsRecord("TEST-ACTIVE-API-001");
+        assertEquals("TEST-ACTIVE-API-001", loadedActive.getAccession());
+        assertThrows(RuntimeException.class,
+                () -> recordService.findByIdAsRecord("TEST-ACTIVE-API-DEPRECATED-001"));
+    }
+
+    @Test
+    void deleteAll_clearsActiveAndDeprecatedRecords() {
+        recordService.save(createManualRecordFixture("TEST-ACTIVE-DELETE-001"));
+        recordService.save(createDeprecatedRecordFixture("TEST-DEPRECATED-DELETE-001"));
+        assertEquals(2L, recordService.countAll());
+
+        recordService.deleteAll();
+
+        assertEquals(0L, recordService.countActive());
+        assertEquals(0L, recordService.countDeprecated());
+        assertEquals(0L, recordService.countAll());
+        assertTrue(recordService.findAll().isEmpty());
     }
 
 
