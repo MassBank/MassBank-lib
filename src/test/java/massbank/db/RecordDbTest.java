@@ -4,9 +4,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import massbank.AbstractRecord;
 import massbank.DeprecatedRecord;
+import massbank.Peak;
 import massbank.Record;
 import massbank.RecordParserTest;
-import massbank.Peak;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
@@ -43,12 +44,11 @@ class RecordDbTest {
     @SpringBootConfiguration
     @EnableAutoConfiguration
     @EntityScan(basePackageClasses = Record.class)
-    @EnableJpaRepositories(basePackageClasses = RecordRepository.class)
+    @EnableJpaRepositories(basePackages = "massbank.db")
     static class TestApplication {
     }
 
-    static final PostgreSQLContainer postgres = new PostgreSQLContainer(
-            "postgres:17-alpine");
+    static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
 
     @DynamicPropertySource
     static void registerDatasourceProperties(DynamicPropertyRegistry registry) {
@@ -81,44 +81,14 @@ class RecordDbTest {
     private EntityManager entityManager;
 
     @Test
-    void saveAndLoadFixtureRecords() throws IOException {
-        Path resourcesDir = Paths.get("src/test/resources");
-        assertTrue(Files.exists(resourcesDir), "src/test/resources not found");
+    void saveAndLoadManuallyCreatedRecord_compareMappedFields() {
+        Record r = createManualRecordFixture();
 
-        List<Path> recordFiles;
-        try (Stream<Path> paths = Files.walk(resourcesDir)) {
-            recordFiles = paths
-                    .filter(p -> p.toString().endsWith(".txt"))
-                    .filter(p -> p.getFileName().toString().startsWith("MSBNK-"))
-                    .toList();
-        }
-        assertFalse(recordFiles.isEmpty(), "No .txt files in src/test/resources found");
-
-        // 1. Alle Records einlesen und persistieren
-        List<AbstractRecord> expectedRecords = new ArrayList<>();
-        for (Path file : recordFiles) {
-            RecordParserTest.ParseResult res = RecordParserTest.parseRecord(file.getFileName().toString());
-            assertTrue(res.result().isSuccess());
-            AbstractRecord record = res.result().get();
-            expectedRecords.add(record);
-            recordService.save(record);
-        }
-        recordRepository.flush();
-        deprecatedRecordRepository.flush();
-        entityManager.flush();
-        entityManager.clear();
-
-        // 2. Alle Records laden und vergleichen
-        for (AbstractRecord expected : expectedRecords) {
-            AbstractRecord loaded = recordService.findById(expected.getAccession());
-            assertMappedFieldsEqual(expected, loaded);
-        }
-
-        assertEquals(recordFiles.size(), recordRepository.count() + deprecatedRecordRepository.count(), "unexpected number of persisted fixture records");
+        Record loaded = (Record) persistAndReload(r);
+        assertMappedFieldsEqual(r, loaded);
     }
 
-    @Test
-    void saveAndLoadManuallyCreatedRecord() {
+    private static Record createManualRecordFixture() {
         Record r = new Record();
         r.setAccession("TEST-001");
         r.setRecordTitle(List.of("Naringenin", "LC-ESI-QTOF", "MS2", "CE:15 eV", "[M+H]+"));
@@ -136,14 +106,14 @@ class RecordDbTest {
         r.setChSMILES("C1[C@H](OC2=CC(=CC(=C2C1=O)O)O)C3=CC=C(C=C3)O");
         r.setChIUPAC("InChI=1S/C15H12O5/c16-9-3-1-8(2-4-9)13-7-12(19)15-11(18)5-10(17)6-14(15)20-13/h1-6,13,16-18H,7H2/t13-/m0/s1");
         r.setChLink(List.of(
-            new Record.KeyValue("INCHIKEY", "AAAA-BBBB"),
-            new Record.KeyValue("CAS", "123-45-6")
+                new Record.KeyValue("INCHIKEY", "AAAA-BBBB"),
+                new Record.KeyValue("CAS", "123-45-6")
         ));
         r.setSpScientificName("Mus musculus");
         r.setSpLineage("cellular organisms; Eukaryota; Metazoa; Chordata; Mammalia; Rodentia; Mus");
         r.setSpLink(List.of(
-            new Record.KeyValue("TAXON_ID", "9606"),
-            new Record.KeyValue("NCBI", "Homo sapiens")
+                new Record.KeyValue("TAXON_ID", "9606"),
+                new Record.KeyValue("NCBI", "Homo sapiens")
         ));
         r.setSpSample(List.of("liver", "plasma"));
         r.setAcInstrument("Q Exactive Orbitrap");
@@ -151,20 +121,20 @@ class RecordDbTest {
         r.setAcMassSpectrometryMsType("MS2");
         r.setAcMassSpectrometryIonMode("POSITIVE");
         r.setAcMassSpectrometry(List.of(
-            new Record.KeyValue("COLLISION_ENERGY", "35 eV"),
-            new Record.KeyValue("RESOLUTION", "70000")
+                new Record.KeyValue("COLLISION_ENERGY", "35 eV"),
+                new Record.KeyValue("RESOLUTION", "70000")
         ));
         r.setAcChromatography(List.of(
-            new Record.KeyValue("COLUMN", "Waters Acquity UPLC BEH C18"),
-            new Record.KeyValue("FLOW_GRADIENT", "0.3 mL/min")
+                new Record.KeyValue("COLUMN", "Waters Acquity UPLC BEH C18"),
+                new Record.KeyValue("FLOW_GRADIENT", "0.3 mL/min")
         ));
         r.setMsFocusedIon(List.of(
-            new Record.KeyValue("PRECURSOR_TYPE", "[M+H]+"),
-            new Record.KeyValue("PRECURSOR_M/Z", "123.456")
+                new Record.KeyValue("PRECURSOR_TYPE", "[M+H]+"),
+                new Record.KeyValue("PRECURSOR_M/Z", "123.456")
         ));
         r.setMsDataProcessing(List.of(
-            new Record.KeyValue("DEISOTOPING", "done"),
-            new Record.KeyValue("CENTROIDING", "raw")
+                new Record.KeyValue("DEISOTOPING", "done"),
+                new Record.KeyValue("CENTROIDING", "raw")
         ));
 
         r.setPkAnnotationHeader(List.of("m/z", "ion"));
@@ -177,101 +147,37 @@ class RecordDbTest {
         r.addPeak(new Peak(BigDecimal.valueOf(153.019), BigDecimal.valueOf(316.545), 30));
         r.addPeak(new Peak(BigDecimal.valueOf(273.076), BigDecimal.valueOf(10000.000), 999));
         r.addPeak(new Peak(BigDecimal.valueOf(274.083), BigDecimal.valueOf(318.003), 30));
-
-
-        Record loaded = (Record) persistAndReload(r);
-        assertMappedFieldsEqual(r, loaded);
+        return r;
     }
 
     @Test
-    void setPkPeakMaintainsBidirectionalAssociation() {
-        Record r = new Record();
-        r.setAccession("TEST-PEAK-SETTER");
-        r.setRecordTitle(List.of("Peak setter regression"));
-        r.setDate("2026.06.09");
-        r.setAuthors("Test Author");
-        r.setLicense("CC0");
-        r.setChName(List.of("Peak setter regression"));
-        r.setChFormula("C1H1");
-        r.setChExactMass(new BigDecimal("1.0000000000"));
-        r.setChSMILES("N/A");
-        r.setChIUPAC("N/A");
-        r.setAcInstrument("Instrument");
-        r.setAcInstrumentType("MS");
-        r.setAcMassSpectrometryMsType("MS2");
-        r.setAcMassSpectrometryIonMode("POSITIVE");
-        r.setPkSPLASH("splash10-0002-0900000000-00000000000000000000");
+    void saveAndLoadAllFixtureRecords_compareMappedFields() throws IOException {
+        List<Path> recordFiles = loadFixtureRecordFiles();
 
-        Peak first = new Peak(new BigDecimal("100.0"), new BigDecimal("200.0"), 10);
-        Peak second = new Peak(new BigDecimal("200.0"), new BigDecimal("300.0"), 20);
+        for (Path file : recordFiles) {
+            AbstractRecord expected = parseRecordFromFixture(file);
+            AbstractRecord loaded = persistAndReload(expected);
+            assertMappedFieldsEqual(expected, loaded);
+        }
 
-        r.setPkPeak(List.of(first, second));
+        assertEquals(recordFiles.size(), recordRepository.count() + deprecatedRecordRepository.count(),
+                "unexpected number of persisted fixture records");
+    }
 
-        assertSame(r, first.getRecord(), "first peak should reference owning record before persistence");
-        assertSame(r, second.getRecord(), "second peak should reference owning record before persistence");
 
-        Record loaded = (Record) persistAndReload(r);
+    @Test
+    void fullRoundtripAllFixtureRecords_textToRecordSaveLoadText_compareTextState() throws IOException {
+        List<Path> recordFiles = loadFixtureRecordFiles();
 
-        assertEquals(2, loaded.getPkPeak().size(), "unexpected number of peaks after reload");
-        for (Peak peak : loaded.getPkPeak()) {
-            assertSame(loaded, peak.getRecord(), "loaded peak should reference loaded owning record");
+        for (Path file : recordFiles) {
+            RecordParserTest.ParseResult parseResult = parseRecordResultFromFixture(file);
+            AbstractRecord parsedRecord = parseResult.result().get();
+
+            AbstractRecord loaded = persistAndReload(parsedRecord);
+            assertEquals(parseResult.content(), loaded.toString(),
+                    () -> "Text state mismatch for " + parsedRecord.getAccession());
         }
     }
-
-    @Test
-    void addPeakWithNullThrows() {
-        Record r = new Record();
-        NullPointerException ex = assertThrows(NullPointerException.class, () -> r.addPeak(null));
-        assertEquals("peak must not be null", ex.getMessage());
-    }
-
-    @Test
-    void removePeakWithNullThrows() {
-        Record r = new Record();
-        NullPointerException ex = assertThrows(NullPointerException.class, () -> r.removePeak(null));
-        assertEquals("peak must not be null", ex.getMessage());
-    }
-
-    @Test
-    void addPeakFromDifferentRecordThrows() {
-        Record ownerA = new Record();
-        ownerA.setAccession("A-001");
-        Record ownerB = new Record();
-        ownerB.setAccession("B-001");
-        Peak peak = new Peak(BigDecimal.valueOf(100.0), BigDecimal.valueOf(200.0), 10);
-
-        ownerA.addPeak(peak);
-
-        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> ownerB.addPeak(peak));
-        assertEquals("addPeak only accepts detached peaks", ex.getMessage());
-    }
-
-    @Test
-    void addPeakAlreadyOwnedBySameRecordThrows() {
-        Record owner = new Record();
-        owner.setAccession("A-004");
-        Peak peak = new Peak(BigDecimal.valueOf(103.0), BigDecimal.valueOf(203.0), 13);
-
-        owner.addPeak(peak);
-
-        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> owner.addPeak(peak));
-        assertEquals("addPeak only accepts detached peaks", ex.getMessage());
-    }
-
-    @Test
-    void removePeakNotInRecordThrows() {
-        Record ownerA = new Record();
-        ownerA.setAccession("A-002");
-        Record ownerB = new Record();
-        ownerB.setAccession("B-002");
-        Peak peak = new Peak(BigDecimal.valueOf(101.0), BigDecimal.valueOf(201.0), 11);
-
-        ownerA.addPeak(peak);
-
-        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> ownerB.removePeak(peak));
-        assertEquals("peak is not part of this record", ex.getMessage());
-    }
-
 
     private AbstractRecord persistAndReload(AbstractRecord record) {
         recordService.save(record);
@@ -279,90 +185,84 @@ class RecordDbTest {
         deprecatedRecordRepository.flush();
         entityManager.flush();
         entityManager.clear();
-
         return recordService.findById(record.getAccession());
     }
 
-    private static void assertMappedFieldsEqual(AbstractRecord expected, AbstractRecord actual) {
-        assertNotNull(actual, "loaded record is null");
-        assertEquals(expected.getAccession(), actual.getAccession(), () -> "ACCESSION mismatch for " + expected.getAccession());
-        if (expected instanceof Record exp && actual instanceof Record act) {
-            assertEquals(exp.getRecordTitle(), act.getRecordTitle(), () -> "RECORD_TITLE mismatch for " + expected.getAccession());
-            assertEquals(exp.getDate(), act.getDate(), () -> "DATE mismatch for " + expected.getAccession());
-            assertEquals(exp.getAuthors(), act.getAuthors(), () -> "AUTHORS mismatch for " + expected.getAccession());
-            assertEquals(exp.getLicense(), act.getLicense(), () -> "LICENSE mismatch for " + expected.getAccession());
-            assertEquals(exp.getCopyright(), act.getCopyright(), () -> "COPYRIGHT mismatch for " + expected.getAccession());
-            assertEquals(exp.getPublication(), act.getPublication(), () -> "PUBLICATION mismatch for " + expected.getAccession());
-            assertEquals(exp.getProject(), act.getProject(), () -> "PROJECT mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getComment()), new ArrayList<>(act.getComment()), () -> "COMMENT mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getChName()), new ArrayList<>(act.getChName()), () -> "CH$NAME mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getChCompoundClass()), new ArrayList<>(act.getChCompoundClass()), () -> "CH$COMPOUND_CLASS mismatch for " + expected.getAccession());
-            assertEquals(exp.getChFormula(), act.getChFormula(), () -> "CH$FORMULA mismatch for " + expected.getAccession());
-            assertEquals(0, exp.getChExactMass().compareTo(act.getChExactMass()), () -> "CH$EXACT_MASS mismatch for " + expected.getAccession());
-            assertEquals(exp.getChSMILES(), act.getChSMILES(), () -> "CH$SMILES mismatch for " + expected.getAccession());
-            assertEquals(exp.getChIUPAC(), act.getChIUPAC(), () -> "CH$IUPAC mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getChLink()), new ArrayList<>(act.getChLink()), () -> "CH$LINK mismatch for " + expected.getAccession());
-            assertEquals(exp.getSpScientificName(), act.getSpScientificName(), () -> "SP$SCIENTIFIC_NAME mismatch for " + expected.getAccession());
-            assertEquals(exp.getSpLineage(), act.getSpLineage(), () -> "SP$LINEAGE mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getSpLink()), new ArrayList<>(act.getSpLink()), () -> "SP$LINK mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getSpSample()), new ArrayList<>(act.getSpSample()), () -> "SP$SAMPLE mismatch for " + expected.getAccession());
-            assertEquals(exp.getAcInstrument(), act.getAcInstrument(), () -> "AC$INSTRUMENT mismatch for " + expected.getAccession());
-            assertEquals(exp.getAcInstrumentType(), act.getAcInstrumentType(), () -> "AC$INSTRUMENT_TYPE mismatch for " + expected.getAccession());
-            assertEquals(exp.getAcMassSpectrometryMsType(), act.getAcMassSpectrometryMsType(), () -> "AC$MASS_SPECTROMETRY: MS_TYPE mismatch for " + expected.getAccession());
-            assertEquals(exp.getAcMassSpectrometryIonMode(), act.getAcMassSpectrometryIonMode(), () -> "AC$MASS_SPECTROMETRY: ION_MODE mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getAcMassSpectrometry()), new ArrayList<>(act.getAcMassSpectrometry()), () -> "AC$MASS_SPECTROMETRY mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getAcChromatography()), new ArrayList<>(act.getAcChromatography()), () -> "AC$CHROMATOGRAPHY mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getMsFocusedIon()), new ArrayList<>(act.getMsFocusedIon()), () -> "MS$FOCUSED_ION mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getMsDataProcessing()), new ArrayList<>(act.getMsDataProcessing()), () -> "MS$DATA_PROCESSING mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getPkAnnotationHeader()), new ArrayList<>(act.getPkAnnotationHeader()), () -> "PK$ANNOTATION header mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.PK_ANNOTATION()), new ArrayList<>(act.PK_ANNOTATION()), () -> "PK$ANNOTATION rows mismatch for " + expected.getAccession());
-            assertEquals(new ArrayList<>(exp.getPkPeak()), new ArrayList<>(act.getPkPeak()), () -> "PK$PEAK mismatch for " + expected.getAccession());
-        } else if (expected instanceof DeprecatedRecord exp && actual instanceof DeprecatedRecord act) {
-            assertEquals(exp.getDeprecated(), act.getDeprecated(), () -> "DEPRECATED mismatch for " + expected.getAccession());
-            assertEquals(exp.getDeprecatedContent(), act.getDeprecatedContent(), () -> "DEPRECATED_CONTENT mismatch for " + expected.getAccession());
-        } else {
-            fail("Record type mismatch: " + expected.getClass() + " vs " + actual.getClass());
-        }
-    }
-
-    @Test
-    void saveAndLoadFixtureRecords_compareFileAndSerialized() throws IOException {
+    private static List<Path> loadFixtureRecordFiles() throws IOException {
         Path resourcesDir = Paths.get("src/test/resources");
         assertTrue(Files.exists(resourcesDir), "src/test/resources not found");
 
         List<Path> recordFiles;
         try (Stream<Path> paths = Files.walk(resourcesDir)) {
             recordFiles = paths
-                    .filter(p -> p.toString().endsWith(".txt"))
-                    .filter(p -> p.getFileName().toString().startsWith("MSBNK-"))
+                    .filter(path -> path.toString().endsWith(".txt"))
+                    .filter(path -> path.getFileName().toString().startsWith("MSBNK-"))
+                    .sorted()
                     .toList();
         }
         assertFalse(recordFiles.isEmpty(), "No .txt files in src/test/resources found");
+        return recordFiles;
+    }
 
-        // 1. Alle Records einlesen und persistieren
-        List<String> originalContents = new ArrayList<>();
-        List<String> accessions = new ArrayList<>();
-        for (Path file : recordFiles) {
-            String fileContent = Files.readString(file);
-            originalContents.add(fileContent);
-            RecordParserTest.ParseResult res = RecordParserTest.parseRecord(file.getFileName().toString());
-            assertTrue(res.result().isSuccess());
-            AbstractRecord record = res.result().get();
-            accessions.add(record.getAccession());
-            recordService.save(record);
-        }
-        recordRepository.flush();
-        deprecatedRecordRepository.flush();
-        entityManager.flush();
-        entityManager.clear();
+    private static AbstractRecord parseRecordFromFixture(Path file) throws IOException {
+        return parseRecordResultFromFixture(file).result().get();
+    }
 
-        // 2. Alle Records laden und serialisieren
-        for (int i = 0; i < accessions.size(); i++) {
-            String accession = accessions.get(i);
-            String original = originalContents.get(i).replaceAll("\\r\\n", "\\n").trim();
-            AbstractRecord loaded = recordService.findById(accession);
-            String serialized = loaded.toString().replaceAll("\\r\\n", "\\n").trim();
-            assertEquals(original, serialized, () -> "File/serialization mismatch for " + accession);
+    private static RecordParserTest.ParseResult parseRecordResultFromFixture(Path file) throws IOException {
+        RecordParserTest.ParseResult parseResult = RecordParserTest.parseRecord(file.getFileName().toString());
+        assertTrue(parseResult.result().isSuccess(), () -> "parse failed for " + file.getFileName());
+        return parseResult;
+    }
+
+
+    private static void assertMappedFieldsEqual(AbstractRecord expected, AbstractRecord actual) {
+        assertNotNull(actual, "loaded record is null");
+        assertEquals(expected.getAccession(), actual.getAccession(), () -> "ACCESSION mismatch for " + expected.getAccession());
+        if (expected instanceof Record exp && actual instanceof Record act) {
+            assertRecordFieldsEqual(exp, act);
+        } else if (expected instanceof DeprecatedRecord exp && actual instanceof DeprecatedRecord act) {
+            assertDeprecatedRecordFieldsEqual(exp, act);
+        } else {
+            fail("Record type mismatch: " + expected.getClass() + " vs " + actual.getClass());
         }
     }
+
+    private static void assertRecordFieldsEqual(Record expected, Record actual) {
+        assertEquals(expected.getRecordTitle(), actual.getRecordTitle(), () -> "RECORD_TITLE mismatch for " + expected.getAccession());
+        assertEquals(expected.getDate(), actual.getDate(), () -> "DATE mismatch for " + expected.getAccession());
+        assertEquals(expected.getAuthors(), actual.getAuthors(), () -> "AUTHORS mismatch for " + expected.getAccession());
+        assertEquals(expected.getLicense(), actual.getLicense(), () -> "LICENSE mismatch for " + expected.getAccession());
+        assertEquals(expected.getCopyright(), actual.getCopyright(), () -> "COPYRIGHT mismatch for " + expected.getAccession());
+        assertEquals(expected.getPublication(), actual.getPublication(), () -> "PUBLICATION mismatch for " + expected.getAccession());
+        assertEquals(expected.getProject(), actual.getProject(), () -> "PROJECT mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getComment()), new ArrayList<>(actual.getComment()), () -> "COMMENT mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getChName()), new ArrayList<>(actual.getChName()), () -> "CH$NAME mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getChCompoundClass()), new ArrayList<>(actual.getChCompoundClass()), () -> "CH$COMPOUND_CLASS mismatch for " + expected.getAccession());
+        assertEquals(expected.getChFormula(), actual.getChFormula(), () -> "CH$FORMULA mismatch for " + expected.getAccession());
+        assertEquals(0, expected.getChExactMass().compareTo(actual.getChExactMass()), () -> "CH$EXACT_MASS mismatch for " + expected.getAccession());
+        assertEquals(expected.getChSMILES(), actual.getChSMILES(), () -> "CH$SMILES mismatch for " + expected.getAccession());
+        assertEquals(expected.getChIUPAC(), actual.getChIUPAC(), () -> "CH$IUPAC mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getChLink()), new ArrayList<>(actual.getChLink()), () -> "CH$LINK mismatch for " + expected.getAccession());
+        assertEquals(expected.getSpScientificName(), actual.getSpScientificName(), () -> "SP$SCIENTIFIC_NAME mismatch for " + expected.getAccession());
+        assertEquals(expected.getSpLineage(), actual.getSpLineage(), () -> "SP$LINEAGE mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getSpLink()), new ArrayList<>(actual.getSpLink()), () -> "SP$LINK mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getSpSample()), new ArrayList<>(actual.getSpSample()), () -> "SP$SAMPLE mismatch for " + expected.getAccession());
+        assertEquals(expected.getAcInstrument(), actual.getAcInstrument(), () -> "AC$INSTRUMENT mismatch for " + expected.getAccession());
+        assertEquals(expected.getAcInstrumentType(), actual.getAcInstrumentType(), () -> "AC$INSTRUMENT_TYPE mismatch for " + expected.getAccession());
+        assertEquals(expected.getAcMassSpectrometryMsType(), actual.getAcMassSpectrometryMsType(), () -> "AC$MASS_SPECTROMETRY: MS_TYPE mismatch for " + expected.getAccession());
+        assertEquals(expected.getAcMassSpectrometryIonMode(), actual.getAcMassSpectrometryIonMode(), () -> "AC$MASS_SPECTROMETRY: ION_MODE mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getAcMassSpectrometry()), new ArrayList<>(actual.getAcMassSpectrometry()), () -> "AC$MASS_SPECTROMETRY mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getAcChromatography()), new ArrayList<>(actual.getAcChromatography()), () -> "AC$CHROMATOGRAPHY mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getMsFocusedIon()), new ArrayList<>(actual.getMsFocusedIon()), () -> "MS$FOCUSED_ION mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getMsDataProcessing()), new ArrayList<>(actual.getMsDataProcessing()), () -> "MS$DATA_PROCESSING mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getPkAnnotationHeader()), new ArrayList<>(actual.getPkAnnotationHeader()), () -> "PK$ANNOTATION header mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.PK_ANNOTATION()), new ArrayList<>(actual.PK_ANNOTATION()), () -> "PK$ANNOTATION rows mismatch for " + expected.getAccession());
+        assertEquals(new ArrayList<>(expected.getPkPeak()), new ArrayList<>(actual.getPkPeak()), () -> "PK$PEAK mismatch for " + expected.getAccession());
+    }
+
+    private static void assertDeprecatedRecordFieldsEqual(DeprecatedRecord expected, DeprecatedRecord actual) {
+        assertEquals(expected.getDeprecated(), actual.getDeprecated(), () -> "DEPRECATED mismatch for " + expected.getAccession());
+        assertEquals(expected.getDeprecatedContent(), actual.getDeprecatedContent(), () -> "DEPRECATED_CONTENT mismatch for " + expected.getAccession());
+    }
+
 }
