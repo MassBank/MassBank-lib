@@ -10,6 +10,8 @@ import java.util.List;
 public interface RecordService {
     AbstractRecord save(AbstractRecord record);
 
+    List<AbstractRecord> saveAll(List<AbstractRecord> records);
+
     void deleteAll();
 
     @Transactional(readOnly = true)

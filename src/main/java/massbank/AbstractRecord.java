@@ -22,7 +22,10 @@ package massbank;
 
 
 import jakarta.persistence.Column;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -41,6 +44,10 @@ public abstract class AbstractRecord {
     @Id
     @Column(name = "accession", nullable = false, length = 105, unique = true)
     protected String accession;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "accession", referencedColumnName = "accession", insertable = false, updatable = false)
+    private AccessionRegistry accessionRegistry;
 
     public String getAccession() {
         return accession;

@@ -1,6 +1,7 @@
 package massbank.db;
 
 import jakarta.persistence.EntityManagerFactory;
+import massbank.AccessionRegistry;
 import massbank.DeprecatedRecord;
 import massbank.Peak;
 import massbank.Record;
@@ -18,17 +19,18 @@ public class MassBankDbAutoConfiguration {
 
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnBean(EntityManagerFactory.class)
-    @EnableJpaRepositories(basePackageClasses = {RecordRepository.class, DeprecatedRecordRepository.class})
-    @EntityScan(basePackageClasses = {Record.class, DeprecatedRecord.class, Peak.class})
+    @EnableJpaRepositories(basePackageClasses = {RecordRepository.class, DeprecatedRecordRepository.class, AccessionRegistryRepository.class})
+    @EntityScan(basePackageClasses = {Record.class, DeprecatedRecord.class, Peak.class, AccessionRegistry.class})
     static class MassBankJpaRepositoriesConfiguration {
     }
 
     @Bean
-    @ConditionalOnBean({RecordRepository.class, DeprecatedRecordRepository.class})
+    @ConditionalOnBean({RecordRepository.class, DeprecatedRecordRepository.class, AccessionRegistryRepository.class})
     @ConditionalOnMissingBean(RecordService.class)
     RecordService recordService(RecordRepository recordRepository,
-                                DeprecatedRecordRepository deprecatedRecordRepository) {
-        return new RecordServiceImplementation(recordRepository, deprecatedRecordRepository);
+                                DeprecatedRecordRepository deprecatedRecordRepository,
+                                AccessionRegistryRepository accessionRegistryRepository) {
+        return new RecordServiceImplementation(recordRepository, deprecatedRecordRepository, accessionRegistryRepository);
     }
 }
 
