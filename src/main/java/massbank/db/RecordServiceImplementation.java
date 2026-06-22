@@ -4,6 +4,7 @@ import massbank.AbstractRecord;
 import massbank.AccessionRegistry;
 import massbank.DeprecatedRecord;
 import massbank.Record;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,9 @@ public class RecordServiceImplementation implements RecordService {
     private final RecordRepository recordRepository;
     private final DeprecatedRecordRepository deprecatedRecordRepository;
     private final AccessionRegistryRepository accessionRegistryRepository;
+
+    @Value("${massbank.persistence.chunk-size:1000}")
+    private int chunkSize = 1000;
 
     public RecordServiceImplementation(RecordRepository recordRepository,
                                        DeprecatedRecordRepository deprecatedRecordRepository,
@@ -117,8 +121,8 @@ public class RecordServiceImplementation implements RecordService {
         }
         reserveAccessions(accessionsToReserve);
 
-        List<Record> savedActive = activeRecords.isEmpty() ? List.of() : recordRepository.saveAll(activeRecords);
-        List<DeprecatedRecord> savedDeprecated = deprecatedRecords.isEmpty() ? List.of() : deprecatedRecordRepository.saveAll(deprecatedRecords);
+        List<Record> savedActive = saveRecordsInChunks(activeRecords);
+        List<DeprecatedRecord> savedDeprecated = saveDeprecatedRecordsInChunks(deprecatedRecords);
 
         if (savedActive.size() != activeRecords.size()) {
             throw new IllegalStateException("Active saveAll result size mismatch");
@@ -215,10 +219,43 @@ public class RecordServiceImplementation implements RecordService {
                 .map(AccessionRegistry::new)
                 .toList();
         try {
-            accessionRegistryRepository.saveAll(toPersist);
+            for (int from = 0; from < toPersist.size(); from += effectiveChunkSize()) {
+                int to = Math.min(from + effectiveChunkSize(), toPersist.size());
+                accessionRegistryRepository.saveAll(toPersist.subList(from, to));
+                accessionRegistryRepository.flush();
+            }
         } catch (DataIntegrityViolationException e) {
             throw new IllegalStateException("Duplicate accession across record tables", e);
         }
     }
-}
 
+    private List<Record> saveRecordsInChunks(List<Record> records) {
+        if (records.isEmpty()) {
+            return List.of();
+        }
+        List<Record> saved = new ArrayList<>(records.size());
+        for (int from = 0; from < records.size(); from += effectiveChunkSize()) {
+            int to = Math.min(from + effectiveChunkSize(), records.size());
+            saved.addAll(recordRepository.saveAll(records.subList(from, to)));
+            recordRepository.flush();
+        }
+        return saved;
+    }
+
+    private List<DeprecatedRecord> saveDeprecatedRecordsInChunks(List<DeprecatedRecord> records) {
+        if (records.isEmpty()) {
+            return List.of();
+        }
+        List<DeprecatedRecord> saved = new ArrayList<>(records.size());
+        for (int from = 0; from < records.size(); from += effectiveChunkSize()) {
+            int to = Math.min(from + effectiveChunkSize(), records.size());
+            saved.addAll(deprecatedRecordRepository.saveAll(records.subList(from, to)));
+            deprecatedRecordRepository.flush();
+        }
+        return saved;
+    }
+
+    private int effectiveChunkSize() {
+        return chunkSize > 0 ? chunkSize : 1000;
+    }
+}
