@@ -1,5 +1,6 @@
 package massbank.db;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import massbank.AccessionRegistry;
 import massbank.DeprecatedRecord;
@@ -29,8 +30,9 @@ public class MassBankDbAutoConfiguration {
     @ConditionalOnMissingBean(RecordService.class)
     RecordService recordService(RecordRepository recordRepository,
                                 DeprecatedRecordRepository deprecatedRecordRepository,
-                                AccessionRegistryRepository accessionRegistryRepository) {
-        return new RecordServiceImplementation(recordRepository, deprecatedRecordRepository, accessionRegistryRepository);
+                                 AccessionRegistryRepository accessionRegistryRepository,
+                                 EntityManager entityManager) {
+        return new RecordServiceImplementation(recordRepository, deprecatedRecordRepository, accessionRegistryRepository, entityManager);
     }
 }
 

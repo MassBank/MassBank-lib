@@ -4,6 +4,8 @@ import massbank.AbstractRecord;
 import massbank.AccessionRegistry;
 import massbank.DeprecatedRecord;
 import massbank.Record;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -17,19 +19,24 @@ import java.util.Set;
 @Service
 @Transactional
 public class RecordServiceImplementation implements RecordService {
+    private static final int MAX_SAFE_CHUNK_SIZE = 65535;
+
     private final RecordRepository recordRepository;
     private final DeprecatedRecordRepository deprecatedRecordRepository;
     private final AccessionRegistryRepository accessionRegistryRepository;
+    private final EntityManager entityManager;
 
-    @Value("${massbank.persistence.chunk-size:1000}")
-    private int chunkSize = 1000;
+    @Value("${massbank.persistence.chunk-size:70000}")
+    private int chunkSize;
 
     public RecordServiceImplementation(RecordRepository recordRepository,
                                        DeprecatedRecordRepository deprecatedRecordRepository,
-                                       AccessionRegistryRepository accessionRegistryRepository) {
+                                       AccessionRegistryRepository accessionRegistryRepository,
+                                       EntityManager entityManager) {
         this.recordRepository = recordRepository;
         this.deprecatedRecordRepository = deprecatedRecordRepository;
         this.accessionRegistryRepository = accessionRegistryRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -66,6 +73,15 @@ public class RecordServiceImplementation implements RecordService {
         }
         if (records.isEmpty()) {
             return List.of();
+        }
+        int chunk = effectiveChunkSize();
+        if (records.size() > chunk) {
+            List<AbstractRecord> saved = new ArrayList<>(records.size());
+            for (int from = 0; from < records.size(); from += chunk) {
+                int to = Math.min(from + chunk, records.size());
+                saved.addAll(saveAll(records.subList(from, to)));
+            }
+            return saved;
         }
 
         List<Record> activeRecords = new ArrayList<>();
@@ -107,22 +123,24 @@ public class RecordServiceImplementation implements RecordService {
         }
 
         Set<String> accessionsToReserve = new HashSet<>();
+        Set<String> existingActiveAccessions = Set.of();
+        Set<String> existingDeprecatedAccessions = Set.of();
         if (!activeAccessions.isEmpty()) {
-            Set<String> existingActiveAccessions = new HashSet<>(recordRepository.findExistingAccessions(activeAccessions));
+            existingActiveAccessions = new HashSet<>(recordRepository.findExistingAccessions(activeAccessions));
             Set<String> newActiveAccessions = new HashSet<>(activeAccessions);
             newActiveAccessions.removeAll(existingActiveAccessions);
             accessionsToReserve.addAll(newActiveAccessions);
         }
         if (!deprecatedAccessions.isEmpty()) {
-            Set<String> existingDeprecatedAccessions = new HashSet<>(deprecatedRecordRepository.findExistingAccessions(deprecatedAccessions));
+            existingDeprecatedAccessions = new HashSet<>(deprecatedRecordRepository.findExistingAccessions(deprecatedAccessions));
             Set<String> newDeprecatedAccessions = new HashSet<>(deprecatedAccessions);
             newDeprecatedAccessions.removeAll(existingDeprecatedAccessions);
             accessionsToReserve.addAll(newDeprecatedAccessions);
         }
         reserveAccessions(accessionsToReserve);
 
-        List<Record> savedActive = saveRecordsInChunks(activeRecords);
-        List<DeprecatedRecord> savedDeprecated = saveDeprecatedRecordsInChunks(deprecatedRecords);
+        List<Record> savedActive = saveRecordsInChunksWithEntityManager(activeRecords, existingActiveAccessions);
+        List<DeprecatedRecord> savedDeprecated = saveDeprecatedRecordsInChunksWithEntityManager(deprecatedRecords, existingDeprecatedAccessions);
 
         if (savedActive.size() != activeRecords.size()) {
             throw new IllegalStateException("Active saveAll result size mismatch");
@@ -221,41 +239,61 @@ public class RecordServiceImplementation implements RecordService {
         try {
             for (int from = 0; from < toPersist.size(); from += effectiveChunkSize()) {
                 int to = Math.min(from + effectiveChunkSize(), toPersist.size());
-                accessionRegistryRepository.saveAll(toPersist.subList(from, to));
-                accessionRegistryRepository.flush();
+                List<AccessionRegistry> chunk = toPersist.subList(from, to);
+                for (AccessionRegistry accessionRegistry : chunk) {
+                    entityManager.persist(accessionRegistry);
+                }
+                entityManager.flush();
             }
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException | PersistenceException e) {
             throw new IllegalStateException("Duplicate accession across record tables", e);
         }
     }
 
-    private List<Record> saveRecordsInChunks(List<Record> records) {
+    private List<Record> saveRecordsInChunksWithEntityManager(List<Record> records, Set<String> existingAccessions) {
         if (records.isEmpty()) {
             return List.of();
         }
         List<Record> saved = new ArrayList<>(records.size());
         for (int from = 0; from < records.size(); from += effectiveChunkSize()) {
             int to = Math.min(from + effectiveChunkSize(), records.size());
-            saved.addAll(recordRepository.saveAll(records.subList(from, to)));
-            recordRepository.flush();
+            for (Record record : records.subList(from, to)) {
+                if (existingAccessions.contains(record.getAccession())) {
+                    saved.add(entityManager.merge(record));
+                } else {
+                    entityManager.persist(record);
+                    saved.add(record);
+                }
+            }
+            entityManager.flush();
         }
         return saved;
     }
 
-    private List<DeprecatedRecord> saveDeprecatedRecordsInChunks(List<DeprecatedRecord> records) {
+    private List<DeprecatedRecord> saveDeprecatedRecordsInChunksWithEntityManager(List<DeprecatedRecord> records, Set<String> existingAccessions) {
         if (records.isEmpty()) {
             return List.of();
         }
         List<DeprecatedRecord> saved = new ArrayList<>(records.size());
         for (int from = 0; from < records.size(); from += effectiveChunkSize()) {
             int to = Math.min(from + effectiveChunkSize(), records.size());
-            saved.addAll(deprecatedRecordRepository.saveAll(records.subList(from, to)));
-            deprecatedRecordRepository.flush();
+            for (DeprecatedRecord record : records.subList(from, to)) {
+                if (existingAccessions.contains(record.getAccession())) {
+                    saved.add(entityManager.merge(record));
+                } else {
+                    entityManager.persist(record);
+                    saved.add(record);
+                }
+            }
+            entityManager.flush();
         }
         return saved;
     }
 
     private int effectiveChunkSize() {
-        return chunkSize > 0 ? chunkSize : 1000;
+        if (chunkSize <= 0) {
+            return 1000;
+        }
+        return Math.min(chunkSize, MAX_SAFE_CHUNK_SIZE);
     }
 }

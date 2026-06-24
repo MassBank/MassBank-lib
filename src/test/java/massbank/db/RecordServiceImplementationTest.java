@@ -1,6 +1,8 @@
 package massbank.db;
 
+import jakarta.persistence.EntityManager;
 import massbank.AbstractRecord;
+import massbank.AccessionRegistry;
 import massbank.DeprecatedRecord;
 import massbank.Record;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,11 +39,14 @@ class RecordServiceImplementationTest {
     @Mock
     private AccessionRegistryRepository accessionRegistryRepository;
 
+    @Mock
+    private EntityManager entityManager;
+
     private RecordServiceImplementation service;
 
     @BeforeEach
     void setUp() {
-        service = new RecordServiceImplementation(recordRepository, deprecatedRecordRepository, accessionRegistryRepository);
+        service = new RecordServiceImplementation(recordRepository, deprecatedRecordRepository, accessionRegistryRepository, entityManager);
     }
 
     @Test
@@ -50,16 +56,18 @@ class RecordServiceImplementationTest {
         List<AbstractRecord> input = List.of(first, second);
 
         when(recordRepository.findExistingAccessions(any(Set.class))).thenReturn(List.of());
-        when(accessionRegistryRepository.saveAll(any(List.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(recordRepository.saveAll(any(List.class))).thenReturn(List.of(first, second));
 
         List<AbstractRecord> saved = service.saveAll(input);
 
         assertEquals(2, saved.size());
         assertEquals("ACT-001", saved.get(0).getAccession());
         assertEquals("ACT-002", saved.get(1).getAccession());
-        verify(recordRepository).saveAll(argThat(records -> toList(records).size() == 2));
-        verify(accessionRegistryRepository).saveAll(argThat(records -> toList(records).size() == 2));
+        verify(entityManager).persist(first);
+        verify(entityManager).persist(second);
+        verify(entityManager, times(4)).persist(any());
+        verify(entityManager, never()).merge(any());
+        verify(accessionRegistryRepository, never()).saveAll(any(List.class));
+        verify(recordRepository, never()).saveAll(any(List.class));
         verify(recordRepository, never()).save(any());
         verify(deprecatedRecordRepository, never()).saveAll(any(List.class));
         verify(deprecatedRecordRepository, never()).save(any());
@@ -72,16 +80,18 @@ class RecordServiceImplementationTest {
         List<AbstractRecord> input = List.of(first, second);
 
         when(deprecatedRecordRepository.findExistingAccessions(any(Set.class))).thenReturn(List.of());
-        when(accessionRegistryRepository.saveAll(any(List.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(deprecatedRecordRepository.saveAll(any(List.class))).thenReturn(List.of(first, second));
 
         List<AbstractRecord> saved = service.saveAll(input);
 
         assertEquals(2, saved.size());
         assertEquals("DEP-001", saved.get(0).getAccession());
         assertEquals("DEP-002", saved.get(1).getAccession());
-        verify(deprecatedRecordRepository).saveAll(argThat(records -> toList(records).size() == 2));
-        verify(accessionRegistryRepository).saveAll(argThat(records -> toList(records).size() == 2));
+        verify(entityManager).persist(first);
+        verify(entityManager).persist(second);
+        verify(entityManager, times(4)).persist(any());
+        verify(entityManager, never()).merge(any());
+        verify(accessionRegistryRepository, never()).saveAll(any(List.class));
+        verify(deprecatedRecordRepository, never()).saveAll(any(List.class));
         verify(deprecatedRecordRepository, never()).save(any());
         verify(recordRepository, never()).saveAll(any(List.class));
         verify(recordRepository, never()).save(any());
@@ -96,9 +106,6 @@ class RecordServiceImplementationTest {
 
         when(deprecatedRecordRepository.findExistingAccessions(any(Set.class))).thenReturn(List.of());
         when(recordRepository.findExistingAccessions(any(Set.class))).thenReturn(List.of());
-        when(accessionRegistryRepository.saveAll(any(List.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(recordRepository.saveAll(any(List.class))).thenReturn(List.of(active, activeSecond));
-        when(deprecatedRecordRepository.saveAll(any(List.class))).thenReturn(List.of(deprecated));
 
         List<AbstractRecord> saved = service.saveAll(input);
 
@@ -106,9 +113,14 @@ class RecordServiceImplementationTest {
         assertEquals("MIX-ACT-001", saved.get(0).getAccession());
         assertEquals("MIX-DEP-001", saved.get(1).getAccession());
         assertEquals("MIX-ACT-002", saved.get(2).getAccession());
-        verify(recordRepository).saveAll(argThat(records -> toList(records).size() == 2));
-        verify(deprecatedRecordRepository).saveAll(argThat(records -> toList(records).size() == 1));
-        verify(accessionRegistryRepository).saveAll(argThat(records -> toList(records).size() == 3));
+        verify(entityManager).persist(active);
+        verify(entityManager).persist(deprecated);
+        verify(entityManager).persist(activeSecond);
+        verify(entityManager, times(6)).persist(any());
+        verify(entityManager, never()).merge(any());
+        verify(recordRepository, never()).saveAll(any(List.class));
+        verify(deprecatedRecordRepository, never()).saveAll(any(List.class));
+        verify(accessionRegistryRepository, never()).saveAll(any(List.class));
 
         ArgumentCaptor<Set<String>> activeIdsCaptor = ArgumentCaptor.forClass(Set.class);
         verify(recordRepository).findExistingAccessions(activeIdsCaptor.capture());
@@ -126,7 +138,31 @@ class RecordServiceImplementationTest {
         assertTrue(saved.isEmpty());
         verify(recordRepository, never()).saveAll(any(List.class));
         verify(deprecatedRecordRepository, never()).saveAll(any(List.class));
+        verify(entityManager, never()).persist(any());
+        verify(entityManager, never()).merge(any());
     }
+
+    @Test
+    void saveAll_mergesExistingRecords() {
+        Record active = createRecord("EXISTING-ACT-001");
+        DeprecatedRecord deprecated = createDeprecatedRecord("EXISTING-DEP-001");
+        Record mergedActive = createRecord("EXISTING-ACT-001");
+        DeprecatedRecord mergedDeprecated = createDeprecatedRecord("EXISTING-DEP-001");
+
+        when(recordRepository.findExistingAccessions(any(Set.class))).thenReturn(List.of("EXISTING-ACT-001"));
+        when(deprecatedRecordRepository.findExistingAccessions(any(Set.class))).thenReturn(List.of("EXISTING-DEP-001"));
+        when(entityManager.merge(active)).thenReturn(mergedActive);
+        when(entityManager.merge(deprecated)).thenReturn(mergedDeprecated);
+
+        List<AbstractRecord> saved = service.saveAll(List.of(active, deprecated));
+
+        assertEquals(mergedActive, saved.get(0));
+        assertEquals(mergedDeprecated, saved.get(1));
+        verify(entityManager).merge(active);
+        verify(entityManager).merge(deprecated);
+        verify(entityManager, never()).persist(any(AccessionRegistry.class));
+    }
+
 
     @Test
     void saveAll_nullInput_throwsIllegalArgumentException() {

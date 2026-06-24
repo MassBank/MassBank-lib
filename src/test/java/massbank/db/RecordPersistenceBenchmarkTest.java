@@ -50,9 +50,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>Useful optional parameters:</p>
  * <ul>
  *   <li>{@code -Dmassbank.benchmark.limit=1000} limits the number of files read.</li>
- *   <li>{@code -Dmassbank.benchmark.persist-batch-size=500} persists records in sub-batches.</li>
- *   <li>{@code -Dmassbank.benchmark.chunk-size=1000} controls the service chunk size.</li>
- *   <li>{@code -Dmassbank.benchmark.hibernate-batch-size=100} configures Hibernate batching.</li>
+ *   <li>{@code -Dmassbank.persistence.chunk-size=1000} controls the service chunk size.</li>
+ *   <li>{@code -Dspring.jpa.properties.hibernate.jdbc.batch_size=100} configures Hibernate batching.</li>
  *   <li>{@code -Dmassbank.benchmark.data-dir=/path/to/MassBank-data} location of test data.</li>
  * </ul>
  */
@@ -71,7 +70,28 @@ class RecordPersistenceBenchmarkTest {
     static class BenchmarkApplication {
     }
 
-    static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
+    static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17")
+            .withUrlParam("reWriteBatchedInserts", "true")
+            .withCommand(
+                    "postgres",
+                    "-c", "shared_buffers=2GB",
+                    "-c", "effective_cache_size=6GB",
+                    "-c", "work_mem=16MB",
+                    "-c", "maintenance_work_mem=512MB",
+                    "-c", "max_wal_size=8GB",
+                    "-c", "checkpoint_timeout=15min",
+                    "-c", "wal_compression=on",
+                    "-c", "random_page_cost=1.1",
+                    "-c", "effective_io_concurrency=200",
+                    "-c", "fsync=on",
+                    "-c", "synchronous_commit=on",
+                    "-c", "full_page_writes=on"
+            )
+            .withCreateContainerCmdModifier(cmd ->
+                    cmd.getHostConfig()
+                            .withNanoCPUs(4_000_000_000L)      // 4 vCPU
+                            .withMemory(8L * 1024 * 1024 * 1024) // 8 GB
+            );
 
     @DynamicPropertySource
     static void registerDatasourceProperties(DynamicPropertyRegistry registry) {
@@ -82,11 +102,12 @@ class RecordPersistenceBenchmarkTest {
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create");
         registry.add("spring.jpa.show-sql", () -> "false");
         registry.add("spring.jpa.properties.hibernate.format_sql", () -> "false");
-        registry.add("spring.jpa.properties.hibernate.jdbc.batch_size", () -> benchmarkProperty("hibernate-batch-size", "100"));
+        registry.add("spring.jpa.properties.hibernate.jdbc.batch_size",
+                () -> System.getProperty("spring.jpa.properties.hibernate.jdbc.batch_size", "100"));
         registry.add("spring.jpa.properties.hibernate.order_inserts", () -> "true");
         registry.add("spring.jpa.properties.hibernate.order_updates", () -> "true");
         registry.add("spring.jpa.properties.hibernate.batch_versioned_data", () -> "true");
-        registry.add("massbank.persistence.chunk-size", () -> benchmarkProperty("chunk-size", "1000"));
+        registry.add("massbank.persistence.chunk-size", () -> System.getProperty("massbank.persistence.chunk-size", "1000"));
     }
 
     @BeforeAll
@@ -110,7 +131,6 @@ class RecordPersistenceBenchmarkTest {
         Path dataDir = configuredDataDir.toRealPath();
 
         int limit = intBenchmarkProperty("limit", 0);
-        int persistBatchSize = intBenchmarkProperty("persist-batch-size", 0);
 
         long discoverAndParseStarted = System.nanoTime();
         ParsedRecords parsedRecords = discoverAndParseRecords(dataDir, limit);
@@ -119,7 +139,7 @@ class RecordPersistenceBenchmarkTest {
         recordService.deleteAll();
 
         long persistStarted = System.nanoTime();
-        persist(parsedRecords.records(), persistBatchSize);
+        recordService.saveAll(parsedRecords.records());
         long persistNanos = System.nanoTime() - persistStarted;
 
         long activeCount = recordService.countActive();
@@ -128,8 +148,7 @@ class RecordPersistenceBenchmarkTest {
         assertEquals(parsedRecords.deprecatedCount(), deprecatedCount);
 
         printBenchmarkResult(dataDir, parsedRecords.fileCount(), parsedRecords,
-                discoverAndParseNanos, persistNanos,
-                persistBatchSize);
+                discoverAndParseNanos, persistNanos);
     }
 
     private static ParsedRecords discoverAndParseRecords(Path dataDir, int limit) throws IOException {
@@ -184,17 +203,6 @@ class RecordPersistenceBenchmarkTest {
                 peakCount.longValue(), files.size());
     }
 
-    private void persist(List<AbstractRecord> records, int persistBatchSize) {
-        if (persistBatchSize <= 0) {
-            recordService.saveAll(records);
-            return;
-        }
-        for (int from = 0; from < records.size(); from += persistBatchSize) {
-            int to = Math.min(from + persistBatchSize, records.size());
-            recordService.saveAll(records.subList(from, to));
-        }
-    }
-
     private static Path resolveDataDir() {
         String configured = System.getProperty("massbank.benchmark.data-dir");
         if (configured == null || configured.isBlank()) {
@@ -209,8 +217,7 @@ class RecordPersistenceBenchmarkTest {
     }
 
     private static void printBenchmarkResult(Path dataDir, int fileCount, ParsedRecords parsedRecords,
-                                             long discoverAndParseNanos, long persistNanos,
-                                             int persistBatchSize) {
+                                             long discoverAndParseNanos, long persistNanos) {
         long totalNanos = discoverAndParseNanos + persistNanos;
         System.out.println();
         System.out.println("==== MassBank Record Persistence Benchmark ====");
@@ -221,9 +228,8 @@ class RecordPersistenceBenchmarkTest {
         System.out.println("Active records       : " + parsedRecords.activeCount());
         System.out.println("Deprecated records   : " + parsedRecords.deprecatedCount());
         System.out.println("Peaks                : " + parsedRecords.peakCount());
-        System.out.println("Service chunk size   : " + benchmarkProperty("chunk-size", "1000"));
-        System.out.println("Hibernate batch size : " + benchmarkProperty("hibernate-batch-size", "100"));
-        System.out.println("Persist batch size   : " + (persistBatchSize > 0 ? persistBatchSize : "all records in one saveAll"));
+        System.out.println("Service chunk size   : " + System.getProperty("massbank.persistence.chunk-size", "1000"));
+        System.out.println("Hibernate batch size : " + System.getProperty("spring.jpa.properties.hibernate.jdbc.batch_size", "100"));
         System.out.println("Discover+parse time  : " + formatSeconds(discoverAndParseNanos));
         System.out.println("Persist time         : " + formatSeconds(persistNanos));
         System.out.println("Total time           : " + formatSeconds(totalNanos));
@@ -245,7 +251,6 @@ class RecordPersistenceBenchmarkTest {
             throw new IllegalArgumentException("Invalid integer value for massbank.benchmark." + name + ": " + value, e);
         }
     }
-
 
     private static String formatSeconds(long nanos) {
         return String.format(Locale.ROOT, "%.3f s", nanos / 1_000_000_000.0);
