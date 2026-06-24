@@ -28,17 +28,34 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Benchmark for parsing and persisting MassBank records into a temporary PostgreSQL instance
+ * (Testcontainers).
+ *
+ * <p>The test is disabled by default and only runs with
+ * {@code -Dmassbank.benchmark.enabled=true}.</p>
+ *
+ * <p>Run from the command line (from the project directory):</p>
+ * <pre>
+ * ./mvnw -Dtest=RecordPersistenceBenchmarkTest -Dmassbank.benchmark.enabled=true test \
+ * </pre>
+ *
+ * <p>Useful optional parameters:</p>
+ * <ul>
+ *   <li>{@code -Dmassbank.benchmark.limit=1000} limits the number of files read.</li>
+ *   <li>{@code -Dmassbank.benchmark.persist-batch-size=500} persists records in sub-batches.</li>
+ *   <li>{@code -Dmassbank.benchmark.chunk-size=1000} controls the service chunk size.</li>
+ *   <li>{@code -Dmassbank.benchmark.hibernate-batch-size=100} configures Hibernate batching.</li>
+ *   <li>{@code -Dmassbank.benchmark.data-dir=/path/to/MassBank-data} location of test data.</li>
+ * </ul>
+ */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
@@ -94,16 +111,10 @@ class RecordPersistenceBenchmarkTest {
 
         int limit = intBenchmarkProperty("limit", 0);
         int persistBatchSize = intBenchmarkProperty("persist-batch-size", 0);
-        boolean validate = booleanBenchmarkProperty("validate", true);
 
-        long discoverStarted = System.nanoTime();
-        List<Path> files = discoverRecordFiles(dataDir, limit);
-        long discoverNanos = System.nanoTime() - discoverStarted;
-        assertTrue(!files.isEmpty(), () -> "No MSBNK-*.txt files found below " + dataDir);
-
-        long parseStarted = System.nanoTime();
-        ParsedRecords parsedRecords = parseRecords(files, validate);
-        long parseNanos = System.nanoTime() - parseStarted;
+        long discoverAndParseStarted = System.nanoTime();
+        ParsedRecords parsedRecords = discoverAndParseRecords(dataDir, limit);
+        long discoverAndParseNanos = System.nanoTime() - discoverAndParseStarted;
 
         recordService.deleteAll();
 
@@ -116,13 +127,15 @@ class RecordPersistenceBenchmarkTest {
         assertEquals(parsedRecords.activeCount(), activeCount);
         assertEquals(parsedRecords.deprecatedCount(), deprecatedCount);
 
-        printBenchmarkResult(dataDir, files.size(), parsedRecords, discoverNanos, parseNanos, persistNanos,
-                persistBatchSize, validate);
+        printBenchmarkResult(dataDir, parsedRecords.fileCount(), parsedRecords,
+                discoverAndParseNanos, persistNanos,
+                persistBatchSize);
     }
 
-    private static List<Path> discoverRecordFiles(Path dataDir, int limit) throws IOException {
+    private static ParsedRecords discoverAndParseRecords(Path dataDir, int limit) throws IOException {
+        List<Path> files;
         try (Stream<Path> stream = Files.walk(dataDir)) {
-            Stream<Path> files = stream
+            Stream<Path> fileStream = stream
                     .filter(Files::isRegularFile)
                     .filter(path -> {
                         String name = path.getFileName().toString();
@@ -130,44 +143,45 @@ class RecordPersistenceBenchmarkTest {
                     })
                     .sorted(Comparator.comparing(Path::toString));
             if (limit > 0) {
-                files = files.limit(limit);
+                fileStream = fileStream.limit(limit);
             }
-            return files.toList();
+            files = fileStream.toList();
         }
-    }
 
-    private static ParsedRecords parseRecords(List<Path> files, boolean validate) throws IOException {
-        Set<String> config = new HashSet<>();
-        if (validate) {
-            config.add("validate");
-        }
-        RecordParser parser = new RecordParser(config);
+        assertFalse(files.isEmpty(), () -> "No MSBNK-*.txt files found below " + dataDir);
 
-        List<AbstractRecord> records = new ArrayList<>(files.size());
-        int activeCount = 0;
-        int deprecatedCount = 0;
-        long peakCount = 0;
+        java.util.concurrent.atomic.LongAdder activeCount = new java.util.concurrent.atomic.LongAdder();
+        java.util.concurrent.atomic.LongAdder deprecatedCount = new java.util.concurrent.atomic.LongAdder();
+        java.util.concurrent.atomic.LongAdder peakCount = new java.util.concurrent.atomic.LongAdder();
+        RecordParser parser = new RecordParser(java.util.Set.of("legacy"));
+        List<AbstractRecord> records = files.parallelStream()
+                .map(file -> {
+                    try {
+                        String content = Files.readString(file, StandardCharsets.UTF_8);
+                        Result result = parser.parse(content);
+                        if (!result.isSuccess()) {
+                            throw new IllegalStateException("Failed to parse " + file + ": " + result);
+                        }
+                        Object parsed = result.get();
+                        if (!(parsed instanceof AbstractRecord record)) {
+                            throw new IllegalStateException("Parser did not return an AbstractRecord for " + file + ": "
+                                    + parsed.getClass().getName());
+                        }
+                        if (record instanceof Record activeRecord) {
+                            activeCount.increment();
+                            peakCount.add(activeRecord.PK_NUM_PEAK());
+                        } else if (record instanceof DeprecatedRecord) {
+                            deprecatedCount.increment();
+                        }
+                        return record;
+                    } catch (IOException e) {
+                        throw new IllegalStateException("Failed to read " + file, e);
+                    }
+                })
+                .toList();
 
-        for (Path file : files) {
-            String content = Files.readString(file, StandardCharsets.UTF_8);
-            Result result = parser.parse(content);
-            if (!result.isSuccess()) {
-                throw new IllegalStateException("Failed to parse " + file + ": " + result);
-            }
-            Object parsed = result.get();
-            if (!(parsed instanceof AbstractRecord record)) {
-                throw new IllegalStateException("Parser did not return an AbstractRecord for " + file + ": "
-                        + parsed.getClass().getName());
-            }
-            records.add(record);
-            if (record instanceof Record activeRecord) {
-                activeCount++;
-                peakCount += activeRecord.PK_NUM_PEAK();
-            } else if (record instanceof DeprecatedRecord) {
-                deprecatedCount++;
-            }
-        }
-        return new ParsedRecords(records, activeCount, deprecatedCount, peakCount);
+        return new ParsedRecords(records, activeCount.intValue(), deprecatedCount.intValue(),
+                peakCount.longValue(), files.size());
     }
 
     private void persist(List<AbstractRecord> records, int persistBatchSize) {
@@ -191,21 +205,13 @@ class RecordPersistenceBenchmarkTest {
         }
 
         Path workingDirectory = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
-        Path insideProject = workingDirectory.resolve("MassBank-data");
-        if (Files.isDirectory(insideProject)) {
-            return insideProject;
-        }
-        Path sibling = workingDirectory.resolveSibling("MassBank-data");
-        if (Files.isDirectory(sibling)) {
-            return sibling;
-        }
-        return sibling;
+        return workingDirectory.resolve("MassBank-data");
     }
 
     private static void printBenchmarkResult(Path dataDir, int fileCount, ParsedRecords parsedRecords,
-                                             long discoverNanos, long parseNanos, long persistNanos,
-                                             int persistBatchSize, boolean validate) {
-        long totalNanos = discoverNanos + parseNanos + persistNanos;
+                                             long discoverAndParseNanos, long persistNanos,
+                                             int persistBatchSize) {
+        long totalNanos = discoverAndParseNanos + persistNanos;
         System.out.println();
         System.out.println("==== MassBank Record Persistence Benchmark ====");
         System.out.println("Data directory       : " + dataDir);
@@ -215,12 +221,10 @@ class RecordPersistenceBenchmarkTest {
         System.out.println("Active records       : " + parsedRecords.activeCount());
         System.out.println("Deprecated records   : " + parsedRecords.deprecatedCount());
         System.out.println("Peaks                : " + parsedRecords.peakCount());
-        System.out.println("Parser validation    : " + validate);
         System.out.println("Service chunk size   : " + benchmarkProperty("chunk-size", "1000"));
         System.out.println("Hibernate batch size : " + benchmarkProperty("hibernate-batch-size", "100"));
         System.out.println("Persist batch size   : " + (persistBatchSize > 0 ? persistBatchSize : "all records in one saveAll"));
-        System.out.println("Discover time        : " + formatSeconds(discoverNanos));
-        System.out.println("Parse time           : " + formatSeconds(parseNanos));
+        System.out.println("Discover+parse time  : " + formatSeconds(discoverAndParseNanos));
         System.out.println("Persist time         : " + formatSeconds(persistNanos));
         System.out.println("Total time           : " + formatSeconds(totalNanos));
         System.out.println("Persist records/sec  : " + formatRate(parsedRecords.records().size(), persistNanos));
@@ -242,9 +246,6 @@ class RecordPersistenceBenchmarkTest {
         }
     }
 
-    private static boolean booleanBenchmarkProperty(String name, boolean defaultValue) {
-        return Boolean.parseBoolean(benchmarkProperty(name, Boolean.toString(defaultValue)));
-    }
 
     private static String formatSeconds(long nanos) {
         return String.format(Locale.ROOT, "%.3f s", nanos / 1_000_000_000.0);
@@ -257,7 +258,9 @@ class RecordPersistenceBenchmarkTest {
         return String.format(Locale.ROOT, "%.1f", count / (nanos / 1_000_000_000.0));
     }
 
-    private record ParsedRecords(List<AbstractRecord> records, int activeCount, int deprecatedCount, long peakCount) {
+
+    private record ParsedRecords(List<AbstractRecord> records, int activeCount, int deprecatedCount,
+                                 long peakCount, int fileCount) {
     }
 }
 
