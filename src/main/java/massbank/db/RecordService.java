@@ -12,6 +12,8 @@ public interface RecordService {
 
     List<AbstractRecord> saveAll(List<AbstractRecord> records);
 
+    List<AbstractRecord> importAllReplacingData(List<AbstractRecord> records);
+
     void deleteAll();
 
     @Transactional(readOnly = true)

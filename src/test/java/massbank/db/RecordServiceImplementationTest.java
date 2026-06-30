@@ -143,6 +143,26 @@ class RecordServiceImplementationTest {
     }
 
     @Test
+    void importAllReplacingData_clearsTablesAndSkipsLookups() {
+        Record active = createRecord("IMP-ACT-001");
+        DeprecatedRecord deprecated = createDeprecatedRecord("IMP-DEP-001");
+
+        List<AbstractRecord> saved = service.importAllReplacingData(List.of(active, deprecated));
+
+        assertEquals(2, saved.size());
+        verify(deprecatedRecordRepository).deleteAllInBatch();
+        verify(deprecatedRecordRepository).flush();
+        verify(recordRepository).deleteAll();
+        verify(recordRepository).flush();
+        verify(accessionRegistryRepository).deleteAllInBatch();
+        verify(accessionRegistryRepository).flush();
+        verify(recordRepository, never()).findExistingAccessions(any(Set.class));
+        verify(deprecatedRecordRepository, never()).findExistingAccessions(any(Set.class));
+        verify(entityManager).persist(active);
+        verify(entityManager).persist(deprecated);
+    }
+
+    @Test
     void saveAll_mergesExistingRecords() {
         Record active = createRecord("EXISTING-ACT-001");
         DeprecatedRecord deprecated = createDeprecatedRecord("EXISTING-DEP-001");

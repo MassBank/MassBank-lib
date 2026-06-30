@@ -106,7 +106,7 @@ public class RecordServiceImplementation implements RecordService {
     private final EntityManager entityManager;
     private volatile SaveAllMetrics lastSaveAllMetrics = SaveAllMetrics.empty();
 
-    @Value("${massbank.persistence.chunk-size:70000}")
+    @Value("${massbank.persistence.chunk-size:2000}")
     private int chunkSize;
 
     public RecordServiceImplementation(RecordRepository recordRepository,
@@ -158,7 +158,28 @@ public class RecordServiceImplementation implements RecordService {
         SaveAllMetricsAccumulator metrics = new SaveAllMetricsAccumulator();
         long saveAllStarted = System.nanoTime();
         try {
-            return saveAllInternal(records, metrics);
+            return saveAllInternal(records, metrics, false);
+        } finally {
+            lastSaveAllMetrics = metrics.toSnapshot(System.nanoTime() - saveAllStarted);
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<AbstractRecord> importAllReplacingData(List<AbstractRecord> records) {
+        if (records == null) {
+            throw new IllegalArgumentException("records must not be null");
+        }
+        // Import path initializes tables from scratch.
+        deleteAll();
+        if (records.isEmpty()) {
+            lastSaveAllMetrics = SaveAllMetrics.empty();
+            return List.of();
+        }
+        SaveAllMetricsAccumulator metrics = new SaveAllMetricsAccumulator();
+        long saveAllStarted = System.nanoTime();
+        try {
+            return saveAllInternal(records, metrics, true);
         } finally {
             lastSaveAllMetrics = metrics.toSnapshot(System.nanoTime() - saveAllStarted);
         }
@@ -168,13 +189,15 @@ public class RecordServiceImplementation implements RecordService {
         return lastSaveAllMetrics;
     }
 
-    private List<AbstractRecord> saveAllInternal(List<AbstractRecord> records, SaveAllMetricsAccumulator metrics) {
+    private List<AbstractRecord> saveAllInternal(List<AbstractRecord> records,
+                                                 SaveAllMetricsAccumulator metrics,
+                                                 boolean importFastPath) {
         int chunk = effectiveChunkSize();
         if (records.size() > chunk) {
             List<AbstractRecord> saved = new ArrayList<>(records.size());
             for (int from = 0; from < records.size(); from += chunk) {
                 int to = Math.min(from + chunk, records.size());
-                saved.addAll(saveAllInternal(records.subList(from, to), metrics));
+                saved.addAll(saveAllInternal(records.subList(from, to), metrics, importFastPath));
             }
             return saved;
         }
@@ -224,21 +247,26 @@ public class RecordServiceImplementation implements RecordService {
         Set<String> accessionsToReserve = new HashSet<>();
         Set<String> existingActiveAccessions = Set.of();
         Set<String> existingDeprecatedAccessions = Set.of();
-        if (!activeAccessions.isEmpty()) {
-            long activeLookupStarted = System.nanoTime();
-            existingActiveAccessions = new HashSet<>(recordRepository.findExistingAccessions(activeAccessions));
-            metrics.activeLookupNanos += System.nanoTime() - activeLookupStarted;
-            Set<String> newActiveAccessions = new HashSet<>(activeAccessions);
-            newActiveAccessions.removeAll(existingActiveAccessions);
-            accessionsToReserve.addAll(newActiveAccessions);
-        }
-        if (!deprecatedAccessions.isEmpty()) {
-            long deprecatedLookupStarted = System.nanoTime();
-            existingDeprecatedAccessions = new HashSet<>(deprecatedRecordRepository.findExistingAccessions(deprecatedAccessions));
-            metrics.deprecatedLookupNanos += System.nanoTime() - deprecatedLookupStarted;
-            Set<String> newDeprecatedAccessions = new HashSet<>(deprecatedAccessions);
-            newDeprecatedAccessions.removeAll(existingDeprecatedAccessions);
-            accessionsToReserve.addAll(newDeprecatedAccessions);
+        if (importFastPath) {
+            accessionsToReserve.addAll(activeAccessions);
+            accessionsToReserve.addAll(deprecatedAccessions);
+        } else {
+            if (!activeAccessions.isEmpty()) {
+                long activeLookupStarted = System.nanoTime();
+                existingActiveAccessions = new HashSet<>(recordRepository.findExistingAccessions(activeAccessions));
+                metrics.activeLookupNanos += System.nanoTime() - activeLookupStarted;
+                Set<String> newActiveAccessions = new HashSet<>(activeAccessions);
+                newActiveAccessions.removeAll(existingActiveAccessions);
+                accessionsToReserve.addAll(newActiveAccessions);
+            }
+            if (!deprecatedAccessions.isEmpty()) {
+                long deprecatedLookupStarted = System.nanoTime();
+                existingDeprecatedAccessions = new HashSet<>(deprecatedRecordRepository.findExistingAccessions(deprecatedAccessions));
+                metrics.deprecatedLookupNanos += System.nanoTime() - deprecatedLookupStarted;
+                Set<String> newDeprecatedAccessions = new HashSet<>(deprecatedAccessions);
+                newDeprecatedAccessions.removeAll(existingDeprecatedAccessions);
+                accessionsToReserve.addAll(newDeprecatedAccessions);
+            }
         }
         reserveAccessions(accessionsToReserve, metrics);
 

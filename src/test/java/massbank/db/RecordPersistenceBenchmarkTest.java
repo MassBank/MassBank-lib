@@ -50,8 +50,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>Useful optional parameters:</p>
  * <ul>
  *   <li>{@code -Dmassbank.benchmark.limit=1000} limits the number of files read.</li>
- *   <li>{@code -Dmassbank.persistence.chunk-size=1000} controls the service chunk size.</li>
- *   <li>{@code -Dspring.jpa.properties.hibernate.jdbc.batch_size=100} configures Hibernate batching.</li>
+ *   <li>{@code -Dmassbank.persistence.chunk-size=2000} controls the service chunk size.</li>
+ *   <li>{@code -Dspring.jpa.properties.hibernate.jdbc.batch_size=2000} configures Hibernate batching.</li>
  *   <li>{@code -Dmassbank.benchmark.data-dir=/path/to/MassBank-data} location of test data.</li>
  * </ul>
  */
@@ -103,11 +103,11 @@ class RecordPersistenceBenchmarkTest {
         registry.add("spring.jpa.show-sql", () -> "false");
         registry.add("spring.jpa.properties.hibernate.format_sql", () -> "false");
         registry.add("spring.jpa.properties.hibernate.jdbc.batch_size",
-                () -> System.getProperty("spring.jpa.properties.hibernate.jdbc.batch_size", "100"));
+                () -> System.getProperty("spring.jpa.properties.hibernate.jdbc.batch_size", "2000"));
         registry.add("spring.jpa.properties.hibernate.order_inserts", () -> "true");
         registry.add("spring.jpa.properties.hibernate.order_updates", () -> "true");
         registry.add("spring.jpa.properties.hibernate.batch_versioned_data", () -> "true");
-        registry.add("massbank.persistence.chunk-size", () -> System.getProperty("massbank.persistence.chunk-size", "1000"));
+        registry.add("massbank.persistence.chunk-size", () -> System.getProperty("massbank.persistence.chunk-size", "2000"));
     }
 
     @BeforeAll
@@ -123,6 +123,11 @@ class RecordPersistenceBenchmarkTest {
     @Autowired
     private RecordService recordService;
 
+    private enum BenchmarkOperation {
+        SAVE_ALL,
+        IMPORT_REPLACE
+    }
+
     @Test
     void benchmarkRecordSaveAllWithMassBankData() throws IOException {
         Path configuredDataDir = resolveDataDir();
@@ -131,6 +136,7 @@ class RecordPersistenceBenchmarkTest {
         Path dataDir = configuredDataDir.toRealPath();
 
         int limit = intBenchmarkProperty("limit", 0);
+        BenchmarkOperation operation = benchmarkOperation();
 
         long discoverAndParseStarted = System.nanoTime();
         ParsedRecords parsedRecords = discoverAndParseRecords(dataDir, limit);
@@ -139,7 +145,11 @@ class RecordPersistenceBenchmarkTest {
         recordService.deleteAll();
 
         long persistStarted = System.nanoTime();
-        recordService.saveAll(parsedRecords.records());
+        if (operation == BenchmarkOperation.IMPORT_REPLACE) {
+            recordService.importAllReplacingData(parsedRecords.records());
+        } else {
+            recordService.saveAll(parsedRecords.records());
+        }
         long persistNanos = System.nanoTime() - persistStarted;
         RecordServiceImplementation.SaveAllMetrics saveAllMetrics = null;
         if (recordService instanceof RecordServiceImplementation implementation) {
@@ -152,7 +162,7 @@ class RecordPersistenceBenchmarkTest {
         assertEquals(parsedRecords.deprecatedCount(), deprecatedCount);
 
         printBenchmarkResult(dataDir, parsedRecords.fileCount(), parsedRecords,
-                discoverAndParseNanos, persistNanos, saveAllMetrics);
+                discoverAndParseNanos, persistNanos, saveAllMetrics, operation);
     }
 
     private static ParsedRecords discoverAndParseRecords(Path dataDir, int limit) throws IOException {
@@ -225,7 +235,8 @@ class RecordPersistenceBenchmarkTest {
                                              ParsedRecords parsedRecords,
                                              long discoverAndParseNanos,
                                              long persistNanos,
-                                             RecordServiceImplementation.SaveAllMetrics saveAllMetrics) {
+                                             RecordServiceImplementation.SaveAllMetrics saveAllMetrics,
+                                             BenchmarkOperation operation) {
         long totalNanos = discoverAndParseNanos + persistNanos;
         System.out.println();
         System.out.println("==== MassBank Record Persistence Benchmark ====");
@@ -236,10 +247,14 @@ class RecordPersistenceBenchmarkTest {
         System.out.println("Active records       : " + parsedRecords.activeCount());
         System.out.println("Deprecated records   : " + parsedRecords.deprecatedCount());
         System.out.println("Peaks                : " + parsedRecords.peakCount());
-        System.out.println("Service chunk size   : " + System.getProperty("massbank.persistence.chunk-size", "1000"));
-        System.out.println("Hibernate batch size : " + System.getProperty("spring.jpa.properties.hibernate.jdbc.batch_size", "100"));
+        System.out.println("Benchmark operation  : " + (operation == BenchmarkOperation.IMPORT_REPLACE ? "importReplace" : "saveAll"));
+        System.out.println("Service chunk size   : " + System.getProperty("massbank.persistence.chunk-size", "2000"));
+        System.out.println("Hibernate batch size : " + System.getProperty("spring.jpa.properties.hibernate.jdbc.batch_size", "2000"));
         System.out.println("Discover+parse time  : " + formatSeconds(discoverAndParseNanos));
         System.out.println("Persist time         : " + formatSeconds(persistNanos));
+        if (operation == BenchmarkOperation.IMPORT_REPLACE) {
+            System.out.println("Import.replaceAll    : " + formatSeconds(persistNanos));
+        }
         if (saveAllMetrics != null) {
             System.out.println("SaveAll.total              : " + formatSeconds(saveAllMetrics.totalNanos()));
             printSaveAllPhase("SaveAll.partition", saveAllMetrics.partitionNanos(), saveAllMetrics.totalNanos());
@@ -281,6 +296,18 @@ class RecordPersistenceBenchmarkTest {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid integer value for massbank.benchmark." + name + ": " + value, e);
         }
+    }
+
+    private static BenchmarkOperation benchmarkOperation() {
+        String operation = benchmarkProperty("operation", "saveAll").trim();
+        if ("importReplace".equalsIgnoreCase(operation)) {
+            return BenchmarkOperation.IMPORT_REPLACE;
+        }
+        if ("saveAll".equalsIgnoreCase(operation)) {
+            return BenchmarkOperation.SAVE_ALL;
+        }
+        throw new IllegalArgumentException("Invalid massbank.benchmark.operation: " + operation
+                + " (supported: saveAll, importReplace)");
     }
 
     private static String formatSeconds(long nanos) {
