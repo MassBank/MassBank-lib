@@ -20,44 +20,37 @@
  ******************************************************************************/
 package massbank;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 /**
- * Abstract base class for all MassBank records.
+ * Registry entity for all claimed MassBank accessions.
  * <p>
- * Concrete record entities share the accession primary key and are linked to
- * the accession registry, which enforces uniqueness across active and
- * deprecated record tables.
+ * Active and deprecated records reference this table to enforce accession
+ * uniqueness across both record tables.
  *
  * @author rmeier
  * @version 03-07-2026
  */
-@MappedSuperclass
-public abstract class AbstractRecord {
+@Entity
+@Table(name = "massbank-accession-registry")
+public class AccessionClaim {
+
     @Id
     @Column(name = "accession", nullable = false, length = 105, unique = true)
-    protected String accession;
+    private String accession;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "accession", referencedColumnName = "accession", insertable = false, updatable = false)
     @SuppressWarnings("unused")
-    protected AccessionClaim accessionClaim;
-
-    public String getAccession() {
-        return accession;
+    protected AccessionClaim() {
     }
-    public void setAccession(String accession) {
-        if (accession == null || accession.isBlank()) {
-            throw new IllegalStateException("Missing required field: accession");
-        }
+
+    @SuppressWarnings("unused")
+    public AccessionClaim(String accession) {
         this.accession = accession;
     }
-
-    @PrePersist
-    @PreUpdate
-    protected void validateState() {
-        if (accession == null || accession.isBlank()) {
-            throw new IllegalStateException("Missing required field: accession");
-        }
+    public String getAccession() {
+        return accession;
     }
 }

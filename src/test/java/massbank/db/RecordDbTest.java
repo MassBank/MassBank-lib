@@ -254,6 +254,40 @@ class RecordDbTest {
         assertTrue(recordService.findAll().isEmpty());
     }
 
+    @Test
+    void accessionClaim_duplicateAccessionsAreCaughtAcrossRecordTypes() {
+        recordService.deleteAll();
+
+        // Persist two different records first to ensure valid baseline state.
+        recordService.save(createManualRecordFixture("MSBNK-TEST-ACTIVE-001"));
+        recordService.save(createDeprecatedRecordFixture("MSBNK-TEST-DEPRECATED-001"));
+        assertEquals(2L, recordService.countAll());
+
+        // Duplicate of an existing active accession must be rejected for deprecated records.
+        DeprecatedRecord duplicateDeprecated = createDeprecatedRecordFixture("MSBNK-TEST-ACTIVE-001");
+        IllegalStateException duplicateOfActive = assertThrows(IllegalStateException.class,
+                () -> recordService.save(duplicateDeprecated));
+        assertTrue(duplicateOfActive.getMessage().contains("Duplicate accession across record tables"));
+
+        // Duplicate of an existing deprecated accession must be rejected for active records.
+        Record duplicateActive = createManualRecordFixture("MSBNK-TEST-DEPRECATED-001");
+        IllegalStateException duplicateOfDeprecated = assertThrows(IllegalStateException.class,
+                () -> recordService.save(duplicateActive));
+        assertTrue(duplicateOfDeprecated.getMessage().contains("Duplicate accession across record tables"));
+
+        // saveAll must also reject duplicates inside a mixed batch before any persist happens.
+        Record batchActive = createManualRecordFixture("MSBNK-TEST-BATCH-001");
+        DeprecatedRecord batchDeprecated = createDeprecatedRecordFixture("MSBNK-TEST-BATCH-001");
+        IllegalStateException duplicateInBatch = assertThrows(IllegalStateException.class,
+                () -> recordService.saveAll(List.of(batchActive, batchDeprecated)));
+        assertTrue(duplicateInBatch.getMessage().contains("Duplicate accession across record tables"));
+
+        // Original two records remain the only persisted entries.
+        assertEquals(1L, recordService.countActive());
+        assertEquals(1L, recordService.countDeprecated());
+        assertEquals(2L, recordService.countAll());
+    }
+
 
     @Test
     void fullRoundtripAllFixtureRecords_textToRecordSaveLoadText_compareTextState() throws IOException {
