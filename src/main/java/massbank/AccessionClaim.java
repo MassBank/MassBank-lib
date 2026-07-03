@@ -40,16 +40,12 @@ public class AccessionClaim {
 
     @Id
     @Column(name = "accession", nullable = false, length = 105, unique = true)
+    @SuppressWarnings("unused")
     private String accession;
 
-    @SuppressWarnings("unused")
     protected AccessionClaim() {
     }
 
-    @SuppressWarnings("unused")
-    public AccessionClaim(String accession) {
-        this.accession = accession;
-    }
     public String getAccession() {
         return accession;
     }

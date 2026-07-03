@@ -29,12 +29,12 @@ import jakarta.persistence.Table;
 /**
  * Represents a deprecated MassBank record.
  * <p>
- * Deprecated entries are resolved by accession and can be rendered as plain
- * text via {@link #toString()}. They intentionally only deprecation metadata
- * and the original textual payload.
+ * Deprecated records are resolved by accession and can be rendered as plain
+ * text via {@link #toString()}. They intentionally store only deprecation message
+ * metadata and the original textual payload.
  *
  * @author rmeier
- * @version 10-06-2026
+ * @version 03-07-2026
  */
 @Entity
 @Table(name = "massbank-deprecated-records")
@@ -45,17 +45,6 @@ public class DeprecatedRecord extends AbstractRecord {
     @Lob
     @Column(name = "deprecated_content", nullable = false)
     private String deprecatedContent;
-
-    @Override
-    protected void validateState() {
-        super.validateState();
-        if (deprecated == null || deprecated.isBlank()) {
-            throw new IllegalStateException("Missing required field: deprecated");
-        }
-        if (deprecatedContent == null || deprecatedContent.isBlank()) {
-            throw new IllegalStateException("Missing required field: deprecatedContent");
-        }
-    }
 
     public String getDeprecated() {
         return deprecated;
@@ -78,12 +67,24 @@ public class DeprecatedRecord extends AbstractRecord {
     }
 
     @Override
-    public String toString() {
-        return "ACCESSION: " + getAccession() + "\n"
-                + "DEPRECATED: " + getDeprecated() + "\n"
-                + getDeprecatedContent();
+    protected void validateState() {
+        super.validateState();
+        if (deprecated == null || deprecated.isBlank()) {
+            throw new IllegalStateException("Missing required field: deprecated");
+        }
+        if (deprecatedContent == null || deprecatedContent.isBlank()) {
+            throw new IllegalStateException("Missing required field: deprecatedContent");
+        }
     }
 
+    @Override
+    public String toString() {
+        return "ACCESSION: " + getAccession() + "\n"
+            + "DEPRECATED: " + getDeprecated() + "\n"
+            + getDeprecatedContent();
+    }
+
+    @SuppressWarnings("unused")
     public JsonArray createStructuredDataJsonArray() {
         return new JsonArray();
     }
