@@ -1,17 +1,41 @@
+/*******************************************************************************
+ * Copyright (C) 2025 MassBank consortium
+ *
+ * This file is part of MassBank.
+ *
+ * MassBank is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ ******************************************************************************/
 package massbank.db;
 
 import massbank.Record;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Set;
 
+/**
+ * Spring Data repository for active MassBank {@link Record} entities.
+ * <p>
+ * Query methods are intentionally accession-focused because accession lookup is
+ * the primary public identifier used by import, export and web display code.
+ *
+ * @author rmeier
+ * @version 03-07-2026
+ */
 public interface RecordRepository extends JpaRepository<Record, String> {
 	@Query("select r.accession from Record r")
 	List<String> findAllAccessions();
-
-	@Query("select r.accession from Record r where r.accession in :accessions")
-	List<String> findExistingAccessions(@Param("accessions") Set<String> accessions);
 }
