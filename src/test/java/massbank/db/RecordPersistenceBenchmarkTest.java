@@ -151,10 +151,6 @@ class RecordPersistenceBenchmarkTest {
             recordService.saveAll(parsedRecords.records());
         }
         long persistNanos = System.nanoTime() - persistStarted;
-        RecordServiceImplementation.SaveAllMetrics saveAllMetrics = null;
-        if (recordService instanceof RecordServiceImplementation implementation) {
-            saveAllMetrics = implementation.getLastSaveAllMetrics();
-        }
 
         long activeCount = recordService.countActive();
         long deprecatedCount = recordService.countDeprecated();
@@ -162,7 +158,7 @@ class RecordPersistenceBenchmarkTest {
         assertEquals(parsedRecords.deprecatedCount(), deprecatedCount);
 
         printBenchmarkResult(dataDir, parsedRecords.fileCount(), parsedRecords,
-                discoverAndParseNanos, persistNanos, saveAllMetrics, operation);
+                discoverAndParseNanos, persistNanos, operation);
     }
 
     private static ParsedRecords discoverAndParseRecords(Path dataDir, int limit) throws IOException {
@@ -235,7 +231,6 @@ class RecordPersistenceBenchmarkTest {
                                              ParsedRecords parsedRecords,
                                              long discoverAndParseNanos,
                                              long persistNanos,
-                                             RecordServiceImplementation.SaveAllMetrics saveAllMetrics,
                                              BenchmarkOperation operation) {
         long totalNanos = discoverAndParseNanos + persistNanos;
         System.out.println();
@@ -255,34 +250,11 @@ class RecordPersistenceBenchmarkTest {
         if (operation == BenchmarkOperation.IMPORT_REPLACE) {
             System.out.println("Import.replaceAll    : " + formatSeconds(persistNanos));
         }
-        if (saveAllMetrics != null) {
-            System.out.println("SaveAll.total              : " + formatSeconds(saveAllMetrics.totalNanos()));
-            printSaveAllPhase("SaveAll.partition", saveAllMetrics.partitionNanos(), saveAllMetrics.totalNanos());
-            printSaveAllPhase("SaveAll.lookupActive", saveAllMetrics.activeLookupNanos(), saveAllMetrics.totalNanos());
-            printSaveAllPhase("SaveAll.lookupDeprecated", saveAllMetrics.deprecatedLookupNanos(), saveAllMetrics.totalNanos());
-            printSaveAllPhase("SaveAll.reserveAccessions", saveAllMetrics.reserveAccessionsNanos(), saveAllMetrics.totalNanos());
-            printSaveAllPhase("SaveAll.persistActive", saveAllMetrics.persistActiveNanos(), saveAllMetrics.totalNanos());
-            printSaveAllPhase("SaveAll.persistDeprecated", saveAllMetrics.persistDeprecatedNanos(), saveAllMetrics.totalNanos());
-            System.out.println("SaveAll.activeRecords      : " + saveAllMetrics.activeRecords());
-            System.out.println("SaveAll.deprecatedRecords  : " + saveAllMetrics.deprecatedRecords());
-            System.out.println("SaveAll.reservedAccessions : " + saveAllMetrics.reservedAccessions());
-            System.out.println("SaveAll.activeChunks       : " + saveAllMetrics.activeChunks()
-                    + " (first=" + formatSeconds(saveAllMetrics.activeFirstChunkNanos())
-                    + ", last=" + formatSeconds(saveAllMetrics.activeLastChunkNanos()) + ")");
-            System.out.println("SaveAll.deprecatedChunks   : " + saveAllMetrics.deprecatedChunks()
-                    + " (first=" + formatSeconds(saveAllMetrics.deprecatedFirstChunkNanos())
-                    + ", last=" + formatSeconds(saveAllMetrics.deprecatedLastChunkNanos()) + ")");
-        }
         System.out.println("Total time           : " + formatSeconds(totalNanos));
         System.out.println("Persist records/sec  : " + formatRate(parsedRecords.records().size(), persistNanos));
         System.out.println("Persist peaks/sec    : " + formatRate(parsedRecords.peakCount(), persistNanos));
         System.out.println("===============================================");
         System.out.println();
-    }
-
-    private static void printSaveAllPhase(String label, long phaseNanos, long totalNanos) {
-        System.out.println(label + " : " + formatSeconds(phaseNanos)
-                + " (" + formatPercent(phaseNanos, totalNanos) + "%)");
     }
 
     private static String benchmarkProperty(String name, String defaultValue) {
@@ -319,13 +291,6 @@ class RecordPersistenceBenchmarkTest {
             return "n/a";
         }
         return String.format(Locale.ROOT, "%.1f", count / (nanos / 1_000_000_000.0));
-    }
-
-    private static String formatPercent(long partNanos, long totalNanos) {
-        if (partNanos <= 0 || totalNanos <= 0) {
-            return "0.00";
-        }
-        return String.format(Locale.ROOT, "%.2f", (partNanos * 100.0) / totalNanos);
     }
 
 
