@@ -6,13 +6,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Transactional service facade for MassBank records.
+ * <p>
+ * Exposes read/write operations across both active {@link Record} instances
+ * and deprecated records while keeping callers independent from the underlying
+ * split-table persistence model.
+ */
 @Transactional
 public interface RecordService {
     AbstractRecord save(AbstractRecord record);
 
     List<AbstractRecord> saveAll(List<AbstractRecord> records);
-
-    List<AbstractRecord> importAllReplacingData(List<AbstractRecord> records);
 
     void deleteAll();
 

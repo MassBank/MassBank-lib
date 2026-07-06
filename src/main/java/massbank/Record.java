@@ -36,6 +36,7 @@ import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesParser;
@@ -50,29 +51,37 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This class keeps all data of a record.
+ * Represents an active MassBank record.
+ * <p>
+ * The entity stores curated record metadata, chemical/sample/acquisition
+ * details, peak annotations and measured peaks. Parser-facing accessors and
+ * {@link #toString()} intentionally preserve the canonical MassBank text
+ * format used by round-trip tests and downstream exporters.
  *
  * @author rmeier
- * @version 01-12-2022
+ * @version 03-07-2026
  */
-
 @Entity
 @Table(name = "massbank-records")
 public class Record extends AbstractRecord {
 	private static final Logger logger = LogManager.getLogger(Record.class);
+	private static final Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
+	private static final Pattern doiPattern = Pattern.compile(".*(10\\.\\d{3,9}/[\\-._;()/:a-zA-Z0-9]+[a-zA-Z0-9]).*");
+	private static final Pattern pmidPattern = Pattern.compile(".*(PMID: ?\\d{8}).*");
+	private static final IChemObjectBuilder chemObjectBuilder = SilentChemObjectBuilder.getInstance();
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "record_title", columnDefinition = "jsonb", nullable = false)
 	private List<String> recordTitle = new ArrayList<>();
 
 	@Column(name = "date", length = 100)
-	private String date;
+	private String date = "";
 
 	@Column(name = "authors", length = 512)
-	private String authors;
+	private String authors = "";
 
 	@Column(name = "license", length = 64)
-	private String license;
+	private String license = "";
 
 	@Column(name = "copyright", length = 2048)
 	private String copyright; // optional
@@ -85,32 +94,32 @@ public class Record extends AbstractRecord {
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "comment", columnDefinition = "jsonb")
-	private List<String> comment; // optional
+	private List<String> comment = new ArrayList<>(); // optional
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ch_name", columnDefinition = "jsonb")
-	private List<String> chName;
+	private List<String> chName = new ArrayList<>();
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ch_compound_class", columnDefinition = "jsonb")
-	private List<String> chCompoundClass; // optional
+	private List<String> chCompoundClass = new ArrayList<>(); // optional
 
 	@Column(name = "ch_formula", length = 512)
-	private String chFormula;
+	private String chFormula = "";
 
 	@Column(name = "ch_exact_mass", columnDefinition = "numeric")
-	private BigDecimal exactMass;
+	private BigDecimal exactMass = BigDecimal.ZERO;
 
 	@Column(name = "ch_smiles", length = 2048)
-	private String chSMILES;
+	private String chSMILES = "";
 
 	@Column(name = "ch_iupac", length = 2048)
-	private String chIUPAC;
+	private String chIUPAC = "";
 
 	@ElementCollection
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ch_link", columnDefinition = "jsonb")
-	private List<KeyValue> chLink; // optional
+	private List<KeyValue> chLink = new ArrayList<>(); // optional
 
 	@Column(name = "sp_scientific_name", length = 512)
 	private String spScientificName; // optional
@@ -121,46 +130,46 @@ public class Record extends AbstractRecord {
 	@ElementCollection
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "sp_link", columnDefinition = "jsonb")
-	private List<KeyValue> spLink; // optional
+	private List<KeyValue> spLink = new ArrayList<>(); // optional
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "sp_sample", columnDefinition = "jsonb")
-	private List<String> spSample; // optional
+	private List<String> spSample = new ArrayList<>(); // optional
 
 	@Column(name = "ac_instrument", length = 2048)
-	private String acInstrument;
+	private String acInstrument = "";
 
 	@Column(name = "ac_instrument_type", length = 512)
-	private String acInstrumentType;
+	private String acInstrumentType = "";
 
 	@Column(name = "ac_mass_spectrometry_ms_type", length = 32)
-	private String acMassSpectrometryMsType;
+	private String acMassSpectrometryMsType = "";
 
 	@Column(name = "ac_mass_spectrometry_ion_mode", length = 32)
-	private String acMassSpectrometryIonMode;
+	private String acMassSpectrometryIonMode = "";
 
 	@ElementCollection
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ac_mass_spectrometry", columnDefinition = "jsonb")
-	private List<KeyValue> acMassSpectrometry; // optional
+	private List<KeyValue> acMassSpectrometry = new ArrayList<>(); // optional
 
 	@ElementCollection
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ac_chromatography", columnDefinition = "jsonb")
-	private List<KeyValue> acChromatography; // optional
+	private List<KeyValue> acChromatography = new ArrayList<>(); // optional
 
 	@ElementCollection
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ms_focused_ion", columnDefinition = "jsonb")
-	private List<KeyValue> msFocusedIon; // optional
+	private List<KeyValue> msFocusedIon = new ArrayList<>(); // optional
 
 	@ElementCollection
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ms_data_processing", columnDefinition = "jsonb")
-	private List<KeyValue> msDataProcessing; // optional
+	private List<KeyValue> msDataProcessing = new ArrayList<>(); // optional
 
 	@Column(name = "pk_splash", length = 128)
-	private String pkSplash;
+	private String pkSplash = "";
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "pk_annotation", columnDefinition = "jsonb")
@@ -169,40 +178,6 @@ public class Record extends AbstractRecord {
 	@OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
 	@OrderBy("mz ASC")
 	private List<Peak> pkPeak = new ArrayList<>();
-
-
-	public Record() {
-		super();
-		date = "";
-		authors = "";
-		license = "";
-		copyright = null; // optional
-		publication = null; // optional
-		project = null; // optional
-		comment = new ArrayList<>(); // optional
-		chName = new ArrayList<>();
-		chCompoundClass = new ArrayList<>();
-		chFormula = "";
-		exactMass = new BigDecimal(0);
-		chSMILES = "";
-		chIUPAC = "";
-		chLink = new ArrayList<>(); // optional
-		spScientificName = null; // optional
-		spLineage = null; // optional
-		spLink = new ArrayList<>(); // optional
-		spSample = new ArrayList<>(); // optional
-		acInstrument = "";
-		acInstrumentType = "";
-		acMassSpectrometryMsType = "";
-		acMassSpectrometryIonMode = "";
-		acMassSpectrometry = new ArrayList<>(); // optional
-		acChromatography = new ArrayList<>(); // optional
-		msFocusedIon = new ArrayList<>(); // optional
-		msDataProcessing = new ArrayList<>(); // optional
-		pkSplash = "";
-		pkAnnotationTable = new PeakAnnotationTable();
-	}
-
 
 	public List<String> getRecordTitle() {
 		return List.copyOf(recordTitle);
@@ -224,7 +199,7 @@ public class Record extends AbstractRecord {
 	public void setDate(String date) {
 		this.date = date;
 	}
-	public String[] DATE1() {
+	public String[] getDate1() {
 		// DATE: 2016.01.15
 		// DATE: 2011.02.21 (Created 2007.07.07)
 		// DATE: 2016.01.19 (Created 2006.12.21, modified 2011.05.06)
@@ -249,7 +224,7 @@ public class Record extends AbstractRecord {
 
 
 	public String getCopyright() {
-		return orEmpty(copyright);
+		return copyright == null ? "" : copyright;
 	}
 	public String getCopyrightNullable() {
 		return copyright;
@@ -260,7 +235,7 @@ public class Record extends AbstractRecord {
 
 
 	public String getPublication() {
-		return orEmpty(publication);
+		return publication == null ? "" : publication;
 	}
 	public String getPublicationNullable() {
 		return publication;
@@ -271,7 +246,7 @@ public class Record extends AbstractRecord {
 
 
 	public String getProject() {
-		return orEmpty(project);
+		return project == null ? "" : project;
 	}
 	public String getProjectNullable() {
 		return project;
@@ -316,7 +291,7 @@ public class Record extends AbstractRecord {
 	 */
 	@Transient
 	public String getChFormula1() {
-		IMolecularFormula m = MolecularFormulaManipulator.getMolecularFormula(getChFormula(), SilentChemObjectBuilder.getInstance());
+		IMolecularFormula m = MolecularFormulaManipulator.getMolecularFormula(getChFormula(), chemObjectBuilder);
 		return MolecularFormulaManipulator.getHTML(m);
 	}
 
@@ -332,13 +307,13 @@ public class Record extends AbstractRecord {
 	public String getChSMILES() {
 		return chSMILES;
 	}
-	public IAtomContainer CH_SMILES_obj() {
-		if ("N/A".equals(chSMILES)) return SilentChemObjectBuilder.getInstance().newAtomContainer();
+	public IAtomContainer getChSMILES_obj() {
+		if ("N/A".equals(chSMILES)) return chemObjectBuilder.newAtomContainer();
 		try {
-			return new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(chSMILES);
+			return new SmilesParser(chemObjectBuilder).parseSmiles(chSMILES);
 		} catch (InvalidSmilesException e) {
 			logger.error("Structure generation from SMILES failed. Error: {} for {}.", e.getMessage(), chSMILES);
-			return SilentChemObjectBuilder.getInstance().newAtomContainer();
+			return chemObjectBuilder.newAtomContainer();
 		}
 	}
 	public void setChSMILES(String value) {
@@ -349,11 +324,11 @@ public class Record extends AbstractRecord {
 	public String getChIUPAC() {
 		return chIUPAC;
 	}
-	public IAtomContainer CH_IUPAC_obj() {
-		if ("N/A".equals(chIUPAC)) return SilentChemObjectBuilder.getInstance().newAtomContainer();
+	public IAtomContainer getChIUPAC_obj() {
+		if ("N/A".equals(chIUPAC)) return chemObjectBuilder.newAtomContainer();
 		try {
 			// Get InChIToStructure
-			InChIToStructure intostruct = InChIGeneratorFactory.getInstance().getInChIToStructure(chIUPAC, SilentChemObjectBuilder.getInstance());
+			InChIToStructure intostruct = InChIGeneratorFactory.getInstance().getInChIToStructure(chIUPAC, chemObjectBuilder);
 			InchiStatus ret = intostruct.getStatus();
 			if (ret == InchiStatus.WARNING) {
 				// Structure generated, but with warning message
@@ -361,12 +336,12 @@ public class Record extends AbstractRecord {
 			} else if (ret == InchiStatus.ERROR) {
 				// Structure generation failed
 				logger.error("Structure generation failed: {} converting {}.", intostruct.getMessage(), chIUPAC);
-				return SilentChemObjectBuilder.getInstance().newAtomContainer();
+				return chemObjectBuilder.newAtomContainer();
 			}
 			return intostruct.getAtomContainer();
 		} catch (CDKException e) {
 			logger.error("Structure generation from InChI failed. Error: {} for {}.", e.getMessage(), chIUPAC);
-			return SilentChemObjectBuilder.getInstance().newAtomContainer();
+			return chemObjectBuilder.newAtomContainer();
 		}
 	}
 	public void setChIUPAC(String value) {
@@ -387,7 +362,7 @@ public class Record extends AbstractRecord {
 
 
 	public String getSpScientificName() {
-		return orEmpty(spScientificName);
+		return spScientificName == null ? "" : spScientificName;
 	}
 	public String getSpScientificNameNullable() {
 		return spScientificName;
@@ -398,7 +373,7 @@ public class Record extends AbstractRecord {
 
 
 	public String getSpLineage() {
-		return orEmpty(spLineage);
+		return spLineage == null ? "" : spLineage;
 	}
 	public String getSpLineageNullable() {
 		return spLineage;
@@ -514,23 +489,20 @@ public class Record extends AbstractRecord {
 	}
 
 	public PeakAnnotationTable getPkAnnotationTable() {
-		if (pkAnnotationTable == null) pkAnnotationTable = new PeakAnnotationTable();
 		return pkAnnotationTable;
 	}
-	public void setPkAnnotationTable(PeakAnnotationTable table) {
-		pkAnnotationTable = table == null
-				? new PeakAnnotationTable()
-				: new PeakAnnotationTable(table.getHeader(), table.getRows());
-	}
+
 	public List<String> getPkAnnotationHeader() { return getPkAnnotationTable().getHeader(); }
 	public void setPkAnnotationHeader(List<String> header) { getPkAnnotationTable().setHeader(header); }
 	public List<PeakAnnotationRow> getPkAnnotation() { return getPkAnnotationTable().getRows(); }
 	public void setPkAnnotation(List<PeakAnnotationRow> annotation) { getPkAnnotationTable().setRows(annotation); }
 
+	// TODO: convert code to new functions.
 	// PK_ANNOTATION is a two-dimensional List
 	public List<Pair<BigDecimal, List<String>>> PK_ANNOTATION() {
-		List<Pair<BigDecimal, List<String>>> result = new ArrayList<>();
-		for (PeakAnnotationRow row : getPkAnnotation()) {
+		List<PeakAnnotationRow> rows = getPkAnnotation();
+		List<Pair<BigDecimal, List<String>>> result = new ArrayList<>(rows.size());
+		for (PeakAnnotationRow row : rows) {
 			result.add(Pair.of(row.getMz(), new ArrayList<>(row.getColumns())));
 		}
 		return result;
@@ -540,7 +512,7 @@ public class Record extends AbstractRecord {
 		getPkAnnotation().add(new PeakAnnotationRow(annotation.getLeft(), annotation.getRight()));
 	}
 	public void setPK_ANNOTATION(List<Pair<BigDecimal, List<String>>> annotationList) {
-		List<PeakAnnotationRow> rows = new ArrayList<>();
+		List<PeakAnnotationRow> rows = annotationList == null ? new ArrayList<>() : new ArrayList<>(annotationList.size());
 		if (annotationList == null) {
 			setPkAnnotation(rows);
 			return;
@@ -553,7 +525,8 @@ public class Record extends AbstractRecord {
 		setPkAnnotation(rows);
 	}
 
-	public int PK_NUM_PEAK() {
+
+	public int getPkNumPeak() {
 		return pkPeak.size();
 	}
 
@@ -580,6 +553,7 @@ public class Record extends AbstractRecord {
 	public List<Peak> getPkPeak() {
 		return List.copyOf(pkPeak);
 	}
+	@SuppressWarnings("unused")
 	public void setPkPeak(List<Peak> peaks) {
 		List<Peak> newPeaks = peaks == null ? new ArrayList<>() : new ArrayList<>(peaks);
 		for (Peak peak : new ArrayList<>(pkPeak)) {
@@ -589,6 +563,7 @@ public class Record extends AbstractRecord {
 			addPeak(peak);
 		}
 	}
+
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -682,12 +657,10 @@ public class Record extends AbstractRecord {
 			}
 		}
 
-		sb.append("PK$NUM_PEAK: ").append(PK_NUM_PEAK()).append("\n");
+		sb.append("PK$NUM_PEAK: ").append(getPkNumPeak()).append("\n");
 		sb.append("PK$PEAK: m/z int. rel.int.\n");
-		for (Peak peak : getPkPeak()) {
-			String intensity1 = String.valueOf(peak.getIntensity());
-			String intensity2 = String.valueOf(peak.getIntensity());
-			String intensity = (intensity1.length() <  intensity2.length() ) ? intensity1 : intensity2;
+		for (Peak peak : pkPeak) {
+			String intensity = String.valueOf(peak.getIntensity());
 			sb.append("  ").append(peak.getMz()).append(" ").append(intensity).append(" ").append(peak.getRelIntensity()).append("\n");
 		}
 		sb.append("//\n");
@@ -832,7 +805,7 @@ public class Record extends AbstractRecord {
 				sb.append("&nbsp;&nbsp;").append(annotation_line.getLeft()).append("&nbsp;").append(String.join("&nbsp;", annotation_line.getRight())).append("<br>\n");
 	  }
 		}
-		sb.append("<b>PK$NUM_PEAK:</b> ").append(PK_NUM_PEAK()).append("<br>\n");
+		sb.append("<b>PK$NUM_PEAK:</b> ").append(getPkNumPeak()).append("<br>\n");
 		sb.append("<b>PK$PEAK:</b> m/z int. rel.int.<br>\n");
 		for (Peak peak : getPkPeak()) {
 			sb.append("&nbsp;&nbsp;").append(peak.getMz()).append("&nbsp;").append(peak.getIntensity()).append("&nbsp;").append(peak.getRelIntensity()).append("<br>\n");
@@ -843,7 +816,6 @@ public class Record extends AbstractRecord {
 		return sb.toString();
 	}
 
-	@Transient
 	private String getLicenseLink() {
 		return switch (getLicense()) {
 			case "CC0" -> "<a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\">CC0</a>";
@@ -859,15 +831,10 @@ public class Record extends AbstractRecord {
 		};
 	}
 
-	@Transient
 	private String getPublicationLink() {
 		String pub = getPublication();
-		String regex_doi = "10\\.\\d{3,9}/[\\-._;()/:a-zA-Z0-9]+[a-zA-Z0-9]";
-		String regex_pmid = "PMID: ?\\d{8}";
-		Pattern pattern_doi = Pattern.compile(".*(" + regex_doi + ").*");
-		Pattern pattern_pmid = Pattern.compile(".*(" + regex_pmid + ").*");
-		Matcher matcher_doi = pattern_doi.matcher(pub);
-		Matcher matcher_pmid = pattern_pmid.matcher(pub);
+		Matcher matcher_doi = doiPattern.matcher(pub);
+		Matcher matcher_pmid = pmidPattern.matcher(pub);
 		if (matcher_doi.matches()) {
 			String doi = pub.substring(matcher_doi.start(1), matcher_doi.end(1));
 			pub = pub.replace(doi, "<a href=\"https://doi.org/" + doi + "\" target=\"_blank\">" + doi + "</a>");
@@ -879,91 +846,40 @@ public class Record extends AbstractRecord {
 		return pub;
 	}
 
-	@Transient
 	private static String nullIfBlank(String value) {
 		if (value == null) return null;
 		return value.isBlank() ? null : value;
 	}
 
-	@Transient
-	private static String orEmpty(String value) {
-		return value == null ? "" : value;
-	}
 
-	@Transient
 	private static boolean hasText(String value) {
 		return value != null && !value.isBlank();
 	}
 
-//	[
-//	{
-//	"identifier": "LQB00001",
-//	"url": "https://massbank.eu/MassBank/RecordDisplay?id=LQB00001",
-//	"name": "Cer[AP] t34:0",
-//	"alternateName": "Cer[AP] t34:0",
-//	"inchikey": "RHIXBFQKTNYVCX-UHFFFAOYSA-N",
-//	"description": "This MassBank record with Accession LQB00001 contains the MS2 mass spectrum of 'Cer[AP] t34:0'.",
-//	"molecularFormula": "C34H69NO5",
-//	"monoisotopicMolecularWeight": "571.928",
-//	"inChI": "InChI=1S/C34H69NO5/c1-3-5-7-9-11-13-15-17-19-21-23-25-27-31(37)33(39)30(29-36)35-34(40)32(38)28-26-24-22-20-18-16-14-12-10-8-6-4-2/h30-33,36-39H,3-29H2,1-2H3,(H,35,40)",
-//	"smiles": "CCCCCCCCCCCCCCC(O)C(O)C(CO)NC(=O)C(O)CCCCCCCCCCCCCC",
-//	"@context": "http://schema.org",
-//	"@type": "MolecularEntity"
-//	},
-//	{
-//	"identifier": "LQB00001",
-//	"url": "https://massbank.eu/MassBank/RecordDisplay?id=LQB00001",
-//	"headline": "Cer[AP] t34:0; LC-ESI-QTOF; MS2",
-//	"name": "Cer[AP] t34:0",
-//	"description": "This MassBank record with Accession LQB00001 contains the MS2 mass spectrum of 'Cer[AP] t34:0'.",
-//	"datePublished": "2016-10-03",
-//	"license": "https://creativecommons.org/licenses",
-//	"citation": "null",
-//	"comment": "Found in mouse small intestine; TwoDicalId=238; MgfFile=160907_Small_Intestine_normal_Neg_01_never; MgfId=1081",
-//	"alternateName": "Cer[AP] t34:0",
-//	"@context": "http://schema.org",
-//	"@type": "Dataset"
-//	}
-//	]
-
-//	Thanks for the contribution of markup within MassBank. As discussed in PR 274 there are some refinements that should be made.
-//
-//	Add DataCatalog and Dataset markup to the landing page https://massbank.eu/MassBank/
-//	Use DataRecord instead of Dataset on MassBank massbank.Record pages such as LQB00001
-//
-//	    Replace the value in the @type property so that it is DataRecord instead of Dataset
-//	    Include the comment text with the schema:description property
-//
-//	Include the comment text with the schema:description property
-//
-//	    Include the chemical image with the schema:image property
-//
-//	You should ensure that there are different identifiers used for the DataRecord (currently Dataset) and the MolecularEntity.
-//
-//	Once you've made these refinements, we'll be able to add you to the DataRecord, Dataset, and DataCatalog list of live deploys.
-
 	//https://github.com/BioSchemas/specifications/issues/198
 
 	public JsonArray createStructuredDataJsonArray() {
-		String InChiKey = getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(KeyValue::value).findFirst().orElse(null);
-		String description = "This MassBank record with Accession " + getAccession()
-			+ " contains the " + getAcMassSpectrometryMsType() + " mass spectrum of " + getRecordTitle().getFirst()
-			+ ((InChiKey==null) ? "." : " with the InChIkey " + InChiKey + ".");
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		
+		String accession = getAccession();
+		String recordUrl = "https://massbank.eu/MassBank/RecordDisplay?id=" + accession;
+		String primaryTitle = recordTitle.getFirst();
+		String inChIKey = getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(KeyValue::value).findFirst().orElse(null);
+		String description = "This MassBank record with Accession " + accession
+			+ " contains the " + getAcMassSpectrometryMsType() + " mass spectrum of " + primaryTitle
+			+ ((inChIKey == null) ? "." : " with the InChIkey " + inChIKey + ".");
+
 		// dataset
 		JsonObject dataset = new JsonObject();
 		dataset.addProperty("@context", "https://schema.org");
 		dataset.addProperty("@type", "Dataset");
 		dataset.add("http://purl.org/dc/terms/conformsTo",
-				gson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/Dataset/1.0-RELEASE\" }", JsonObject.class));
-		dataset.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession() + "#Dataset");
+			prettyGson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/Dataset/1.0-RELEASE\" }", JsonObject.class));
+		dataset.addProperty("@id", recordUrl + "#Dataset");
 		dataset.addProperty("description", description);
-		dataset.addProperty("identifier", getAccession());
+		dataset.addProperty("identifier", accession);
 		dataset.addProperty("name", getRecordTitle1());
 
 		JsonArray keywords = new JsonArray();
-		keywords.add(gson.fromJson(
+		keywords.add(prettyGson.fromJson(
 			"""
 				{ "@type": "DefinedTerm",\
 				"name": "Mass spectrometry data",\
@@ -976,26 +892,26 @@ public class Record extends AbstractRecord {
 				} }""", JsonObject.class));
 		dataset.add("keywords", keywords);
 
-	        switch (getLicense()) {
-            case "CC0" -> dataset.addProperty("license", "https://creativecommons.org/publicdomain/zero/1.0/");
-            case "CC BY" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by/4.0/");
-            case "CC BY-SA" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by-sa/4.0");
-            case "CC BY-NC" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by-nc/4.0");
-            case "CC BY-NC-SA" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by-nc-sa/4.0");
-            case "dl-de/by-2-0" -> dataset.addProperty("license", "https://www.govdata.de/dl-de/by-2-0");
-        }
+		switch (getLicense()) {
+			case "CC0" -> dataset.addProperty("license", "https://creativecommons.org/publicdomain/zero/1.0/");
+			case "CC BY" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by/4.0/");
+			case "CC BY-SA" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by-sa/4.0");
+			case "CC BY-NC" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by-nc/4.0");
+			case "CC BY-NC-SA" -> dataset.addProperty("license", "https://creativecommons.org/licenses/by-nc-sa/4.0");
+			case "dl-de/by-2-0" -> dataset.addProperty("license", "https://www.govdata.de/dl-de/by-2-0");
+		}
 
 		JsonObject about = new JsonObject();
 		about.addProperty("@type", "ChemicalSubstance");
-		about.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession() + "#ChemicalSubstance");
+		about.addProperty("@id", recordUrl + "#ChemicalSubstance");
 		dataset.add("about", about);
 
-		dataset.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
-		dataset.addProperty("datePublished", DATE1()[0].replace(".","-"));
+		dataset.addProperty("url", recordUrl);
+		dataset.addProperty("datePublished", getDate1()[0].replace(".","-"));
 		dataset.addProperty("citation", getPublication());
 
 		JsonArray measurementTechnique = new JsonArray();
-		measurementTechnique.add(gson.fromJson(
+		measurementTechnique.add(prettyGson.fromJson(
 				"{\"@type\": \"DefinedTerm\","
 				+ "\"name\": \"liquid chromatography-mass spectrometry\","
 				+ "\"url\": \"http://purl.obolibrary.org/obo/CHMO_0000524\","
@@ -1007,7 +923,7 @@ public class Record extends AbstractRecord {
 				+ "} }", JsonObject.class));
 		dataset.add("measurementTechnique", measurementTechnique);
 		
-		dataset.add("includedInDataCatalog", gson.fromJson(
+		dataset.add("includedInDataCatalog", prettyGson.fromJson(
 				"{\"@type\": \"DataCatalog\","
 				+ "\"name\": \"MassBank\","
 				+ "\"url\": \"https://massbank.eu\""
@@ -1017,40 +933,39 @@ public class Record extends AbstractRecord {
 		chemicalSubstance.addProperty("@context", "https://schema.org");
 		chemicalSubstance.addProperty("@type", "ChemicalSubstance");
 		chemicalSubstance.add("http://purl.org/dc/terms/conformsTo",
-				gson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/ChemicalSubstance/0.4-RELEASE\" }", JsonObject.class));
-		chemicalSubstance.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession() + "#ChemicalSubstance");
-		chemicalSubstance.addProperty("identifier", getAccession());
-		chemicalSubstance.addProperty("name", getRecordTitle().getFirst());
-		chemicalSubstance.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
+				prettyGson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/ChemicalSubstance/0.4-RELEASE\" }", JsonObject.class));
+		chemicalSubstance.addProperty("@id", recordUrl + "#ChemicalSubstance");
+		chemicalSubstance.addProperty("identifier", accession);
+		chemicalSubstance.addProperty("name", primaryTitle);
+		chemicalSubstance.addProperty("url", recordUrl);
 		chemicalSubstance.addProperty("chemicalComposition", getChFormula());
 		if (getChName().size() == 1)  chemicalSubstance.addProperty("alternateName", getChName().getFirst());
-		else if (!getChName().isEmpty()) chemicalSubstance.add("alternateName", gson.toJsonTree(getChName()));
+		else if (!getChName().isEmpty()) chemicalSubstance.add("alternateName", prettyGson.toJsonTree(getChName()));
 
-		JsonArray molecularEntitys = new JsonArray();
-		
+		JsonArray molecularEntities = new JsonArray();
+
 		// create a loop in case of multiple MolecularEntity
 		JsonObject molecularEntity = new JsonObject();
 		molecularEntity.addProperty("@context", "https://schema.org");
 		molecularEntity.addProperty("@type", "MolecularEntity");
 		molecularEntity.add("http://purl.org/dc/terms/conformsTo",
-				gson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/MolecularEntity/0.5-RELEASE\" }", JsonObject.class));
-		molecularEntity.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession()
-				+ "#" + (InChiKey!=null ? InChiKey : "MolecularEntity"));
-		molecularEntity.addProperty("identifier", getAccession());
-		molecularEntity.addProperty("name", getRecordTitle().getFirst());
-		molecularEntity.addProperty("url", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession());
+				prettyGson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/MolecularEntity/0.5-RELEASE\" }", JsonObject.class));
+		molecularEntity.addProperty("@id", recordUrl + "#" + (inChIKey != null ? inChIKey : "MolecularEntity"));
+		molecularEntity.addProperty("identifier", accession);
+		molecularEntity.addProperty("name", primaryTitle);
+		molecularEntity.addProperty("url", recordUrl);
 		if (!getChIUPAC().equals("N/A")) molecularEntity.addProperty("inChI", getChIUPAC());
 		if (!getChSMILES().equals("N/A")) molecularEntity.addProperty("smiles", getChSMILES());
 		molecularEntity.addProperty("molecularFormula", getChFormula());
 		molecularEntity.addProperty("monoisotopicMolecularWeight", getChExactMass());
-		if (InChiKey!=null) molecularEntity.addProperty("inChIKey", InChiKey);
-		
-		molecularEntitys.add(molecularEntity);
-		chemicalSubstance.add("hasBioChemEntityPart", molecularEntitys);
+		if (inChIKey != null) molecularEntity.addProperty("inChIKey", inChIKey);
+
+		molecularEntities.add(molecularEntity);
+		chemicalSubstance.add("hasBioChemEntityPart", molecularEntities);
 
 		JsonObject subjectOf = new JsonObject();
 		subjectOf.addProperty("@type", "Dataset");
-		subjectOf.addProperty("@id", "https://massbank.eu/MassBank/RecordDisplay?id=" + getAccession() + "#Dataset");
+		subjectOf.addProperty("@id", recordUrl + "#Dataset");
 		chemicalSubstance.add("subjectOf", subjectOf);
 
 		// put MolecularEntity and Dataset together
@@ -1062,33 +977,9 @@ public class Record extends AbstractRecord {
 	}
 	
 	public String createStructuredData() {
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		return gson.toJson(createStructuredDataJsonArray());
-	}
-	
-
-	public String createPeakListForSpectrumViewer() {
-        // convert a list of lists [[mz, int, rel.int], [...], ...]
-        // to String "mz,rel.int@mz,rel.int@..."
-		List<String> peaks = new ArrayList<>();
-		for (Peak peak : getPkPeak()) {
-			peaks.add(peak.getMz()+","+peak.getRelIntensity());
-		}
-		return String.join("@", peaks);
+		return prettyGson.toJson(createStructuredDataJsonArray());
 	}
 
-	public JsonObject createPeakListData() {
-		JsonObject result = new JsonObject();
-		JsonArray peaklist = new JsonArray();
-		for (Peak peak : getPkPeak()) {
-			JsonObject jsonPeak = new JsonObject();
-			jsonPeak.addProperty("intensity",peak.getRelIntensity());
-			jsonPeak.addProperty("mz", peak.getMz());
-			peaklist.add(jsonPeak);
-		}
-		result.add("peaks", peaklist);
-		return result;
-	}
 
 	public record Structure(String CH_SMILES, String CH_IUPAC) {
 	}
@@ -1121,10 +1012,7 @@ public class Record extends AbstractRecord {
 		private List<PeakAnnotationRow> rows = new ArrayList<>();
 
 		public PeakAnnotationTable() {}
-		public PeakAnnotationTable(List<String> header, List<PeakAnnotationRow> rows) {
-			setHeader(header);
-			setRows(rows);
-		}
+
 		public List<String> getHeader() { return header; }
 		public void setHeader(List<String> header) {
 			this.header = header == null ? new ArrayList<>() : new ArrayList<>(header);

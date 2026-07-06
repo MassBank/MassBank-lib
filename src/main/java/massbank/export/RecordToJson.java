@@ -133,7 +133,7 @@ public class RecordToJson {
 						PK$ANNOTATION.add(annotationLine);
 					}
 				}
-				PK$NUM_PEAK = record.PK_NUM_PEAK();
+				PK$NUM_PEAK = record.getPkNumPeak();
 				PK$PEAK = new ArrayList<List<String>>();
 							   for (Peak peak : record.getPkPeak()) {
 								   List<String> peakLine = new ArrayList<String>();

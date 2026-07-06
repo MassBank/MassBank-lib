@@ -29,7 +29,6 @@ import edu.ucdavis.fiehnlab.spectra.hash.core.types.SpectrumImpl;
 import io.github.dan2097.jnainchi.InchiStatus;
 import io.github.dan2097.jnainchi.JnaInchi;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.openscience.cdk.exception.CDKException;
@@ -68,7 +67,7 @@ import static org.petitparser.parser.primitive.CharacterParser.word;
 
 
 public class RecordParserDefinition extends GrammarDefinition {
-    private static final Logger logger = LogManager.getLogger(RecordParserDefinition.class);;
+    private static final Logger logger = LogManager.getLogger(RecordParserDefinition.class);
 
     // legacy mode to let validation pass on legacy records until they are fixed
     private final boolean legacy;
@@ -1975,8 +1974,8 @@ public class RecordParserDefinition extends GrammarDefinition {
 
             // validate the number of peaks in the peaklist
             List<Peak> pk_peak = record.getPkPeak();
-            if (pk_peak.size() != record.PK_NUM_PEAK()) {
-                return context.failure("Incorrect number of peaks in peaklist. " + record.PK_NUM_PEAK()
+            if (pk_peak.size() != record.getPkNumPeak()) {
+                return context.failure("Incorrect number of peaks in peaklist. " + record.getPkNumPeak()
                     + " peaks are declared in PK$NUM_PEAK line, but " + pk_peak.size() + " peaks are found.");
             }
 

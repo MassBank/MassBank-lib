@@ -23,7 +23,6 @@ package massbank.export;
 import massbank.AbstractRecord;
 import massbank.Peak;
 import massbank.Record;
-import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -31,7 +30,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -155,7 +153,7 @@ public class RecordToRIKEN_MSP {
 		sb.append("Comment: ").append(String.join("; ", recordComment)).append(System.lineSeparator());
 		sb.append("Splash: ").append(record.getPkSPLASH()).append(System.lineSeparator());
 
-		sb.append("Num Peaks" + ": ").append(record.PK_NUM_PEAK()).append(System.lineSeparator());
+		sb.append("Num Peaks" + ": ").append(record.getPkNumPeak()).append(System.lineSeparator());
 		for(Peak peak : record.getPkPeak())
 			sb.append(peak.getMz().toString()).append("\t").append(peak.getIntensity().toString()).append(System.lineSeparator());
 		return sb.toString();

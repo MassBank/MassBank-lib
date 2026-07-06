@@ -123,11 +123,6 @@ class RecordPersistenceBenchmarkTest {
     @Autowired
     private RecordService recordService;
 
-    private enum BenchmarkOperation {
-        SAVE_ALL,
-        IMPORT_REPLACE
-    }
-
     @Test
     void benchmarkRecordSaveAllWithMassBankData() throws IOException {
         Path configuredDataDir = resolveDataDir();
@@ -136,8 +131,6 @@ class RecordPersistenceBenchmarkTest {
         Path dataDir = configuredDataDir.toRealPath();
 
         int limit = intBenchmarkProperty("limit", 0);
-        BenchmarkOperation operation = benchmarkOperation();
-
         long discoverAndParseStarted = System.nanoTime();
         ParsedRecords parsedRecords = discoverAndParseRecords(dataDir, limit);
         long discoverAndParseNanos = System.nanoTime() - discoverAndParseStarted;
@@ -145,11 +138,7 @@ class RecordPersistenceBenchmarkTest {
         recordService.deleteAll();
 
         long persistStarted = System.nanoTime();
-        if (operation == BenchmarkOperation.IMPORT_REPLACE) {
-            recordService.importAllReplacingData(parsedRecords.records());
-        } else {
-            recordService.saveAll(parsedRecords.records());
-        }
+        recordService.saveAll(parsedRecords.records());
         long persistNanos = System.nanoTime() - persistStarted;
 
         long activeCount = recordService.countActive();
@@ -158,7 +147,7 @@ class RecordPersistenceBenchmarkTest {
         assertEquals(parsedRecords.deprecatedCount(), deprecatedCount);
 
         printBenchmarkResult(dataDir, parsedRecords.fileCount(), parsedRecords,
-                discoverAndParseNanos, persistNanos, operation);
+                discoverAndParseNanos, persistNanos);
     }
 
     private static ParsedRecords discoverAndParseRecords(Path dataDir, int limit) throws IOException {
@@ -198,7 +187,7 @@ class RecordPersistenceBenchmarkTest {
                         }
                         if (record instanceof Record activeRecord) {
                             activeCount.increment();
-                            peakCount.add(activeRecord.PK_NUM_PEAK());
+                            peakCount.add(activeRecord.getPkNumPeak());
                         } else if (record instanceof DeprecatedRecord) {
                             deprecatedCount.increment();
                         }
@@ -230,8 +219,7 @@ class RecordPersistenceBenchmarkTest {
                                              int fileCount,
                                              ParsedRecords parsedRecords,
                                              long discoverAndParseNanos,
-                                             long persistNanos,
-                                             BenchmarkOperation operation) {
+                                             long persistNanos) {
         long totalNanos = discoverAndParseNanos + persistNanos;
         System.out.println();
         System.out.println("==== MassBank Record Persistence Benchmark ====");
@@ -242,14 +230,11 @@ class RecordPersistenceBenchmarkTest {
         System.out.println("Active records       : " + parsedRecords.activeCount());
         System.out.println("Deprecated records   : " + parsedRecords.deprecatedCount());
         System.out.println("Peaks                : " + parsedRecords.peakCount());
-        System.out.println("Benchmark operation  : " + (operation == BenchmarkOperation.IMPORT_REPLACE ? "importReplace" : "saveAll"));
+        System.out.println("Benchmark operation  : saveAll");
         System.out.println("Service chunk size   : " + System.getProperty("massbank.persistence.chunk-size", "2000"));
         System.out.println("Hibernate batch size : " + System.getProperty("spring.jpa.properties.hibernate.jdbc.batch_size", "2000"));
         System.out.println("Discover+parse time  : " + formatSeconds(discoverAndParseNanos));
         System.out.println("Persist time         : " + formatSeconds(persistNanos));
-        if (operation == BenchmarkOperation.IMPORT_REPLACE) {
-            System.out.println("Import.replaceAll    : " + formatSeconds(persistNanos));
-        }
         System.out.println("Total time           : " + formatSeconds(totalNanos));
         System.out.println("Persist records/sec  : " + formatRate(parsedRecords.records().size(), persistNanos));
         System.out.println("Persist peaks/sec    : " + formatRate(parsedRecords.peakCount(), persistNanos));
@@ -270,17 +255,6 @@ class RecordPersistenceBenchmarkTest {
         }
     }
 
-    private static BenchmarkOperation benchmarkOperation() {
-        String operation = benchmarkProperty("operation", "saveAll").trim();
-        if ("importReplace".equalsIgnoreCase(operation)) {
-            return BenchmarkOperation.IMPORT_REPLACE;
-        }
-        if ("saveAll".equalsIgnoreCase(operation)) {
-            return BenchmarkOperation.SAVE_ALL;
-        }
-        throw new IllegalArgumentException("Invalid massbank.benchmark.operation: " + operation
-                + " (supported: saveAll, importReplace)");
-    }
 
     private static String formatSeconds(long nanos) {
         return String.format(Locale.ROOT, "%.3f s", nanos / 1_000_000_000.0);
