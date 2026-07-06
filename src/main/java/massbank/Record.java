@@ -26,7 +26,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.dan2097.jnainchi.InchiStatus;
 import jakarta.persistence.*;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -188,8 +187,8 @@ public class Record extends AbstractRecord {
 	public String getRecordTitle1() {
 		return recordTitle == null ? "" : String.join("; ", recordTitle);
 	}
-	public void setRecordTitle1(String value) {
-		recordTitle = value == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(value.split("; ")));
+	public void setRecordTitle1(String recordTitle) {
+		this.recordTitle = recordTitle == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(recordTitle.split("; ")));
 	}
 
 
@@ -197,7 +196,7 @@ public class Record extends AbstractRecord {
 		return date;
 	}
 	public void setDate(String date) {
-		this.date = date;
+		this.date = date == null ? "" : date;
 	}
 	public String[] getDate1() {
 		// DATE: 2016.01.15
@@ -211,15 +210,15 @@ public class Record extends AbstractRecord {
 		return authors;
 	}
 	public void setAuthors(String authors) {
-		this.authors = authors;
+		this.authors = authors == null ? "" : authors;
 	}
 
 
 	public String getLicense() {
 		return license;
 	}
-	public void setLicense(String value) {
-		license = value;
+	public void setLicense(String license) {
+		this.license = license == null ? "" : license;
 	}
 
 
@@ -257,7 +256,7 @@ public class Record extends AbstractRecord {
 
 
 	public List<String> getComment() {
-		return comment;
+		return List.copyOf(comment);
 	}
 	public void setComment(List<String> value) {
 		comment = value == null ? new ArrayList<>() : new ArrayList<>(value);
@@ -265,7 +264,7 @@ public class Record extends AbstractRecord {
 
 
 	public List<String> getChName() {
-		return chName;
+		return List.copyOf(chName);
 	}
 	public void setChName(List<String> value) {
 		chName = value == null ? new ArrayList<>() : new ArrayList<>(value);
@@ -273,7 +272,7 @@ public class Record extends AbstractRecord {
 
 
 	public List<String> getChCompoundClass() {
-		return chCompoundClass;
+		return List.copyOf(chCompoundClass);
 	}
 	public void setChCompoundClass(List<String> value) {
 		chCompoundClass = value == null ? new ArrayList<>() : new ArrayList<>(value);
@@ -284,7 +283,7 @@ public class Record extends AbstractRecord {
 		return chFormula;
 	}
 	public void setChFormula(String value) {
-		chFormula = value;
+		chFormula = value == null ? "" : value;
 	}
 	/**
 	 * Returns the molecular formula as a String with HTML sup tags.
@@ -300,7 +299,7 @@ public class Record extends AbstractRecord {
 		return exactMass;
 	}
 	public void setChExactMass(BigDecimal value) {
-		exactMass = value;
+		exactMass = value == null ? BigDecimal.ZERO : value;
 	}
 
 
@@ -317,7 +316,7 @@ public class Record extends AbstractRecord {
 		}
 	}
 	public void setChSMILES(String value) {
-		chSMILES = value;
+		chSMILES = value == null ? "" : value;
 	}
 
 
@@ -345,18 +344,20 @@ public class Record extends AbstractRecord {
 		}
 	}
 	public void setChIUPAC(String value) {
-		chIUPAC = value;
+		chIUPAC = value == null ? "" : value;
 	}
 
 
 	public List<KeyValue> getChLink() {
-		return chLink;
+		return List.copyOf(chLink);
 	}
 	public void setChLink(List<KeyValue> value) {
 		chLink = new ArrayList<>();
 		if (value == null) return;
 		for (KeyValue entry : value) {
-			chLink.add(new KeyValue(entry.key(), entry.value()));
+			if (entry != null) {
+				chLink.add(new KeyValue(entry.key(), entry.value()));
+			}
 		}
 	}
 
@@ -384,19 +385,21 @@ public class Record extends AbstractRecord {
 
 
 	public List<KeyValue> getSpLink() {
-		return spLink;
+		return List.copyOf(spLink);
 	}
 	public void setSpLink(List<KeyValue> value) {
 		spLink = new ArrayList<>();
 		if (value == null) return;
 		for (KeyValue entry : value) {
-			spLink.add(new KeyValue(entry.key(), entry.value()));
+			if (entry != null) {
+				spLink.add(new KeyValue(entry.key(), entry.value()));
+			}
 		}
 	}
 
 
 	public List<String> getSpSample() {
-		return spSample;
+		return List.copyOf(spSample);
 	}
 	public void setSpSample(List<String> value) {
 		spSample = value == null ? new ArrayList<>() : new ArrayList<>(value);
@@ -436,7 +439,7 @@ public class Record extends AbstractRecord {
 
 
 	public List<KeyValue> getAcMassSpectrometry() {
-		return acMassSpectrometry;
+		return List.copyOf(acMassSpectrometry);
 	}
 	public void setAcMassSpectrometry(List<KeyValue> value) {
 		acMassSpectrometry = new ArrayList<>();
@@ -449,35 +452,58 @@ public class Record extends AbstractRecord {
 	}
 
 	public List<KeyValue> getAcChromatography() {
-		return acChromatography;
+		return List.copyOf(acChromatography);
 	}
 	public void setAcChromatography(List<KeyValue> value) {
 		acChromatography = new ArrayList<>();
 		if (value == null) return;
 		for (KeyValue entry : value) {
-			acChromatography.add(new KeyValue(entry.key(), entry.value()));
+			if (entry != null) {
+				acChromatography.add(new KeyValue(entry.key(), entry.value()));
+			}
 		}
 	}
 
 	public List<KeyValue> getMsFocusedIon() {
-		return msFocusedIon;
+		return List.copyOf(msFocusedIon);
 	}
 	public void setMsFocusedIon(List<KeyValue> value) {
 		msFocusedIon = new ArrayList<>();
 		if (value == null) return;
 		for (KeyValue entry : value) {
-			msFocusedIon.add(new KeyValue(entry.key(), entry.value()));
+			if (entry != null) {
+				msFocusedIon.add(new KeyValue(entry.key(), entry.value()));
+			}
 		}
 	}
 
 	public List<KeyValue> getMsDataProcessing() {
-		return msDataProcessing;
+		return List.copyOf(msDataProcessing);
 	}
 	public void setMsDataProcessing(List<KeyValue> value) {
 		msDataProcessing = new ArrayList<>();
 		if (value == null) return;
 		for (KeyValue entry : value) {
-			msDataProcessing.add(new KeyValue(entry.key(), entry.value()));
+			if (entry != null) {
+				msDataProcessing.add(new KeyValue(entry.key(), entry.value()));
+			}
+		}
+	}
+
+	@PrePersist
+	@PreUpdate
+	@Override
+	protected void validateState() {
+		super.validateState();
+		if (recordTitle == null || recordTitle.isEmpty() || !hasText(recordTitle.getFirst())) {
+			throw new IllegalStateException("Missing required field: recordTitle");
+		}
+		requireText("date", date);
+		requireText("chFormula", chFormula);
+		requireText("chSMILES", chSMILES);
+		requireText("chIUPAC", chIUPAC);
+		if (exactMass == null) {
+			throw new IllegalStateException("Missing required field: exactMass");
 		}
 	}
 
@@ -489,41 +515,22 @@ public class Record extends AbstractRecord {
 	}
 
 	public PeakAnnotationTable getPkAnnotationTable() {
-		return pkAnnotationTable;
+		PeakAnnotationTable copy = new PeakAnnotationTable();
+		copy.setHeader(pkAnnotationTable.getHeader());
+		copy.setRows(pkAnnotationTable.getRows());
+		return copy;
 	}
 
-	public List<String> getPkAnnotationHeader() { return getPkAnnotationTable().getHeader(); }
-	public void setPkAnnotationHeader(List<String> header) { getPkAnnotationTable().setHeader(header); }
-	public List<PeakAnnotationRow> getPkAnnotation() { return getPkAnnotationTable().getRows(); }
-	public void setPkAnnotation(List<PeakAnnotationRow> annotation) { getPkAnnotationTable().setRows(annotation); }
-
-	// TODO: convert code to new functions.
-	// PK_ANNOTATION is a two-dimensional List
-	public List<Pair<BigDecimal, List<String>>> PK_ANNOTATION() {
-		List<PeakAnnotationRow> rows = getPkAnnotation();
-		List<Pair<BigDecimal, List<String>>> result = new ArrayList<>(rows.size());
-		for (PeakAnnotationRow row : rows) {
-			result.add(Pair.of(row.getMz(), new ArrayList<>(row.getColumns())));
+	public List<String> getPkAnnotationHeader() { return List.copyOf(pkAnnotationTable.getHeader()); }
+	public void setPkAnnotationHeader(List<String> header) { pkAnnotationTable.setHeader(header); }
+	public List<PeakAnnotationRow> getPkAnnotation() {
+		List<PeakAnnotationRow> copy = new ArrayList<>(pkAnnotationTable.getRows().size());
+		for (PeakAnnotationRow row : pkAnnotationTable.getRows()) {
+			copy.add(new PeakAnnotationRow(row.getMz(), row.getColumns()));
 		}
-		return result;
+		return List.copyOf(copy);
 	}
-	public void PK_ANNOTATION_ADD_LINE(Pair<BigDecimal, List<String>> annotation) {
-		if (annotation == null) return;
-		getPkAnnotation().add(new PeakAnnotationRow(annotation.getLeft(), annotation.getRight()));
-	}
-	public void setPK_ANNOTATION(List<Pair<BigDecimal, List<String>>> annotationList) {
-		List<PeakAnnotationRow> rows = annotationList == null ? new ArrayList<>() : new ArrayList<>(annotationList.size());
-		if (annotationList == null) {
-			setPkAnnotation(rows);
-			return;
-		}
-		for (Pair<BigDecimal, List<String>> pair : annotationList) {
-			if (pair != null) {
-				rows.add(new PeakAnnotationRow(pair.getLeft(), pair.getRight()));
-			}
-		}
-		setPkAnnotation(rows);
-	}
+	public void setPkAnnotation(List<PeakAnnotationRow> annotation) { pkAnnotationTable.setRows(annotation); }
 
 
 	public int getPkNumPeak() {
@@ -541,13 +548,12 @@ public class Record extends AbstractRecord {
 	}
 	public void removePeak(Peak peak) {
 		Objects.requireNonNull(peak, "peak must not be null");
-		if (!pkPeak.contains(peak)) {
-			throw new IllegalStateException("peak is not part of this record");
-		}
 		if (peak.getRecord() != this) {
 			throw new IllegalStateException("peak back-reference does not match this record");
 		}
-		pkPeak.remove(peak);
+		if (!pkPeak.remove(peak)) {
+			throw new IllegalStateException("peak is not part of this record");
+		}
 		peak.setRecord(null);
 	}
 	public List<Peak> getPkPeak() {
@@ -556,9 +562,13 @@ public class Record extends AbstractRecord {
 	@SuppressWarnings("unused")
 	public void setPkPeak(List<Peak> peaks) {
 		List<Peak> newPeaks = peaks == null ? new ArrayList<>() : new ArrayList<>(peaks);
-		for (Peak peak : new ArrayList<>(pkPeak)) {
-			removePeak(peak);
+		for (Peak peak : pkPeak) {
+			if (peak.getRecord() != this) {
+				throw new IllegalStateException("peak back-reference does not match this record");
+			}
+			peak.setRecord(null);
 		}
+		pkPeak.clear();
 		for (Peak peak : newPeaks) {
 			addPeak(peak);
 		}
@@ -652,8 +662,8 @@ public class Record extends AbstractRecord {
 			for (String annotation_header_item : getPkAnnotationHeader())
 				sb.append(" ").append(annotation_header_item);
 			sb.append("\n");
-			for (Pair<BigDecimal, List<String>> annotation_line :  PK_ANNOTATION()) {
-				sb.append("  ").append(annotation_line.getLeft()).append(" ").append(String.join(" ", annotation_line.getRight())).append("\n");
+			for (PeakAnnotationRow row : getPkAnnotation()) {
+				sb.append("  ").append(row.getMz()).append(" ").append(String.join(" ", row.getColumns())).append("\n");
 			}
 		}
 
@@ -801,8 +811,8 @@ public class Record extends AbstractRecord {
 			for (String annotation_header_item : getPkAnnotationHeader())
 				sb.append(" ").append(annotation_header_item);
 			sb.append("<br>\n");
-			for (Pair<BigDecimal, List<String>> annotation_line :  PK_ANNOTATION()) {
-				sb.append("&nbsp;&nbsp;").append(annotation_line.getLeft()).append("&nbsp;").append(String.join("&nbsp;", annotation_line.getRight())).append("<br>\n");
+			for (PeakAnnotationRow row : getPkAnnotation()) {
+				sb.append("&nbsp;&nbsp;").append(row.getMz()).append("&nbsp;").append(String.join("&nbsp;", row.getColumns())).append("<br>\n");
 	  }
 		}
 		sb.append("<b>PK$NUM_PEAK:</b> ").append(getPkNumPeak()).append("<br>\n");
@@ -854,6 +864,12 @@ public class Record extends AbstractRecord {
 
 	private static boolean hasText(String value) {
 		return value != null && !value.isBlank();
+	}
+
+	private static void requireText(String fieldName, String value) {
+		if (!hasText(value)) {
+			throw new IllegalStateException("Missing required field: " + fieldName);
+		}
 	}
 
 	//https://github.com/BioSchemas/specifications/issues/198
@@ -1001,7 +1017,7 @@ public class Record extends AbstractRecord {
 		}
 		public BigDecimal getMz() { return mz; }
 		public void setMz(BigDecimal mz) { this.mz = mz; }
-		public List<String> getColumns() { return columns; }
+		public List<String> getColumns() { return List.copyOf(columns); }
 		public void setColumns(List<String> columns) {
 			this.columns = columns == null ? new ArrayList<>() : new ArrayList<>(columns);
 		}
@@ -1013,11 +1029,17 @@ public class Record extends AbstractRecord {
 
 		public PeakAnnotationTable() {}
 
-		public List<String> getHeader() { return header; }
+		public List<String> getHeader() { return List.copyOf(header); }
 		public void setHeader(List<String> header) {
 			this.header = header == null ? new ArrayList<>() : new ArrayList<>(header);
 		}
-		public List<PeakAnnotationRow> getRows() { return rows; }
+		public List<PeakAnnotationRow> getRows() {
+			List<PeakAnnotationRow> copy = new ArrayList<>(rows.size());
+			for (PeakAnnotationRow row : rows) {
+				copy.add(new PeakAnnotationRow(row.getMz(), row.getColumns()));
+			}
+			return List.copyOf(copy);
+		}
 		public void setRows(List<PeakAnnotationRow> rows) {
 			this.rows = new ArrayList<>();
 			if (rows == null) return;
