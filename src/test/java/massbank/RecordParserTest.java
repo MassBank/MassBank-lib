@@ -28,6 +28,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -83,14 +85,30 @@ public class RecordParserTest {
     // just a record
     public record ParseResult(Result result, String content) {}
 
-    //parse a file from the resource folder
+    // parse a file from filesystem path or classpath resource
     public static ParseResult parseRecord(String filename) throws IOException {
+        Path filePath = Path.of(filename);
+        if (Files.isRegularFile(filePath)) {
+            return parseRecord(filePath);
+        }
+
+        try (InputStream is = RecordParserTest.class.getClassLoader().getResourceAsStream(filename)) {
+            assertNotNull(is, () -> "resource not found: " + filename);
+            String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            return parseContent(content);
+        }
+    }
+
+    // parse a file directly from the filesystem
+    public static ParseResult parseRecord(Path file) throws IOException {
+        String content = Files.readString(file, StandardCharsets.UTF_8);
+        return parseContent(content);
+    }
+
+    private static ParseResult parseContent(String content) {
         Set<String> config = new HashSet<>();
         config.add("validate");
         RecordParser recordparser = new RecordParser(config);
-        InputStream is = RecordParserTest.class.getClassLoader().getResourceAsStream(filename);
-        assertNotNull(is);
-        String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
         Result result = recordparser.parse(content);
         return new ParseResult(result, content);
     }

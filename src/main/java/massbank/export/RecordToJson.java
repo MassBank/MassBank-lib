@@ -25,7 +25,6 @@ import com.google.gson.GsonBuilder;
 import massbank.AbstractRecord;
 import massbank.Peak;
 import massbank.Record;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -121,15 +120,15 @@ public class RecordToJson {
 				MS$FOCUSED_ION = record.getMsFocusedIon();
 				MS$DATA_PROCESSING = record.getMsDataProcessing();
 				PK$SPLASH = record.getPkSPLASH();
-				if (record.PK_ANNOTATION().isEmpty())
+				if (record.getPkAnnotation().isEmpty())
 					PK$ANNOTATION = null;
 				else {
 					PK$ANNOTATION = new ArrayList<List<String>>();
 					PK$ANNOTATION.add(record.getPkAnnotationHeader());
-					for (Pair<BigDecimal, List<String>> pair : record.PK_ANNOTATION()) {
+					for (Record.PeakAnnotationRow row : record.getPkAnnotation()) {
 						List<String> annotationLine = new ArrayList<String>();
-						annotationLine.add(pair.getKey().toString());
-						annotationLine.addAll(pair.getValue());
+						annotationLine.add(row.getMz().toString());
+						annotationLine.addAll(row.getColumns());
 						PK$ANNOTATION.add(annotationLine);
 					}
 				}

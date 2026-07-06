@@ -7,7 +7,6 @@ import massbank.DeprecatedRecord;
 import massbank.Peak;
 import massbank.Record;
 import massbank.RecordParserTest;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -26,6 +25,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -157,10 +157,12 @@ class RecordDbTest {
         ));
 
         r.setPkAnnotationHeader(List.of("m/z", "ion"));
-        r.PK_ANNOTATION_ADD_LINE(Pair.of(new BigDecimal("1278.12"), List.of("[LH-2NeuAc+Na]+")));
-        r.PK_ANNOTATION_ADD_LINE(Pair.of(new BigDecimal("1306.21"), List.of("[M-2NeuAc+Na]+")));
-        r.PK_ANNOTATION_ADD_LINE(Pair.of(new BigDecimal("1597.12"), List.of("[M-NeuAc+Na]+")));
-        r.PK_ANNOTATION_ADD_LINE(Pair.of(new BigDecimal("1860.16"), List.of("[LH+Na]+")));
+        r.setPkAnnotation(List.of(
+                new Record.PeakAnnotationRow(new BigDecimal("1278.12"), List.of("[LH-2NeuAc+Na]+")),
+                new Record.PeakAnnotationRow(new BigDecimal("1306.21"), List.of("[M-2NeuAc+Na]+")),
+                new Record.PeakAnnotationRow(new BigDecimal("1597.12"), List.of("[M-NeuAc+Na]+")),
+                new Record.PeakAnnotationRow(new BigDecimal("1860.16"), List.of("[LH+Na]+"))
+        ));
 
         r.addPeak(new Peak(BigDecimal.valueOf(147.044), BigDecimal.valueOf(218.845), 20));
         r.addPeak(new Peak(BigDecimal.valueOf(153.019), BigDecimal.valueOf(316.545), 30));
@@ -317,11 +319,12 @@ class RecordDbTest {
         assertTrue(Files.exists(resourcesDir), "src/test/resources not found");
 
         List<Path> recordFiles;
-        try (Stream<Path> paths = Files.walk(resourcesDir)) {
+        try (Stream<Path> paths = Files.walk(resourcesDir, FileVisitOption.FOLLOW_LINKS)) {
             recordFiles = paths
                     .filter(path -> path.toString().endsWith(".txt"))
                     .filter(path -> path.getFileName().toString().startsWith("MSBNK-"))
                     .sorted()
+                    .peek(path -> System.out.println("Found file: " + path))
                     .toList();
         }
         assertFalse(recordFiles.isEmpty(), "No .txt files in src/test/resources found");
@@ -380,8 +383,19 @@ class RecordDbTest {
         assertEquals(new ArrayList<>(expected.getMsFocusedIon()), new ArrayList<>(actual.getMsFocusedIon()), () -> "MS$FOCUSED_ION mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getMsDataProcessing()), new ArrayList<>(actual.getMsDataProcessing()), () -> "MS$DATA_PROCESSING mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getPkAnnotationHeader()), new ArrayList<>(actual.getPkAnnotationHeader()), () -> "PK$ANNOTATION header mismatch for " + expected.getAccession());
-        assertEquals(new ArrayList<>(expected.PK_ANNOTATION()), new ArrayList<>(actual.PK_ANNOTATION()), () -> "PK$ANNOTATION rows mismatch for " + expected.getAccession());
+        assertPkAnnotationRowsEqual(expected.getPkAnnotation(), actual.getPkAnnotation(), expected.getAccession());
         assertEquals(new ArrayList<>(expected.getPkPeak()), new ArrayList<>(actual.getPkPeak()), () -> "PK$PEAK mismatch for " + expected.getAccession());
+    }
+
+    private static void assertPkAnnotationRowsEqual(List<Record.PeakAnnotationRow> expectedRows, List<Record.PeakAnnotationRow> actualRows, String accession) {
+        assertEquals(expectedRows.size(), actualRows.size(), () -> "PK$ANNOTATION row count mismatch for " + accession);
+        for (int i = 0; i < expectedRows.size(); i++) {
+            final int rowIndex = i;
+            Record.PeakAnnotationRow expected = expectedRows.get(i);
+            Record.PeakAnnotationRow actual = actualRows.get(i);
+            assertEquals(0, expected.getMz().compareTo(actual.getMz()), () -> "PK$ANNOTATION m/z mismatch at row " + rowIndex + " for " + accession);
+            assertEquals(new ArrayList<>(expected.getColumns()), new ArrayList<>(actual.getColumns()), () -> "PK$ANNOTATION columns mismatch at row " + rowIndex + " for " + accession);
+        }
     }
 
     private static void assertDeprecatedRecordFieldsEqual(DeprecatedRecord expected, DeprecatedRecord actual) {

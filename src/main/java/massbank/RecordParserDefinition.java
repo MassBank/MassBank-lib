@@ -1799,9 +1799,11 @@ public class RecordParserDefinition extends GrammarDefinition {
         Record record = (Record) value.getFirst();
         if (value.get(1) != null) {
             record.setPkAnnotationHeader((List<String>) ((List<?>) value.get(1)).get(0));
+            List<Record.PeakAnnotationRow> rows = new ArrayList<>();
             for (Pair<BigDecimal, List<String>> annotationLine : (List<Pair<BigDecimal, List<String>>>) ((List<?>) value.get(1)).get(1)) {
-                record.PK_ANNOTATION_ADD_LINE(annotationLine);
+                rows.add(new Record.PeakAnnotationRow(annotationLine.getLeft(), annotationLine.getRight()));
             }
+            record.setPkAnnotation(rows);
         }
         return record;
     }
@@ -2030,9 +2032,9 @@ public class RecordParserDefinition extends GrammarDefinition {
 //            }
 
             // check annotation sorting
-            List<Pair<BigDecimal, List<String>>> pk_annotation = record.PK_ANNOTATION();
+            List<Record.PeakAnnotationRow> pk_annotation = record.getPkAnnotation();
             for (int i = 0; i < pk_annotation.size() - 1; i++) {
-                if ((pk_annotation.get(i).getLeft().compareTo(pk_annotation.get(i + 1).getLeft())) > 0) {
+                if ((pk_annotation.get(i).getMz().compareTo(pk_annotation.get(i + 1).getMz())) > 0) {
                     return context.failure("The peaks in the annotation list are not sorted.\n"
                         + "Error in line " + pk_annotation.get(i).toString() + ".");
                 }
@@ -2040,19 +2042,19 @@ public class RecordParserDefinition extends GrammarDefinition {
 
             // validate the count of PK$ANNOTATION items per line
             List<String> pk_annotation_header = record.getPkAnnotationHeader();
-            for (Pair<BigDecimal, List<String>> pkAnnotationLine : pk_annotation) {
-                if (pk_annotation_header.size() != pkAnnotationLine.getRight().size() + 1) {
+            for (Record.PeakAnnotationRow pkAnnotationLine : pk_annotation) {
+                if (pk_annotation_header.size() != pkAnnotationLine.getColumns().size() + 1) {
                     StringBuilder sb = new StringBuilder();
                     sb.append("Incorrect number of fields per PK$ANNOTATION line. ")
                         .append(pk_annotation_header.size())
                         .append(" fields expected, but ")
-                        .append(pkAnnotationLine.getRight().size() + 1)
+                        .append(pkAnnotationLine.getColumns().size() + 1)
                         .append(" fields found.\n")
                         .append("Defined by:\n")
                         .append("PK$ANNOTATION:");
                     for (String pk_annotation_headerItem : record.getPkAnnotationHeader())
                         sb.append(" ").append(pk_annotation_headerItem);
-                    sb.append("  ").append(pkAnnotationLine.getLeft()).append(" ").append(String.join(" ", pkAnnotationLine.getRight()));
+                    sb.append("  ").append(pkAnnotationLine.getMz()).append(" ").append(String.join(" ", pkAnnotationLine.getColumns()));
                     return context.failure(sb.toString());
                 }
             }

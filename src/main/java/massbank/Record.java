@@ -26,7 +26,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.dan2097.jnainchi.InchiStatus;
 import jakarta.persistence.*;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -46,7 +45,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -173,31 +171,35 @@ public class Record extends AbstractRecord {
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "pk_annotation", columnDefinition = "jsonb")
-	private PeakAnnotationTable pkAnnotationTable = new PeakAnnotationTable();
+	private final PeakAnnotationTable pkAnnotationTable = new PeakAnnotationTable();
 
 	@OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
 	@OrderBy("mz ASC")
 	private List<Peak> pkPeak = new ArrayList<>();
 
+
 	public List<String> getRecordTitle() {
 		return List.copyOf(recordTitle);
 	}
-	public void setRecordTitle(List<String> recordTitle) {
-		this.recordTitle = recordTitle == null ? new ArrayList<>() : new ArrayList<>(recordTitle);
-	}
 	public String getRecordTitle1() {
-		return recordTitle == null ? "" : String.join("; ", recordTitle);
+		return String.join("; ", recordTitle);
 	}
-	public void setRecordTitle1(String value) {
-		recordTitle = value == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(value.split("; ")));
+	public void setRecordTitle(List<String> recordTitle) {
+		if (recordTitle == null || recordTitle.isEmpty()) {
+			throw new IllegalStateException("Missing required field: recordTitle");
+		}
+		this.recordTitle = new ArrayList<>(recordTitle);
+	}
+	public void setRecordTitle1(String recordTitle) {
+		if (recordTitle == null || recordTitle.isBlank()) {
+			throw new IllegalStateException("Missing required field: recordTitle");
+		}
+		this.recordTitle = new ArrayList<>(Arrays.asList(recordTitle.split("; ")));
 	}
 
 
 	public String getDate() {
 		return date;
-	}
-	public void setDate(String date) {
-		this.date = date;
 	}
 	public String[] getDate1() {
 		// DATE: 2016.01.15
@@ -205,12 +207,21 @@ public class Record extends AbstractRecord {
 		// DATE: 2016.01.19 (Created 2006.12.21, modified 2011.05.06)
 		return date.replace("(Created ", "").replace(", modified", "").replace(")", "").split(" ");
 	}
+	public void setDate(String date) {
+		if (date == null || date.isEmpty()) {
+			throw new IllegalStateException("Missing required field: date");
+		}
+		this.date = date;
+	}
 
 
 	public String getAuthors() {
 		return authors;
 	}
 	public void setAuthors(String authors) {
+		if (authors == null || authors.isEmpty()) {
+			throw new IllegalStateException("Missing required field: authors");
+		}
 		this.authors = authors;
 	}
 
@@ -218,8 +229,11 @@ public class Record extends AbstractRecord {
 	public String getLicense() {
 		return license;
 	}
-	public void setLicense(String value) {
-		license = value;
+	public void setLicense(String license) {
+		if (license == null || license.isEmpty()) {
+			throw new IllegalStateException("Missing required field: license");
+		}
+		this.license = license;
 	}
 
 
@@ -257,56 +271,65 @@ public class Record extends AbstractRecord {
 
 
 	public List<String> getComment() {
-		return comment;
+		return List.copyOf(comment);
 	}
-	public void setComment(List<String> value) {
-		comment = value == null ? new ArrayList<>() : new ArrayList<>(value);
+	public void setComment(List<String> comment) {
+		this.comment = comment == null ? new ArrayList<>() : new ArrayList<>(comment);
 	}
 
 
 	public List<String> getChName() {
-		return chName;
+		return List.copyOf(chName);
 	}
-	public void setChName(List<String> value) {
-		chName = value == null ? new ArrayList<>() : new ArrayList<>(value);
+	public void setChName(List<String> chName) {
+		if (chName == null || chName.isEmpty()) {
+			throw new IllegalStateException("Missing required field: chName");
+		}
+		this.chName = new ArrayList<>(chName);
 	}
 
 
 	public List<String> getChCompoundClass() {
-		return chCompoundClass;
+		return List.copyOf(chCompoundClass);
 	}
-	public void setChCompoundClass(List<String> value) {
-		chCompoundClass = value == null ? new ArrayList<>() : new ArrayList<>(value);
+	public void setChCompoundClass(List<String> chCompoundClass) {
+		this.chCompoundClass = chCompoundClass == null ? new ArrayList<>() : new ArrayList<>(chCompoundClass);
 	}
 
 
 	public String getChFormula() {
 		return chFormula;
 	}
-	public void setChFormula(String value) {
-		chFormula = value;
-	}
 	/**
 	 * Returns the molecular formula as a String with HTML sup tags.
 	 */
-	@Transient
 	public String getChFormula1() {
 		IMolecularFormula m = MolecularFormulaManipulator.getMolecularFormula(getChFormula(), chemObjectBuilder);
 		return MolecularFormulaManipulator.getHTML(m);
+	}
+	public void setChFormula(String chFormula) {
+		if (chFormula == null || chFormula.isEmpty()) {
+			throw new IllegalStateException("Missing required field: chFormula");
+		}
+		this.chFormula = chFormula;
 	}
 
 
 	public BigDecimal getChExactMass() {
 		return exactMass;
 	}
-	public void setChExactMass(BigDecimal value) {
-		exactMass = value;
+	public void setChExactMass(BigDecimal exactMass) {
+		if (exactMass == null) {
+			throw new IllegalStateException("Missing required field: exactMass");
+		}
+		this.exactMass = exactMass;
 	}
 
 
 	public String getChSMILES() {
 		return chSMILES;
 	}
+	@SuppressWarnings("unused")
 	public IAtomContainer getChSMILES_obj() {
 		if ("N/A".equals(chSMILES)) return chemObjectBuilder.newAtomContainer();
 		try {
@@ -316,14 +339,18 @@ public class Record extends AbstractRecord {
 			return chemObjectBuilder.newAtomContainer();
 		}
 	}
-	public void setChSMILES(String value) {
-		chSMILES = value;
+	public void setChSMILES(String chSMILES) {
+		if (chSMILES == null|| chSMILES.isEmpty()) {
+			throw new IllegalStateException("Missing required field: chSMILES");
+		}
+		this.chSMILES = chSMILES;
 	}
 
 
 	public String getChIUPAC() {
 		return chIUPAC;
 	}
+	@SuppressWarnings("unused")
 	public IAtomContainer getChIUPAC_obj() {
 		if ("N/A".equals(chIUPAC)) return chemObjectBuilder.newAtomContainer();
 		try {
@@ -344,20 +371,19 @@ public class Record extends AbstractRecord {
 			return chemObjectBuilder.newAtomContainer();
 		}
 	}
-	public void setChIUPAC(String value) {
-		chIUPAC = value;
+	public void setChIUPAC(String chIUPAC) {
+		if (chIUPAC == null|| chIUPAC.isEmpty()) {
+			throw new IllegalStateException("Missing required field: chIUPAC");
+		}
+		this.chIUPAC = chIUPAC;
 	}
 
 
 	public List<KeyValue> getChLink() {
-		return chLink;
+		return List.copyOf(chLink);
 	}
-	public void setChLink(List<KeyValue> value) {
-		chLink = new ArrayList<>();
-		if (value == null) return;
-		for (KeyValue entry : value) {
-			chLink.add(new KeyValue(entry.key(), entry.value()));
-		}
+	public void setChLink(List<KeyValue> chLink) {
+		this.chLink = chLink == null ? new ArrayList<>() : new ArrayList<>(chLink);
 	}
 
 
@@ -384,146 +410,120 @@ public class Record extends AbstractRecord {
 
 
 	public List<KeyValue> getSpLink() {
-		return spLink;
+		return List.copyOf(spLink);
 	}
-	public void setSpLink(List<KeyValue> value) {
-		spLink = new ArrayList<>();
-		if (value == null) return;
-		for (KeyValue entry : value) {
-			spLink.add(new KeyValue(entry.key(), entry.value()));
-		}
+	public void setSpLink(List<KeyValue> spLink) {
+		this.spLink = spLink == null ? new ArrayList<>() : new ArrayList<>(spLink);
 	}
 
 
 	public List<String> getSpSample() {
-		return spSample;
+		return List.copyOf(spSample);
 	}
-	public void setSpSample(List<String> value) {
-		spSample = value == null ? new ArrayList<>() : new ArrayList<>(value);
+	public void setSpSample(List<String> spSample) {
+		this.spSample = spSample == null ? new ArrayList<>() : new ArrayList<>(spSample);
 	}
 
 
 	public String getAcInstrument() {
 		return acInstrument;
 	}
-	public void setAcInstrument(String value) {
-		acInstrument = value;
+	public void setAcInstrument(String acInstrument) {
+		if (acInstrument == null || acInstrument.isEmpty()) {
+			throw new IllegalStateException("Missing required field: acInstrument");
+		}
+		this.acInstrument = acInstrument;
 	}
 
 
 	public String getAcInstrumentType() {
 		return acInstrumentType;
 	}
-	public void setAcInstrumentType(String value) {
-		this.acInstrumentType = value;
+	public void setAcInstrumentType(String acInstrumentType) {
+		if (acInstrumentType == null || acInstrumentType.isEmpty()) {
+			throw new IllegalStateException("Missing required field: acInstrumentType");
+		}
+		this.acInstrumentType = acInstrumentType;
 	}
 
 
 	public String getAcMassSpectrometryMsType() {
 		return acMassSpectrometryMsType;
 	}
-	public void setAcMassSpectrometryMsType(String value) {
-		acMassSpectrometryMsType = value;
+	public void setAcMassSpectrometryMsType(String acMassSpectrometryMsType) {
+		if (acMassSpectrometryMsType == null || acMassSpectrometryMsType.isEmpty()) {
+			throw new IllegalStateException("Missing required field: acMassSpectrometryMsType");
+		}
+		this.acMassSpectrometryMsType = acMassSpectrometryMsType;
 	}
 
 
 	public String getAcMassSpectrometryIonMode() {
 		return acMassSpectrometryIonMode;
 	}
-	public void setAcMassSpectrometryIonMode(String value) {
-		acMassSpectrometryIonMode = value;
+	public void setAcMassSpectrometryIonMode(String acMassSpectrometryIonMode) {
+		if (acMassSpectrometryIonMode == null || acMassSpectrometryIonMode.isEmpty()) {
+			throw new IllegalStateException("Missing required field: acMassSpectrometryIonMode");
+		}
+		this.acMassSpectrometryIonMode = acMassSpectrometryIonMode;
 	}
 
 
 	public List<KeyValue> getAcMassSpectrometry() {
-		return acMassSpectrometry;
+		return List.copyOf(acMassSpectrometry);
 	}
-	public void setAcMassSpectrometry(List<KeyValue> value) {
-		acMassSpectrometry = new ArrayList<>();
-		if (value == null) return;
-		for (KeyValue entry : value) {
-			if (entry != null) {
-				acMassSpectrometry.add(new KeyValue(entry.key(), entry.value()));
-			}
-		}
+	public void setAcMassSpectrometry(List<KeyValue> acMassSpectrometry) {
+		this.acMassSpectrometry = acMassSpectrometry == null ? new ArrayList<>() : new ArrayList<>(acMassSpectrometry);
 	}
 
 	public List<KeyValue> getAcChromatography() {
-		return acChromatography;
+		return List.copyOf(acChromatography);
 	}
-	public void setAcChromatography(List<KeyValue> value) {
-		acChromatography = new ArrayList<>();
-		if (value == null) return;
-		for (KeyValue entry : value) {
-			acChromatography.add(new KeyValue(entry.key(), entry.value()));
-		}
+	public void setAcChromatography(List<KeyValue> acChromatography) {
+		this.acChromatography = acChromatography == null ? new ArrayList<>() : new ArrayList<>(acChromatography);
 	}
 
 	public List<KeyValue> getMsFocusedIon() {
-		return msFocusedIon;
+		return List.copyOf(msFocusedIon);
 	}
-	public void setMsFocusedIon(List<KeyValue> value) {
-		msFocusedIon = new ArrayList<>();
-		if (value == null) return;
-		for (KeyValue entry : value) {
-			msFocusedIon.add(new KeyValue(entry.key(), entry.value()));
-		}
+	public void setMsFocusedIon(List<KeyValue> msFocusedIon) {
+		this.msFocusedIon = msFocusedIon == null ? new ArrayList<>() : new ArrayList<>(msFocusedIon);
 	}
 
+
 	public List<KeyValue> getMsDataProcessing() {
-		return msDataProcessing;
+		return List.copyOf(msDataProcessing);
 	}
-	public void setMsDataProcessing(List<KeyValue> value) {
-		msDataProcessing = new ArrayList<>();
-		if (value == null) return;
-		for (KeyValue entry : value) {
-			msDataProcessing.add(new KeyValue(entry.key(), entry.value()));
-		}
+	public void setMsDataProcessing(List<KeyValue> msDataProcessing) {
+		this.msDataProcessing = msDataProcessing == null ? new ArrayList<>() : new ArrayList<>(msDataProcessing);
 	}
+
 
 	public String getPkSPLASH() {
 		return pkSplash;
 	}
-	public void setPkSPLASH(String value) {
-		pkSplash = value;
+	public void setPkSPLASH(String pkSplash) {
+		if (pkSplash == null|| pkSplash.isEmpty()) {
+			throw new IllegalStateException("Missing required field: pkSplash");
+		}
+		this.pkSplash = pkSplash;
 	}
 
+	@SuppressWarnings("unused")
 	public PeakAnnotationTable getPkAnnotationTable() {
-		return pkAnnotationTable;
+		PeakAnnotationTable copy = new PeakAnnotationTable();
+		copy.setHeader(pkAnnotationTable.getHeader());
+		copy.setRows(pkAnnotationTable.getRows());
+		return copy;
 	}
-
-	public List<String> getPkAnnotationHeader() { return getPkAnnotationTable().getHeader(); }
-	public void setPkAnnotationHeader(List<String> header) { getPkAnnotationTable().setHeader(header); }
-	public List<PeakAnnotationRow> getPkAnnotation() { return getPkAnnotationTable().getRows(); }
-	public void setPkAnnotation(List<PeakAnnotationRow> annotation) { getPkAnnotationTable().setRows(annotation); }
-
-	// TODO: convert code to new functions.
-	// PK_ANNOTATION is a two-dimensional List
-	public List<Pair<BigDecimal, List<String>>> PK_ANNOTATION() {
-		List<PeakAnnotationRow> rows = getPkAnnotation();
-		List<Pair<BigDecimal, List<String>>> result = new ArrayList<>(rows.size());
-		for (PeakAnnotationRow row : rows) {
-			result.add(Pair.of(row.getMz(), new ArrayList<>(row.getColumns())));
-		}
-		return result;
+	public List<String> getPkAnnotationHeader() { return pkAnnotationTable.getHeader(); }
+	public void setPkAnnotationHeader(List<String> header) {
+		pkAnnotationTable.setHeader(header);
 	}
-	public void PK_ANNOTATION_ADD_LINE(Pair<BigDecimal, List<String>> annotation) {
-		if (annotation == null) return;
-		getPkAnnotation().add(new PeakAnnotationRow(annotation.getLeft(), annotation.getRight()));
+	public List<PeakAnnotationRow> getPkAnnotation() {
+		return pkAnnotationTable.getRows();
 	}
-	public void setPK_ANNOTATION(List<Pair<BigDecimal, List<String>>> annotationList) {
-		List<PeakAnnotationRow> rows = annotationList == null ? new ArrayList<>() : new ArrayList<>(annotationList.size());
-		if (annotationList == null) {
-			setPkAnnotation(rows);
-			return;
-		}
-		for (Pair<BigDecimal, List<String>> pair : annotationList) {
-			if (pair != null) {
-				rows.add(new PeakAnnotationRow(pair.getLeft(), pair.getRight()));
-			}
-		}
-		setPkAnnotation(rows);
-	}
+	public void setPkAnnotation(List<PeakAnnotationRow> annotation) { pkAnnotationTable.setRows(annotation); }
 
 
 	public int getPkNumPeak() {
@@ -532,22 +532,26 @@ public class Record extends AbstractRecord {
 
 
 	public void addPeak(Peak peak) {
-		Objects.requireNonNull(peak, "peak must not be null");
+		if (peak == null) {
+			throw new IllegalStateException("peak must not be null");
+		}
 		if (peak.getRecord() != null) {
 			throw new IllegalStateException("addPeak only accepts detached peaks");
 		}
 		peak.setRecord(this);
 		pkPeak.add(peak);
 	}
+	@SuppressWarnings("unused")
 	public void removePeak(Peak peak) {
-		Objects.requireNonNull(peak, "peak must not be null");
-		if (!pkPeak.contains(peak)) {
-			throw new IllegalStateException("peak is not part of this record");
+		if (peak == null) {
+			throw new IllegalStateException("peak must not be null");
 		}
 		if (peak.getRecord() != this) {
 			throw new IllegalStateException("peak back-reference does not match this record");
 		}
-		pkPeak.remove(peak);
+		if (!pkPeak.remove(peak)) {
+			throw new IllegalStateException("peak is not part of this record");
+		}
 		peak.setRecord(null);
 	}
 	public List<Peak> getPkPeak() {
@@ -564,6 +568,22 @@ public class Record extends AbstractRecord {
 		}
 	}
 
+	@PrePersist
+	@PreUpdate
+	@Override
+	protected void validateState() {
+		super.validateState();
+		if (recordTitle == null || recordTitle.isEmpty() || !hasText(recordTitle.getFirst())) {
+			throw new IllegalStateException("Missing required field: recordTitle");
+		}
+		requireText("date", date);
+		requireText("chFormula", chFormula);
+		requireText("chSMILES", chSMILES);
+		requireText("chIUPAC", chIUPAC);
+		if (exactMass == null) {
+			throw new IllegalStateException("Missing required field: exactMass");
+		}
+	}
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -652,8 +672,8 @@ public class Record extends AbstractRecord {
 			for (String annotation_header_item : getPkAnnotationHeader())
 				sb.append(" ").append(annotation_header_item);
 			sb.append("\n");
-			for (Pair<BigDecimal, List<String>> annotation_line :  PK_ANNOTATION()) {
-				sb.append("  ").append(annotation_line.getLeft()).append(" ").append(String.join(" ", annotation_line.getRight())).append("\n");
+			for (PeakAnnotationRow row : getPkAnnotation()) {
+				sb.append("  ").append(row.getMz()).append(" ").append(String.join(" ", row.getColumns())).append("\n");
 			}
 		}
 
@@ -801,8 +821,8 @@ public class Record extends AbstractRecord {
 			for (String annotation_header_item : getPkAnnotationHeader())
 				sb.append(" ").append(annotation_header_item);
 			sb.append("<br>\n");
-			for (Pair<BigDecimal, List<String>> annotation_line :  PK_ANNOTATION()) {
-				sb.append("&nbsp;&nbsp;").append(annotation_line.getLeft()).append("&nbsp;").append(String.join("&nbsp;", annotation_line.getRight())).append("<br>\n");
+			for (PeakAnnotationRow row : getPkAnnotation()) {
+				sb.append("&nbsp;&nbsp;").append(row.getMz()).append("&nbsp;").append(String.join("&nbsp;", row.getColumns())).append("<br>\n");
 	  }
 		}
 		sb.append("<b>PK$NUM_PEAK:</b> ").append(getPkNumPeak()).append("<br>\n");
@@ -854,6 +874,12 @@ public class Record extends AbstractRecord {
 
 	private static boolean hasText(String value) {
 		return value != null && !value.isBlank();
+	}
+
+	private static void requireText(String fieldName, String value) {
+		if (!hasText(value)) {
+			throw new IllegalStateException("Missing required field: " + fieldName);
+		}
 	}
 
 	//https://github.com/BioSchemas/specifications/issues/198
@@ -1001,7 +1027,7 @@ public class Record extends AbstractRecord {
 		}
 		public BigDecimal getMz() { return mz; }
 		public void setMz(BigDecimal mz) { this.mz = mz; }
-		public List<String> getColumns() { return columns; }
+		public List<String> getColumns() { return List.copyOf(columns); }
 		public void setColumns(List<String> columns) {
 			this.columns = columns == null ? new ArrayList<>() : new ArrayList<>(columns);
 		}
@@ -1013,11 +1039,17 @@ public class Record extends AbstractRecord {
 
 		public PeakAnnotationTable() {}
 
-		public List<String> getHeader() { return header; }
+		public List<String> getHeader() { return List.copyOf(header); }
 		public void setHeader(List<String> header) {
 			this.header = header == null ? new ArrayList<>() : new ArrayList<>(header);
 		}
-		public List<PeakAnnotationRow> getRows() { return rows; }
+		public List<PeakAnnotationRow> getRows() {
+			List<PeakAnnotationRow> copy = new ArrayList<>(rows.size());
+			for (PeakAnnotationRow row : rows) {
+				copy.add(new PeakAnnotationRow(row.getMz(), row.getColumns()));
+			}
+			return copy;
+		}
 		public void setRows(List<PeakAnnotationRow> rows) {
 			this.rows = new ArrayList<>();
 			if (rows == null) return;
@@ -1029,6 +1061,8 @@ public class Record extends AbstractRecord {
 		}
 	}
 }
+
+
 
 
 
