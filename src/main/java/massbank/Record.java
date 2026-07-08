@@ -568,8 +568,7 @@ public class Record extends AbstractRecord {
 		}
 	}
 
-	@PrePersist
-	@PreUpdate
+	//TODO
 	@Override
 	protected void validateState() {
 		super.validateState();
@@ -585,99 +584,100 @@ public class Record extends AbstractRecord {
 		}
 	}
 
+	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder(4096);
 
-		sb.append("ACCESSION: ").append(getAccession()).append("\n");
-		sb.append("RECORD_TITLE: ").append(getRecordTitle1()).append("\n");
-		sb.append("DATE: ").append(getDate()).append("\n");
-		sb.append("AUTHORS: ").append(getAuthors()).append("\n");
-		sb.append("LICENSE: ").append(getLicense()).append("\n");
+		sb.append("ACCESSION: ").append(accession).append("\n");
+		sb.append("RECORD_TITLE: ").append(String.join("; ", recordTitle)).append("\n");
+		sb.append("DATE: ").append(date).append("\n");
+		sb.append("AUTHORS: ").append(authors).append("\n");
+		sb.append("LICENSE: ").append(license).append("\n");
 		if (hasText(copyright))
-			sb.append("COPYRIGHT: ").append(getCopyright()).append("\n");
+			sb.append("COPYRIGHT: ").append(copyright).append("\n");
 		if (hasText(publication))
-			sb.append("PUBLICATION: ").append(getPublication()).append("\n");
+			sb.append("PUBLICATION: ").append(publication).append("\n");
 		if (hasText(project))
-			sb.append("PROJECT: ").append(getProject()).append("\n");
-		for (String comment : getComment())
-			sb.append("COMMENT: ").append(comment).append("\n");
-		
-		for (String ch_name : getChName())
-			sb.append("CH$NAME: ").append(ch_name).append("\n");
-		if (!getChCompoundClass().isEmpty()) {
-			sb.append("CH$COMPOUND_CLASS: ").append(String.join("; ", getChCompoundClass())).append("\n");
+			sb.append("PROJECT: ").append(project).append("\n");
+		for (String commentItem : comment)
+			sb.append("COMMENT: ").append(commentItem).append("\n");
+
+		for (String chNameItem : chName)
+			sb.append("CH$NAME: ").append(chNameItem).append("\n");
+		if (!chCompoundClass.isEmpty()) {
+			sb.append("CH$COMPOUND_CLASS: ").append(String.join("; ", chCompoundClass)).append("\n");
 		}
-		sb.append("CH$FORMULA: ").append(getChFormula()).append("\n");
-		sb.append("CH$EXACT_MASS: ").append(getChExactMass()).append("\n");
-		sb.append("CH$SMILES: ").append(getChSMILES()).append("\n");
-		sb.append("CH$IUPAC: ").append(getChIUPAC()).append("\n");
-		for (KeyValue entry : getChLink()) {
+		sb.append("CH$FORMULA: ").append(chFormula).append("\n");
+		sb.append("CH$EXACT_MASS: ").append(exactMass).append("\n");
+		sb.append("CH$SMILES: ").append(chSMILES).append("\n");
+		sb.append("CH$IUPAC: ").append(chIUPAC).append("\n");
+		for (KeyValue entry : chLink) {
 			sb.append("CH$LINK: ")
-				.append(entry.key())
-				.append(" ")
-				.append(entry.value() != null ? entry.value() : "")
-				.append("\n");
+					.append(entry.key())
+					.append(" ")
+					.append(entry.value())
+					.append("\n");
 		}
-		
+
 		if (hasText(spScientificName))
-			sb.append("SP$SCIENTIFIC_NAME: ").append(getSpScientificName()).append("\n");
+			sb.append("SP$SCIENTIFIC_NAME: ").append(spScientificName).append("\n");
 		if (hasText(spLineage))
-			sb.append("SP$LINEAGE: ").append(getSpLineage()).append("\n");
-		for (KeyValue entry : getSpLink()) {
+			sb.append("SP$LINEAGE: ").append(spLineage).append("\n");
+		for (KeyValue entry : spLink) {
 			sb.append("SP$LINK: ")
-				.append(entry.key())
-				.append(" ")
-				.append(entry.value() != null ? entry.value() : "")
-				.append("\n");
-		}
-		for (String sample : getSpSample())
-			sb.append("SP$SAMPLE: ").append(sample).append("\n");
-		
-		sb.append("AC$INSTRUMENT: ").append(getAcInstrument()).append("\n");
-		sb.append("AC$INSTRUMENT_TYPE: ").append(getAcInstrumentType()).append("\n");
-		sb.append("AC$MASS_SPECTROMETRY: MS_TYPE ").append(getAcMassSpectrometryMsType()).append("\n");
-		sb.append("AC$MASS_SPECTROMETRY: ION_MODE ").append(getAcMassSpectrometryIonMode()).append("\n");
-		for (KeyValue entry : getAcMassSpectrometry()) {
-			sb.append("AC$MASS_SPECTROMETRY: ")
 					.append(entry.key())
 					.append(" ")
 					.append(entry.value() != null ? entry.value() : "")
 					.append("\n");
 		}
-		for (KeyValue entry : getAcChromatography()) {
+		for (String sample : spSample)
+			sb.append("SP$SAMPLE: ").append(sample).append("\n");
+
+		sb.append("AC$INSTRUMENT: ").append(acInstrument).append("\n");
+		sb.append("AC$INSTRUMENT_TYPE: ").append(acInstrumentType).append("\n");
+		sb.append("AC$MASS_SPECTROMETRY: MS_TYPE ").append(acMassSpectrometryMsType).append("\n");
+		sb.append("AC$MASS_SPECTROMETRY: ION_MODE ").append(acMassSpectrometryIonMode).append("\n");
+		for (KeyValue entry : acMassSpectrometry) {
+			sb.append("AC$MASS_SPECTROMETRY: ")
+					.append(entry.key())
+					.append(" ")
+					.append(entry.value())
+					.append("\n");
+		}
+		for (KeyValue entry : acChromatography) {
 			sb.append("AC$CHROMATOGRAPHY: ")
-				.append(entry.key())
-				.append(" ")
-				.append(entry.value() != null ? entry.value() : "")
-				.append("\n");
+					.append(entry.key())
+					.append(" ")
+					.append(entry.value())
+					.append("\n");
 		}
-		for (KeyValue entry : getMsFocusedIon()) {
+		for (KeyValue entry : msFocusedIon) {
 			sb.append("MS$FOCUSED_ION: ")
-				.append(entry.key())
-				.append(" ")
-				.append(entry.value() != null ? entry.value() : "")
-				.append("\n");
+					.append(entry.key())
+					.append(" ")
+					.append(entry.value())
+					.append("\n");
 		}
-		for (KeyValue entry: getMsDataProcessing()) {
+		for (KeyValue entry : msDataProcessing) {
 			sb.append("MS$DATA_PROCESSING: ")
-				.append(entry.key())
-				.append(" ")
-				.append(entry.value())
-				.append("\n");
+					.append(entry.key())
+					.append(" ")
+					.append(entry.value())
+					.append("\n");
 		}
 
-		sb.append("PK$SPLASH: ").append(getPkSPLASH()).append("\n");
-		if (!getPkAnnotationHeader().isEmpty()) {
+		sb.append("PK$SPLASH: ").append(pkSplash).append("\n");
+		if (!pkAnnotationTable.header.isEmpty()) {
 			sb.append("PK$ANNOTATION:");
-			for (String annotation_header_item : getPkAnnotationHeader())
-				sb.append(" ").append(annotation_header_item);
+			for (String annotationHeaderItem : pkAnnotationTable.header)
+				sb.append(" ").append(annotationHeaderItem);
 			sb.append("\n");
-			for (PeakAnnotationRow row : getPkAnnotation()) {
+			for (PeakAnnotationRow row : pkAnnotationTable.rows) {
 				sb.append("  ").append(row.getMz()).append(" ").append(String.join(" ", row.getColumns())).append("\n");
 			}
 		}
 
-		sb.append("PK$NUM_PEAK: ").append(getPkNumPeak()).append("\n");
+		sb.append("PK$NUM_PEAK: ").append(pkPeak.size()).append("\n");
 		sb.append("PK$PEAK: m/z int. rel.int.\n");
 		for (Peak peak : pkPeak) {
 			String intensity = String.valueOf(peak.getIntensity());
@@ -687,29 +687,30 @@ public class Record extends AbstractRecord {
 
 		return sb.toString();
 	}
-	
+
+	@SuppressWarnings("unused")
 	public String createRecordString() {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("<b>ACCESSION:</b> ").append(getAccession()).append("<br>\n")
-            .append("<b>RECORD_TITLE:</b> ").append(getRecordTitle1()).append("<br>\n")
-			.append("<b>DATE:</b> ").append(getDate()).append("<br>\n")
-			.append("<b>AUTHORS:</b> ").append(getAuthors()).append("<br>\n")
-			.append("<b>LICENSE:</b> ").append(getLicenseLink()).append("<br>\n");
+				.append("<b>RECORD_TITLE:</b> ").append(getRecordTitle1()).append("<br>\n")
+				.append("<b>DATE:</b> ").append(getDate()).append("<br>\n")
+				.append("<b>AUTHORS:</b> ").append(getAuthors()).append("<br>\n")
+				.append("<b>LICENSE:</b> ").append(getLicenseLink()).append("<br>\n");
 		if (hasText(copyright))
 			sb.append("<b>COPYRIGHT:</b> ").append(getCopyright()).append("<br>\n");
 		if (hasText(publication))
-        	sb.append("<b>PUBLICATION:</b> ").append(getPublicationLink()).append("<br>\n");
+			sb.append("<b>PUBLICATION:</b> ").append(getPublicationLink()).append("<br>\n");
 		if (hasText(project))
 			sb.append("<b>PROJECT:</b> ").append(getProject()).append("<br>\n");
 		for (String comment : getComment())
 			sb.append("<b>COMMENT:</b> ").append(comment).append("<br>\n");
 		sb.append("<hr>\n");
-		
+
 		for (String ch_name : getChName())
 			sb.append("<b>CH$NAME:</b> ").append(ch_name).append("<br>\n");
 		sb.append("<b>CH$COMPOUND_CLASS:</b> ").append(String.join("; ", getChCompoundClass())).append("<br>\n");
-		sb.append("<b>CH$FORMULA:</b> <a href=\"http://www.chemspider.com/Search.aspx?q=").append(getChFormula()).append("\" target=\"_blank\">").append(getChFormula1()).append("</a><br>\n");
+		sb.append("<b>CH$FORMULA:</b> <a href=\"https://pubchem.ncbi.nlm.nih.gov/#query=").append(getChFormula()).append("\" target=\"_blank\">").append(getChFormula1()).append("</a><br>\n");
 		sb.append("<b>CH$EXACT_MASS:</b> ").append(getChExactMass()).append("<br>\n");
 		sb.append("<b>CH$SMILES:</b> ").append(getChSMILES()).append("<br>\n");
 		sb.append("<b>CH$IUPAC:</b> ").append(getChIUPAC()).append("<br>\n");
@@ -733,19 +734,19 @@ public class Record extends AbstractRecord {
 					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"https://comptox.epa.gov/dashboard/dsstoxdb/results?search=").append(value).append("\" target=\"_blank\">").append(value).append("</a><br>\n");
 					break;
 				case "HMDB":
-					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"http://www.hmdb.ca/metabolites/").append(value).append("\" target=\"_blank\">").append(value).append("</a><br>\n");
+					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"https://www.hmdb.ca/metabolites/").append(value).append("\" target=\"_blank\">").append(value).append("</a><br>\n");
 					break;
 				case "KAPPAVIEW":
-					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"http://kpv.kazusa.or.jp/kpv4/compoundInformation/view.action?id=").append(value).append("\" target=\"_blank\">").append(value).append("</a><br>\n");
+					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"https://kpv.kazusa-db.jp/kpv4/compoundInformation/view.action?id=").append(value).append("\" target=\"_blank\">").append(value).append("</a><br>\n");
 					break;
 				case "KEGG":
 					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"https://www.genome.jp/dbget-bin/www_bget?cpd:").append(value).append("\" target=\"_blank\">").append(value).append("</a><br>\n");
 					break;
 				case "KNAPSACK":
-					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"http://www.knapsackfamily.com/knapsack_jsp/information.jsp?sname=C_ID&word=").append(value).append("\" target=\"_blank\">").append(value).append("</a><br>\n");
+					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"https://www.knapsackfamily.com/knapsack_core/information.php?word=").append(value).append("\" target=\"_blank\">").append(value).append("</a><br>\n");
 					break;
 				case "LIPIDBANK":
-					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"http://lipidbank.jp/cgi-bin/detail.cgi?id=").append(value).append("\" target=\"_blank\">").append(value).append("</a><br>\n");
+					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"https://www.google.com/search?q=lipidbank ").append(value).append("\" target=\"_blank\">").append(value).append("</a><br>\n");
 					break;
 				case "LIPIDMAPS":
 					sb.append("<b>CH$LINK:</b> ").append(key).append(" <a href=\"https://www.lipidmaps.org/data/LMSDRecord.php?LMID=").append(value).append("\" target=\"_blank\">").append(value).append("</a><br>\n");
@@ -763,22 +764,22 @@ public class Record extends AbstractRecord {
 					sb.append("<b>CH$LINK:</b> ").append(key).append(" ").append(value).append("<br>\n");
 			}
 		}
-		
+
 		if (hasText(spScientificName))
 			sb.append("<b>SP$SCIENTIFIC_NAME:</b> ").append(getSpScientificName()).append("<br>\n");
 		if (hasText(spLineage))
 			sb.append("<b>SP$LINEAGE:</b> ").append(getSpLineage()).append("<br>\n");
 		for (KeyValue entry : getSpLink()) {
 			sb.append("<b>SP$LINK:</b> ")
-				.append(entry.key())
-				.append(" ")
-				.append(entry.value() != null ? entry.value() : "")
-				.append("<br>\n");
+					.append(entry.key())
+					.append(" ")
+					.append(entry.value() != null ? entry.value() : "")
+					.append("<br>\n");
 		}
 		for (String sample : getSpSample())
-				sb.append("<b>SP$SAMPLE:</b> ").append(sample).append("<br>\n");
+			sb.append("<b>SP$SAMPLE:</b> ").append(sample).append("<br>\n");
 		sb.append("<hr>\n");
-		
+
 		sb.append("<b>AC$INSTRUMENT:</b> ").append(getAcInstrument()).append("<br>\n");
 		sb.append("<b>AC$INSTRUMENT_TYPE:</b> ").append(getAcInstrumentType()).append("<br>\n");
 		sb.append("<b>AC$MASS_SPECTROMETRY:</b> MS_TYPE ").append(getAcMassSpectrometryMsType()).append("<br>\n");
@@ -792,30 +793,30 @@ public class Record extends AbstractRecord {
 		}
 		for (KeyValue entry : getAcChromatography()) {
 			sb.append("<b>AC$CHROMATOGRAPHY:</b> ")
-				.append(entry.key())
-				.append(" ")
-				.append(entry.value() != null ? entry.value() : "")
-				.append("<br>\n");
+					.append(entry.key())
+					.append(" ")
+					.append(entry.value() != null ? entry.value() : "")
+					.append("<br>\n");
 		}
 		sb.append("<hr>\n");
 
 		for (KeyValue entry : getMsFocusedIon()) {
 			sb.append("<b>MS$FOCUSED_ION:</b> ")
-				.append(entry.key())
-				.append(" ")
-				.append(entry.value() != null ? entry.value() : "")
-				.append("<br>\n");
+					.append(entry.key())
+					.append(" ")
+					.append(entry.value() != null ? entry.value() : "")
+					.append("<br>\n");
 		}
 		for (KeyValue entry: getMsDataProcessing()) {
 			sb.append("<b>MS$DATA_PROCESSING:</b> ")
-				.append(entry.key())
-				.append(" ")
-				.append(entry.value())
-				.append("<br>\n");
+					.append(entry.key())
+					.append(" ")
+					.append(entry.value())
+					.append("<br>\n");
 		}
 		if (!getMsFocusedIon().isEmpty() || !getMsDataProcessing().isEmpty()) sb.append("<hr>\n");
-		
-		sb.append("<b>PK$SPLASH:</b> <a href=\"http://www.google.com/search?q=").append(getPkSPLASH()).append("\" target=\"_blank\">").append(getPkSPLASH()).append("</a><br>\n");
+
+		sb.append("<b>PK$SPLASH:</b> <a href=\"https://www.google.com/search?q=").append(getPkSPLASH()).append("\" target=\"_blank\">").append(getPkSPLASH()).append("</a><br>\n");
 		if (!getPkAnnotationHeader().isEmpty()) {
 			sb.append("<b>PK$ANNOTATION:</b>");
 			for (String annotation_header_item : getPkAnnotationHeader())
@@ -823,14 +824,14 @@ public class Record extends AbstractRecord {
 			sb.append("<br>\n");
 			for (PeakAnnotationRow row : getPkAnnotation()) {
 				sb.append("&nbsp;&nbsp;").append(row.getMz()).append("&nbsp;").append(String.join("&nbsp;", row.getColumns())).append("<br>\n");
-	  }
+			}
 		}
 		sb.append("<b>PK$NUM_PEAK:</b> ").append(getPkNumPeak()).append("<br>\n");
 		sb.append("<b>PK$PEAK:</b> m/z int. rel.int.<br>\n");
 		for (Peak peak : getPkPeak()) {
 			sb.append("&nbsp;&nbsp;").append(peak.getMz()).append("&nbsp;").append(peak.getIntensity()).append("&nbsp;").append(peak.getRelIntensity()).append("<br>\n");
 		}
-		
+
 		sb.append("//");
 
 		return sb.toString();
@@ -841,11 +842,11 @@ public class Record extends AbstractRecord {
 			case "CC0" -> "<a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\">CC0</a>";
 			case "CC BY" -> "<a href=\"https://creativecommons.org/licenses/by/4.0/\" target=\"_blank\">CC BY</a>";
 			case "CC BY-SA" ->
-				"<a href=\"https://creativecommons.org/licenses/by-sa/4.0/\" target=\"_blank\">CC BY-SA</a>";
+					"<a href=\"https://creativecommons.org/licenses/by-sa/4.0/\" target=\"_blank\">CC BY-SA</a>";
 			case "CC BY-NC" ->
-				"<a href=\"https://creativecommons.org/licenses/by-nc/4.0/\" target=\"_blank\">CC BY-NC</a>";
+					"<a href=\"https://creativecommons.org/licenses/by-nc/4.0/\" target=\"_blank\">CC BY-NC</a>";
 			case "CC BY-NC-SA" ->
-				"<a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\" target=\"_blank\">CC BY-NC-SA</a>";
+					"<a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\" target=\"_blank\">CC BY-NC-SA</a>";
 			case "dl-de/by-2-0" -> "<a href=\"https://www.govdata.de/dl-de/by-2-0\" target=\"_blank\">dl-de/by-2-0</a>";
 			default -> getLicense();
 		};
@@ -890,15 +891,15 @@ public class Record extends AbstractRecord {
 		String primaryTitle = recordTitle.getFirst();
 		String inChIKey = getChLink().stream().filter(e -> "INCHIKEY".equals(e.key())).map(KeyValue::value).findFirst().orElse(null);
 		String description = "This MassBank record with Accession " + accession
-			+ " contains the " + getAcMassSpectrometryMsType() + " mass spectrum of " + primaryTitle
-			+ ((inChIKey == null) ? "." : " with the InChIkey " + inChIKey + ".");
+				+ " contains the " + getAcMassSpectrometryMsType() + " mass spectrum of " + primaryTitle
+				+ ((inChIKey == null) ? "." : " with the InChIkey " + inChIKey + ".");
 
 		// dataset
 		JsonObject dataset = new JsonObject();
 		dataset.addProperty("@context", "https://schema.org");
 		dataset.addProperty("@type", "Dataset");
 		dataset.add("http://purl.org/dc/terms/conformsTo",
-			prettyGson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/Dataset/1.0-RELEASE\" }", JsonObject.class));
+				prettyGson.fromJson("{ \"@type\": \"CreativeWork\", \"@id\": \"https://bioschemas.org/profiles/Dataset/1.0-RELEASE\" }", JsonObject.class));
 		dataset.addProperty("@id", recordUrl + "#Dataset");
 		dataset.addProperty("description", description);
 		dataset.addProperty("identifier", accession);
@@ -906,16 +907,16 @@ public class Record extends AbstractRecord {
 
 		JsonArray keywords = new JsonArray();
 		keywords.add(prettyGson.fromJson(
-			"""
-				{ "@type": "DefinedTerm",\
-				"name": "Mass spectrometry data",\
-				"url": "http://edamontology.org/data_2536",\
-				"termCode": "data_2536",\
-				"inDefinedTermSet": {\
-				"@type": "DefinedTermSet",
-				"name": "Bioinformatics operations, data types, formats, identifiers and topics",
-				"url": "http://edamontology.org"
-				} }""", JsonObject.class));
+				"""
+                    { "@type": "DefinedTerm",\
+                    "name": "Mass spectrometry data",\
+                    "url": "http://edamontology.org/data_2536",\
+                    "termCode": "data_2536",\
+                    "inDefinedTermSet": {\
+                    "@type": "DefinedTermSet",
+                    "name": "Bioinformatics operations, data types, formats, identifiers and topics",
+                    "url": "http://edamontology.org"
+                    } }""", JsonObject.class));
 		dataset.add("keywords", keywords);
 
 		switch (getLicense()) {
@@ -939,22 +940,22 @@ public class Record extends AbstractRecord {
 		JsonArray measurementTechnique = new JsonArray();
 		measurementTechnique.add(prettyGson.fromJson(
 				"{\"@type\": \"DefinedTerm\","
-				+ "\"name\": \"liquid chromatography-mass spectrometry\","
-				+ "\"url\": \"http://purl.obolibrary.org/obo/CHMO_0000524\","
-				+ "\"termCode\": \"CHMO_0000524\","
-				+ "\"inDefinedTermSet\": {"
-				+ "\"@type\": \"DefinedTermSet\","
-				+ "\"name\": \"Chemical Methods Ontology\","
-				+ "\"url\": \"http://purl.obolibrary.org/obo/chmo.owl\""
-				+ "} }", JsonObject.class));
+						+ "\"name\": \"liquid chromatography-mass spectrometry\","
+						+ "\"url\": \"http://purl.obolibrary.org/obo/CHMO_0000524\","
+						+ "\"termCode\": \"CHMO_0000524\","
+						+ "\"inDefinedTermSet\": {"
+						+ "\"@type\": \"DefinedTermSet\","
+						+ "\"name\": \"Chemical Methods Ontology\","
+						+ "\"url\": \"http://purl.obolibrary.org/obo/chmo.owl\""
+						+ "} }", JsonObject.class));
 		dataset.add("measurementTechnique", measurementTechnique);
-		
+
 		dataset.add("includedInDataCatalog", prettyGson.fromJson(
 				"{\"@type\": \"DataCatalog\","
-				+ "\"name\": \"MassBank\","
-				+ "\"url\": \"https://massbank.eu\""
-				+ "}", JsonObject.class));
-		
+						+ "\"name\": \"MassBank\","
+						+ "\"url\": \"https://massbank.eu\""
+						+ "}", JsonObject.class));
+
 		JsonObject chemicalSubstance = new JsonObject();
 		chemicalSubstance.addProperty("@context", "https://schema.org");
 		chemicalSubstance.addProperty("@type", "ChemicalSubstance");
@@ -1001,21 +1002,16 @@ public class Record extends AbstractRecord {
 		return structuredData;
 
 	}
-	
+
+	@SuppressWarnings("unused")
 	public String createStructuredData() {
 		return prettyGson.toJson(createStructuredDataJsonArray());
 	}
 
 
-	public record Structure(String CH_SMILES, String CH_IUPAC) {
-	}
-
-	public record Contributor(String ACRONYM, String SHORT_NAME, String FULL_NAME) {
-	}
-
-
 	public record KeyValue(String key, String value) {}
 
+	@SuppressWarnings("unused")
 	public static class PeakAnnotationRow {
 		private BigDecimal mz;
 		private List<String> columns = new ArrayList<>();
@@ -1033,6 +1029,7 @@ public class Record extends AbstractRecord {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public static class PeakAnnotationTable {
 		private List<String> header = new ArrayList<>();
 		private List<PeakAnnotationRow> rows = new ArrayList<>();
