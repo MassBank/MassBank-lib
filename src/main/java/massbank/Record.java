@@ -115,6 +115,7 @@ public class Record extends AbstractRecord {
 	private String chIUPAC = "";
 
 	@ElementCollection
+	@OrderColumn(name = "ch_link_order")
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ch_link", columnDefinition = "jsonb")
 	private List<KeyValue> chLink = new ArrayList<>(); // optional
@@ -126,6 +127,7 @@ public class Record extends AbstractRecord {
 	private String spLineage; // optional
 
 	@ElementCollection
+	@OrderColumn(name = "sp_link_order")
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "sp_link", columnDefinition = "jsonb")
 	private List<KeyValue> spLink = new ArrayList<>(); // optional
@@ -147,21 +149,25 @@ public class Record extends AbstractRecord {
 	private String acMassSpectrometryIonMode = "";
 
 	@ElementCollection
+	@OrderColumn(name = "ac_mass_spectrometry_order")
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ac_mass_spectrometry", columnDefinition = "jsonb")
 	private List<KeyValue> acMassSpectrometry = new ArrayList<>(); // optional
 
 	@ElementCollection
+	@OrderColumn(name = "ac_chromatography_order")
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ac_chromatography", columnDefinition = "jsonb")
 	private List<KeyValue> acChromatography = new ArrayList<>(); // optional
 
 	@ElementCollection
+	@OrderColumn(name = "ms_focused_ion_order")
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ms_focused_ion", columnDefinition = "jsonb")
 	private List<KeyValue> msFocusedIon = new ArrayList<>(); // optional
 
 	@ElementCollection
+	@OrderColumn(name = "ms_data_processing_order")
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "ms_data_processing", columnDefinition = "jsonb")
 	private List<KeyValue> msDataProcessing = new ArrayList<>(); // optional
