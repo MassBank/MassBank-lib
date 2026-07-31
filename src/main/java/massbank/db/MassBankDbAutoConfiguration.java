@@ -22,7 +22,6 @@ package massbank.db;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import massbank.AccessionClaim;
 import massbank.DeprecatedRecord;
 import massbank.Peak;
 import massbank.Record;

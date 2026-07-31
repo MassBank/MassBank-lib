@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  ******************************************************************************/
-package massbank;
+package massbank.db;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

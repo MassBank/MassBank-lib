@@ -21,6 +21,7 @@
 package massbank;
 
 import jakarta.persistence.*;
+import massbank.db.AccessionClaim;
 
 /**
  * Abstract base class for all MassBank records.
