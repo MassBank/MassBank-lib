@@ -108,6 +108,7 @@ public class RecordParserTest {
     private static ParseResult parseContent(String content) {
         Set<String> config = new HashSet<>();
         config.add("validate");
+        config.add("legacy");
         RecordParser recordparser = new RecordParser(config);
         Result result = recordparser.parse(content);
         return new ParseResult(result, content);
