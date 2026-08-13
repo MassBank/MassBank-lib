@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -187,11 +188,18 @@ public class RecordServiceImplementation implements RecordService {
         return recordRepository.findAll();
     }
 
+
     @Override
     @Transactional(readOnly = true)
     public Record findByIdAsRecord(String accession) {
         return recordRepository.findById(accession)
                 .orElseThrow(() -> new RuntimeException("Active record not found"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Record> findOptionalByIdAsRecord(String accession) {
+        return recordRepository.findById(accession);
     }
 
     @Override

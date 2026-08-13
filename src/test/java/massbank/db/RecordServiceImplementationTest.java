@@ -12,7 +12,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -165,6 +167,33 @@ class RecordServiceImplementationTest {
         Transactional transactional = RecordServiceImplementation.class.getAnnotation(Transactional.class);
         assertTrue(transactional != null);
         assertTrue(transactional.readOnly() == false);
+    }
+
+    @Test
+    void findOptionalByIdAsRecord_existingAccession_returnsRecord() {
+        Record expected = createRecord("ACT-FOUND-001");
+        when(recordRepository.findById("ACT-FOUND-001")).thenReturn(Optional.of(expected));
+
+        Optional<Record> actual = service.findOptionalByIdAsRecord("ACT-FOUND-001");
+
+        assertTrue(actual.isPresent());
+        assertEquals("ACT-FOUND-001", actual.get().getAccession());
+    }
+
+    @Test
+    void findOptionalByIdAsRecord_nonExistingAccession_returnsEmptyOptionalAndDoesNotThrow() {
+        when(recordRepository.findById("ACT-MISSING-001")).thenReturn(Optional.empty());
+
+        Optional<Record> actual = assertDoesNotThrow(() -> service.findOptionalByIdAsRecord("ACT-MISSING-001"));
+
+        assertTrue(actual.isEmpty());
+    }
+
+    @Test
+    void findByIdAsRecord_nonExistingAccession_throws() {
+        when(recordRepository.findById("ACT-MISSING-003")).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> service.findByIdAsRecord("ACT-MISSING-003"));
     }
 
     private static Record createRecord(String accession) {

@@ -25,6 +25,7 @@ import massbank.Record;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Transactional service facade for MassBank records.
@@ -60,6 +61,9 @@ public interface RecordService {
 
     @Transactional(readOnly = true)
     Record findByIdAsRecord(String accession);
+
+    @Transactional(readOnly = true)
+    Optional<Record> findOptionalByIdAsRecord(String accession);
 
     @Transactional(readOnly = true)
     List<AbstractRecord> findAll();
