@@ -91,7 +91,7 @@ class RecordDbTest {
 
     @Test
     void saveAbstractRecord_supportsRecordAndDeprecatedRecord() {
-        recordService.deleteAll();
+        recordService.resetAll();
 
         Record activeRecord = createManualRecordFixture("TEST-002");
         DeprecatedRecord deprecatedRecord = createDeprecatedRecordFixture("TEST-DEPRECATED-001");
@@ -202,7 +202,7 @@ class RecordDbTest {
 
     @Test
     void countMethods_returnConsistentValuesAcrossBothTables() {
-        recordService.deleteAll();
+        recordService.resetAll();
 
         recordService.save(createManualRecordFixture("TEST-ACTIVE-COUNT-001"));
         recordService.save(createManualRecordFixture("TEST-ACTIVE-COUNT-002"));
@@ -215,7 +215,7 @@ class RecordDbTest {
 
     @Test
     void getAllAccessions_returnsAccessionsFromBothTables() {
-        recordService.deleteAll();
+        recordService.resetAll();
 
         recordService.save(createManualRecordFixture("TEST-ACCESSION-ACTIVE-001"));
         recordService.save(createDeprecatedRecordFixture("TEST-ACCESSION-DEPRECATED-001"));
@@ -226,7 +226,7 @@ class RecordDbTest {
 
     @Test
     void activeRecordApis_returnOnlyActiveRecords() {
-        recordService.deleteAll();
+        recordService.resetAll();
 
         Record active = createManualRecordFixture("TEST-ACTIVE-API-001");
         recordService.save(active);
@@ -243,10 +243,12 @@ class RecordDbTest {
     }
 
     @Test
-    void deleteAll_clearsActiveAndDeprecatedRecords() {
+    void deleteAll_clearsActiveDeprecatedPeaksAndClaims() {
         recordService.save(createManualRecordFixture("TEST-ACTIVE-DELETE-001"));
         recordService.save(createDeprecatedRecordFixture("TEST-DEPRECATED-DELETE-001"));
         assertEquals(2L, recordService.countAll());
+        assertTrue(tableRowCount("\"massbank-peaks\"") > 0L);
+        assertEquals(2L, tableRowCount("\"massbank-accession-registry\""));
 
         recordService.deleteAll();
 
@@ -254,11 +256,31 @@ class RecordDbTest {
         assertEquals(0L, recordService.countDeprecated());
         assertEquals(0L, recordService.countAll());
         assertTrue(recordService.findAll().isEmpty());
+        assertEquals(0L, tableRowCount("\"massbank-peaks\""));
+        assertEquals(0L, tableRowCount("\"massbank-accession-registry\""));
+    }
+
+    @Test
+    void resetAll_clearsActiveDeprecatedPeaksAndClaims() {
+        recordService.save(createManualRecordFixture("TEST-ACTIVE-RESET-001"));
+        recordService.save(createDeprecatedRecordFixture("TEST-DEPRECATED-RESET-001"));
+        assertEquals(2L, recordService.countAll());
+        assertTrue(tableRowCount("\"massbank-peaks\"") > 0L);
+        assertEquals(2L, tableRowCount("\"massbank-accession-registry\""));
+
+        recordService.resetAll();
+
+        assertEquals(0L, recordService.countActive());
+        assertEquals(0L, recordService.countDeprecated());
+        assertEquals(0L, recordService.countAll());
+        assertTrue(recordService.findAll().isEmpty());
+        assertEquals(0L, tableRowCount("\"massbank-peaks\""));
+        assertEquals(0L, tableRowCount("\"massbank-accession-registry\""));
     }
 
     @Test
     void accessionClaim_duplicateAccessionsAreCaughtAcrossRecordTypes() {
-        recordService.deleteAll();
+        recordService.resetAll();
 
         // Persist two different records first to ensure valid baseline state.
         recordService.save(createManualRecordFixture("MSBNK-TEST-ACTIVE-001"));
@@ -401,6 +423,12 @@ class RecordDbTest {
     private static void assertDeprecatedRecordFieldsEqual(DeprecatedRecord expected, DeprecatedRecord actual) {
         assertEquals(expected.getDeprecated(), actual.getDeprecated(), () -> "DEPRECATED mismatch for " + expected.getAccession());
         assertEquals(expected.getDeprecatedContent(), actual.getDeprecatedContent(), () -> "DEPRECATED_CONTENT mismatch for " + expected.getAccession());
+    }
+
+    private long tableRowCount(String tableName) {
+        Number value = (Number) entityManager.createNativeQuery("SELECT COUNT(*) FROM " + tableName)
+                .getSingleResult();
+        return value.longValue();
     }
 
 }

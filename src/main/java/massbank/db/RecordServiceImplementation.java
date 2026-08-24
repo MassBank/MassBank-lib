@@ -144,6 +144,19 @@ public class RecordServiceImplementation implements RecordService {
     }
 
     @Override
+    public void resetAll() {
+        // TRUNCATE keeps JVM memory usage flat by avoiding entity materialization.
+        entityManager.createNativeQuery("""
+                TRUNCATE TABLE
+                    \"massbank-records\",
+                    \"massbank-deprecated-records\",
+                    \"massbank-accession-registry\"
+                RESTART IDENTITY CASCADE
+                """).executeUpdate();
+        entityManager.clear();
+    }
+
+    @Override
     public void deleteAll() {
         // Keep operation atomic and flush in-between to make DB state transitions explicit.
         deprecatedRecordRepository.deleteAllInBatch();

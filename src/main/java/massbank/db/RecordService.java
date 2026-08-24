@@ -42,6 +42,8 @@ public interface RecordService {
 
     List<AbstractRecord> saveAll(List<AbstractRecord> records);
 
+    void resetAll();
+
     void deleteAll();
 
     @Transactional(readOnly = true)
