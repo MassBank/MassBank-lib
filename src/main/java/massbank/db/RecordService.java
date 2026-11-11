@@ -42,6 +42,13 @@ public interface RecordService {
 
     List<AbstractRecord> saveAll(List<AbstractRecord> records);
 
+    /**
+     * Creates the PostgreSQL peak lookup index and refreshes table statistics.
+     * Call once after all import batches have committed, with no concurrent writers.
+     * Existing indexes are retained on subsequent imports.
+     */
+    void ensurePeakIndex();
+
     void resetAll();
 
     void deleteAll();

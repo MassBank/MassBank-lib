@@ -13,7 +13,9 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import javax.sql.DataSource;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = RecordServiceAutoConfigurationTest.TestApplication.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -53,6 +55,41 @@ class RecordServiceAutoConfigurationTest {
 
     @Autowired
     private DeprecatedRecordRepository deprecatedRecordRepository;
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Test
+    void peakIndex_isCreatedOnlyAfterImportAndRepeatedCallsRetainIt() throws Exception {
+        try (var connection = dataSource.getConnection();
+             var statement = connection.createStatement()) {
+            try (var result = statement.executeQuery(
+                    "SELECT to_regclass('massbank_peaks_record_id_mz_idx')")) {
+                assertTrue(result.next());
+                assertNull(result.getString(1), "Schema creation must leave the index absent");
+            }
+            recordService.ensurePeakIndex();
+            long indexOid;
+            try (var result = statement.executeQuery("""
+                    SELECT i.indexrelid, i.indisvalid, i.indisready, pg_get_indexdef(i.indexrelid)
+                    FROM pg_index i
+                    WHERE i.indrelid = '"massbank-peaks"'::regclass
+                      AND i.indexrelid = 'massbank_peaks_record_id_mz_idx'::regclass
+                    """)) {
+                assertTrue(result.next());
+                indexOid = result.getLong(1);
+                assertTrue(result.getBoolean(2));
+                assertTrue(result.getBoolean(3));
+                assertTrue(result.getString(4).contains("(record_id, mz)"));
+            }
+            recordService.ensurePeakIndex();
+            try (var result = statement.executeQuery(
+                    "SELECT 'massbank_peaks_record_id_mz_idx'::regclass::oid")) {
+                assertTrue(result.next());
+                assertEquals(indexOid, result.getLong(1));
+            }
+        }
+    }
 
     @Test
     void autoConfiguration_registersRecordBeans() {

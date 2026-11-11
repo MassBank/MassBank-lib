@@ -27,6 +27,7 @@ import massbank.Record;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -141,6 +142,16 @@ public class RecordServiceImplementation implements RecordService {
         saveRecordsInChunksWithEntityManager(activeRecords);
         saveRecordsInChunksWithEntityManager(deprecatedRecords);
         return new ArrayList<>(records);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void ensurePeakIndex() {
+        entityManager.createNativeQuery("""
+                CREATE INDEX IF NOT EXISTS massbank_peaks_record_id_mz_idx
+                ON "massbank-peaks" (record_id, mz)
+                """).executeUpdate();
+        entityManager.createNativeQuery("ANALYZE \"massbank-peaks\"").executeUpdate();
     }
 
     @Override
