@@ -99,21 +99,13 @@ public class Peak {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Peak other)) return false;
-        if (id != null && other.id != null) {
-            return id.equals(other.id);
-        }
-        return mz != null && mz.equals(other.mz)
-                && intensity != null && intensity.equals(other.intensity)
-                && relIntensity != null && relIntensity.equals(other.relIntensity);
+        Long peakId = getId();
+        return peakId != null && peakId.equals(other.getId());
     }
 
     @Override
     public int hashCode() {
-        if (id != null) return id.hashCode();
-        int result = mz != null ? mz.hashCode() : 0;
-        result = 31 * result + (intensity != null ? intensity.hashCode() : 0);
-        result = 31 * result + (relIntensity != null ? relIntensity.hashCode() : 0);
-        return result;
+        return Peak.class.hashCode();
     }
 
 }

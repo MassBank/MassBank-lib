@@ -27,7 +27,7 @@ class RecordServiceAutoConfigurationTest {
     static class TestApplication {
     }
 
-    static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
+    static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17");
 
     @DynamicPropertySource
     static void registerDatasourceProperties(DynamicPropertyRegistry registry) {

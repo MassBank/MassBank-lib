@@ -49,7 +49,7 @@ class RecordDbTest {
     static class TestApplication {
     }
 
-    static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
+    static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17");
 
     @DynamicPropertySource
     static void registerDatasourceProperties(DynamicPropertyRegistry registry) {
@@ -406,7 +406,19 @@ class RecordDbTest {
         assertEquals(new ArrayList<>(expected.getMsDataProcessing()), new ArrayList<>(actual.getMsDataProcessing()), () -> "MS$DATA_PROCESSING mismatch for " + expected.getAccession());
         assertEquals(new ArrayList<>(expected.getPkAnnotationHeader()), new ArrayList<>(actual.getPkAnnotationHeader()), () -> "PK$ANNOTATION header mismatch for " + expected.getAccession());
         assertPkAnnotationRowsEqual(expected.getPkAnnotation(), actual.getPkAnnotation(), expected.getAccession());
-        assertEquals(new ArrayList<>(expected.getPkPeak()), new ArrayList<>(actual.getPkPeak()), () -> "PK$PEAK mismatch for " + expected.getAccession());
+        assertPeakValuesEqual(expected.getPkPeak(), actual.getPkPeak(), expected.getAccession());
+    }
+
+    private static void assertPeakValuesEqual(List<Peak> expectedPeaks, List<Peak> actualPeaks, String accession) {
+        assertEquals(expectedPeaks.size(), actualPeaks.size(), () -> "PK$PEAK count mismatch for " + accession);
+        for (int i = 0; i < expectedPeaks.size(); i++) {
+            Peak expected = expectedPeaks.get(i);
+            Peak actual = actualPeaks.get(i);
+            String location = " at PK$PEAK row " + i + " for " + accession;
+            assertEquals(expected.getMz(), actual.getMz(), () -> "m/z mismatch" + location);
+            assertEquals(expected.getIntensity(), actual.getIntensity(), () -> "intensity mismatch" + location);
+            assertEquals(expected.getRelIntensity(), actual.getRelIntensity(), () -> "relative intensity mismatch" + location);
+        }
     }
 
     private static void assertPkAnnotationRowsEqual(List<Record.PeakAnnotationRow> expectedRows, List<Record.PeakAnnotationRow> actualRows, String accession) {

@@ -555,10 +555,14 @@ public class Record extends AbstractRecord {
 		if (peak.getRecord() != this) {
 			throw new IllegalStateException("peak back-reference does not match this record");
 		}
-		if (!pkPeak.remove(peak)) {
-			throw new IllegalStateException("peak is not part of this record");
+		for (var iterator = pkPeak.iterator(); iterator.hasNext(); ) {
+			if (iterator.next() == peak) {
+				iterator.remove();
+				peak.setRecord(null);
+				return;
+			}
 		}
-		peak.setRecord(null);
+		throw new IllegalStateException("peak is not part of this record");
 	}
 	public List<Peak> getPkPeak() {
 		return List.copyOf(pkPeak);
