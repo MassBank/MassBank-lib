@@ -125,7 +125,9 @@ public class RecordParserDefinition extends GrammarDefinition {
                         .seq(ref("PK$SPLASH")).map(this::setPK_SPLASH)
                         .seq(ref("PK$ANNOTATION").optional()).map(this::setPK_ANNOTATION)
                         .seq(ref("PK$NUM_PEAK"))
-                        .seq(ref("PK$PEAK")).map(this::setPK_PEAK)
+                        .seq(ref("PK$PEAK"))
+                        .callCC(config.contains("validate") ? this::checkPeakCount : this::doNothing)
+                        .map(this::setPK_PEAK)
                         .seq(ref("endtag"))
                         .pick(0)
                         // check semantic here
@@ -1554,6 +1556,7 @@ public class RecordParserDefinition extends GrammarDefinition {
                         .map((String value) -> Integer.parseUnsignedInt(value))
                 )
                 .seq(Token.NEWLINE_PARSER)
+                .pick(2)
         );
 
 
@@ -1830,6 +1833,20 @@ public class RecordParserDefinition extends GrammarDefinition {
         return continuation.apply(context);
     }
 
+    private Result checkPeakCount(Function<Context, Result> continuation, Context context) {
+        Result result = continuation.apply(context);
+        if (result.isSuccess()) {
+            List<?> values = result.get();
+            int declaredCount = (Integer) values.get(1);
+            int actualCount = ((List<?>) values.get(2)).size();
+            if (declaredCount != actualCount) {
+                return result.failure("Incorrect number of peaks in peaklist. " + Integer.toUnsignedString(declaredCount)
+                    + " peaks are declared in PK$NUM_PEAK line, but " + actualCount + " peaks are found.");
+            }
+        }
+        return result;
+    }
+
     private Result checkSemantic(Function<Context, Result> continuation, Context context) {
         Result r = continuation.apply(context);
         if (r.isSuccess()) {
@@ -1974,14 +1991,8 @@ public class RecordParserDefinition extends GrammarDefinition {
                 }
             }
 
-            // validate the number of peaks in the peaklist
-            List<Peak> pk_peak = record.getPkPeak();
-            if (pk_peak.size() != record.getPkNumPeak()) {
-                return context.failure("Incorrect number of peaks in peaklist. " + record.getPkNumPeak()
-                    + " peaks are declared in PK$NUM_PEAK line, but " + pk_peak.size() + " peaks are found.");
-            }
-
             // validate the SPLASH
+            List<Peak> pk_peak = record.getPkPeak();
             List<Ion> ions = new ArrayList<>();
             for (Peak peak : pk_peak) {
                 ions.add(new Ion(peak.getMz().doubleValue(), peak.getIntensity().doubleValue()));

@@ -179,10 +179,13 @@ Num Peaks: 4
     void testRecordToMultipleRIKEN_MSP() throws IOException {
         ParseResult res1 = parseRecord("MSBNK-IPB_Halle-PB000122.txt");
         ParseResult res2 = parseRecord("MSBNK-test-TST00001.txt");
+        ParseResult res3 = parseRecord("MSBNK-test-TST00002.txt");
+        assertTrue(res3.result().isSuccess());
         List<Record> records = new ArrayList<>();
         records.add(res1.result().get());
         records.add(res2.result().get());
-        String nist = """
+        records.add(res3.result().get());
+        String expectedMsp = """
 NAME: Naringenin
 PRECURSORMZ:\s
 PRECURSORTYPE: [M+H]+
@@ -223,8 +226,108 @@ Num Peaks: 3
 213.1022	235010720.0
 258.1237	52446636.0
 
+NAME: Disialoganglioside GD1a
+PRECURSORMZ: 324.207
+PRECURSORTYPE: [M+H]+
+FORMULA: C86H152N4O39
+INCHIKEY: UPMLUBZFFWELOX-IOFMCULOSA-N
+INCHI: InChI=1S/C86H152N4O39/c1-6-8-10-12-14-16-18-20-21-22-23-25-27-29-31-33-35-37-60(105)90-50(51(100)36-34-32-30-28-26-24-19-17-15-13-11-9-7-2)46-118-80-69(111)68(110)72(58(44-95)121-80)123-82-71(113)78(129-86(84(116)117)39-53(102)62(88-48(4)98)76(127-86)65(107)55(104)41-92)73(59(45-96)122-82)124-79-63(89-49(5)99)74(66(108)56(42-93)119-79)125-81-70(112)77(67(109)57(43-94)120-81)128-85(83(114)115)38-52(101)61(87-47(3)97)75(126-85)64(106)54(103)40-91/h34,36,50-59,61-82,91-96,100-104,106-113H,6-33,35,37-46H2,1-5H3,(H,87,97)(H,88,98)(H,89,99)(H,90,105)(H,114,115)(H,116,117)/b36-34+/t50-,51+,52-,53-,54+,55+,56+,57+,58+,59+,61+,62+,63+,64?,65?,66-,67-,68+,69+,70+,71+,72+,73-,74+,75+,76+,77-,78+,79-,80+,81-,82-,85-,86-/m0/s1
+SMILES: CCCCCCCCCCCCCCCCCCCC(=O)N[C@@H](CO[C@H]1[C@@H]([C@H]([C@@H]([C@H](O1)CO)O[C@H]2[C@@H]([C@H]([C@H]([C@H](O2)CO)O[C@H]3[C@@H]([C@H]([C@H]([C@H](O3)CO)O)O[C@H]4[C@@H]([C@H]([C@H]([C@H](O4)CO)O)O[C@@]5(C[C@@H]([C@H]([C@@H](O5)C([C@@H](CO)O)O)NC(=O)C)O)C(=O)O)O)NC(=O)C)O[C@@]6(C[C@@H]([C@H]([C@@H](O6)C([C@@H](CO)O)O)NC(=O)C)O)C(=O)O)O)O)O)[C@@H](/C=C/CCCCCCCCCCCCC)O
+RETENTIONTIME: 5.680 min
+INSTRUMENTTYPE: MALDI-TOF
+INSTRUMENT: Voyager DE-PRO, Applied Biosystems
+IONMODE: Positive
+LINKS: INCHIKEY:UPMLUBZFFWELOX-IOFMCULOSA-N; PUBCHEM:CID:137628549
+Comment: DB#=MSBNK-test-TST00002; origin=MassBank; [Chemical] The ceramide part has 38 carbons and 1 double bond (38:1), but its structure cannot be decided.  The displaying structure is GD1a d18:1-20:0.; Profile spectrum of this record is given as a JPEG file.; [Profile] MCH00001.jpg
+Splash: splash10-03dr-0000010098-a1f70871442a6d6662d3
+Num Peaks: 84
+1278.12	205
+1279.11	177
+1279.18	186
+1306.21	242
+1309.13	168
+1366.03	162
+1375.23	291
+1527.60	181
+1569.08	187
+1591.14	198
+1595.21	177
+1597.12	261
+1598.11	228
+1599.07	185
+1620.30	272
+1620.80	266
+1621.18	367
+1843.21	198
+1860.16	905
+1861.17	822
+1862.18	531
+1863.19	284
+1864.22	219
+1866.26	183
+1867.23	162
+1871.18	168
+1876.14	297
+1877.14	280
+1878.13	192
+1879.19	165
+1882.18	497
+1883.18	545
+1884.18	349
+1885.20	242
+1886.19	181
+1888.20	1311
+1889.21	1127
+1890.21	844
+1891.22	413
+1892.24	240
+1893.23	185
+1894.24	175
+1895.21	146
+1897.14	165
+1898.15	320
+1899.16	260
+1900.17	218
+1902.16	191
+1903.20	188
+1904.19	574
+1905.20	509
+1906.20	383
+1907.23	222
+1908.19	186
+1910.21	795
+1911.21	674
+1912.21	478
+1913.22	264
+1914.21	194
+1915.20	187
+1920.18	284
+1921.21	215
+1922.19	179
+1926.20	368
+1927.19	363
+1928.20	254
+1929.21	207
+1930.20	187
+1931.32	170
+1932.22	532
+1933.23	495
+1934.23	352
+1935.22	261
+1943.20	194
+1948.24	274
+1949.22	255
+1950.22	226
+1960.26	151
+1965.23	185
+1971.32	168
+2064.29	176
+2091.32	180
+2092.30	206
+2136.33	162
+
 """;
-        assertEquals(nist, RecordToRIKEN_MSP.convertRecords(records));
+        assertEquals(expectedMsp, RecordToRIKEN_MSP.convertRecords(records));
     }
 
     @Test

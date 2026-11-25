@@ -123,10 +123,10 @@ public class RecordToRIKEN_MSP {
 		sb.append("INCHI: ").append(record.getChIUPAC()).append(System.lineSeparator());
 		sb.append("SMILES: ").append(record.getChSMILES()).append(System.lineSeparator());
 		sb.append("RETENTIONTIME: ")
-			.append(MS_FOCUSED_ION.stream()
-				.filter(p -> "RETENTION_TIME".equals(p.key()))
-				.map(Record.KeyValue::value)
+			.append(record.getAcChromatography().stream()
+				.filter(entry -> "RETENTION_TIME".equals(entry.key()))
 				.findFirst()
+				.map(Record.KeyValue::value)
 				.orElse("0"))
 			.append(System.lineSeparator());
 		sb.append("INSTRUMENTTYPE: ").append(record.getAcInstrumentType()).append(System.lineSeparator());
