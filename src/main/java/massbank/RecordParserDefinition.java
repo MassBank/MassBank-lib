@@ -1932,6 +1932,8 @@ public class RecordParserDefinition extends GrammarDefinition {
                 // no N/A allowed
                 if ("N/A".equals(record.getChSMILES()))
                     return context.failure("If CH$IUPAC is defined, CH$SMILES can not be \"N/A\".");
+                if (smilesHasWildcards)
+                    return context.failure("If CH$SMILES contains wildcards, CH$IUPAC must be \"N/A\".");
                 if ("N/A".equals(record.getChFormula()))
                     return context.failure("If CH$IUPAC is defined, CH$FORMULA can not be \"N/A\".");
                 // check content of CH$SMILES for equality
