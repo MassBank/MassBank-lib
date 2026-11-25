@@ -44,7 +44,10 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -569,13 +572,25 @@ public class Record extends AbstractRecord {
 	}
 	@SuppressWarnings("unused")
 	public void setPkPeak(List<Peak> peaks) {
-		List<Peak> newPeaks = peaks == null ? new ArrayList<>() : new ArrayList<>(peaks);
-		for (Peak peak : new ArrayList<>(pkPeak)) {
-			removePeak(peak);
-		}
+		List<Peak> newPeaks = peaks == null ? List.of() : new ArrayList<>(peaks);
+		Set<Peak> uniquePeaks = Collections.newSetFromMap(new IdentityHashMap<>());
 		for (Peak peak : newPeaks) {
-			addPeak(peak);
+			if (peak == null) {
+				throw new IllegalStateException("peak must not be null");
+			}
+			if (!uniquePeaks.add(peak)) {
+				throw new IllegalStateException("peak must not appear more than once");
+			}
+			Record owner = peak.getRecord();
+			if (owner != null && owner != this) {
+				throw new IllegalStateException("peak is already attached to a record");
+			}
 		}
+
+		pkPeak.forEach(peak -> peak.setRecord(null));
+		pkPeak.clear();
+		newPeaks.forEach(peak -> peak.setRecord(this));
+		pkPeak.addAll(newPeaks);
 	}
 
 	//TODO
