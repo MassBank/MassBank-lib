@@ -51,6 +51,10 @@ public interface RecordService {
 
     void resetAll();
 
+    /**
+     * Deletes all MassBank records, peaks and accession claims in bulk.
+     * Flushes pending changes and clears the persistence context before deleting.
+     */
     void deleteAll();
 
     @Transactional(readOnly = true)

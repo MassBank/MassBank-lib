@@ -169,14 +169,12 @@ public class RecordServiceImplementation implements RecordService {
 
     @Override
     public void deleteAll() {
-        // Keep operation atomic and flush in-between to make DB state transitions explicit.
+        entityManager.flush();
+        entityManager.clear();
+        entityManager.createQuery("delete from Peak").executeUpdate();
+        recordRepository.deleteAllInBatch();
         deprecatedRecordRepository.deleteAllInBatch();
-        deprecatedRecordRepository.flush();
-        // deleteAll triggers entity removal and therefore honors cascades to dependent peak rows.
-        recordRepository.deleteAll();
-        recordRepository.flush();
         accessionClaimRepository.deleteAllInBatch();
-        accessionClaimRepository.flush();
     }
 
     @Override
