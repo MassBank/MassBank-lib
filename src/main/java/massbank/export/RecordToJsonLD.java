@@ -23,6 +23,7 @@ package massbank.export;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import massbank.Record;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -53,17 +54,22 @@ public class RecordToJsonLD {
 	}
 
 	/**
-	 * A wrapper to convert multiple Records and write to file.
+	 * Writes records to a JSON-LD file one record at a time.
 	 * 
 	 * @param file    to write
 	 * @param records to convert
      */
 	public static void recordsToJson(File file, List<Record> records) {
-		// collect data
-		String recordJson = convert(records);
-
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-			writer.write(recordJson);
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		var adapter = gson.getAdapter(JsonElement.class);
+		try (var writer = gson.newJsonWriter(new BufferedWriter(new FileWriter(file)))) {
+			writer.beginArray();
+			for (Record record : records) {
+				for (JsonElement element : record.createStructuredDataJsonArray()) {
+					adapter.write(writer, element);
+				}
+			}
+			writer.endArray();
 		} catch (IOException e) {
 			logger.error("Error writing JSON to file", e);
 		}

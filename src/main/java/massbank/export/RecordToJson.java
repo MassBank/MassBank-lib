@@ -157,14 +157,20 @@ public class RecordToJson {
 	}
 
 	/**
-	 * A wrapper to convert multiple Records and write to file.
+	 * Writes records to a JSON file one record at a time.
 	 * 
 	 * @param file    to write
 	 * @param records to convert
      */
 	public static void recordsToJson(File file, List<Record> records) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write(convertRecords(records));
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        var adapter = gson.getAdapter(RecordJsonSerializer.class);
+        try (var writer = gson.newJsonWriter(new BufferedWriter(new FileWriter(file)))) {
+            writer.beginArray();
+            for (Record record : records) {
+                adapter.write(writer, new RecordJsonSerializer(record));
+            }
+            writer.endArray();
         } catch (IOException e) {
             e.printStackTrace();
         }

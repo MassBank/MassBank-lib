@@ -203,13 +203,19 @@ There is one mandatory field, namely Parent=<m/z>, which is the precursor ion m/
     }
 	
 	/**
-	 * A wrapper to convert multiple Records and write to file.
+	 * Writes records to a NIST MSP file one record at a time.
 	 * @param file to write
 	 * @param records to convert
      */
 	public static void recordsToNIST_MSP(File file, List<Record> records) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write(convertRecords(records));
+            for (Record record : records) {
+                writer.write(convert(record));
+                writer.newLine();
+            }
+            if (records.isEmpty()) {
+                writer.newLine();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
