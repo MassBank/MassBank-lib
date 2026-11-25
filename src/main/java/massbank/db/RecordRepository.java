@@ -35,7 +35,7 @@ import java.util.List;
  * @author rmeier
  * @version 03-07-2026
  */
-public interface RecordRepository extends JpaRepository<Record, String> {
+interface RecordRepository extends JpaRepository<Record, String> {
 	@Query("select r.accession from Record r")
 	List<String> findAllAccessions();
 }

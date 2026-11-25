@@ -210,6 +210,12 @@ public class RecordServiceImplementation implements RecordService {
         return recordRepository.findAll();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<Record> findAllActiveById(Iterable<String> accessions) {
+        return recordRepository.findAllById(accessions);
+    }
+
 
     @Override
     @Transactional(readOnly = true)

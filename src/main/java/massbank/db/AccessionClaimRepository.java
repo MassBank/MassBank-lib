@@ -34,7 +34,7 @@ import org.springframework.data.repository.query.Param;
  * @author rmeier
  * @version 03-07-2026
  */
-public interface AccessionClaimRepository extends JpaRepository<AccessionClaim, String> {
+interface AccessionClaimRepository extends JpaRepository<AccessionClaim, String> {
 	/**
 	 * Attempts to reserve one accession in the shared claim table.
 	 *

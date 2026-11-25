@@ -36,7 +36,7 @@ import java.util.List;
  * @author rmeier
  * @version 03-07-2026
  */
-public interface DeprecatedRecordRepository extends JpaRepository<DeprecatedRecord, String> {
+interface DeprecatedRecordRepository extends JpaRepository<DeprecatedRecord, String> {
 	@Query("select d.accession from DeprecatedRecord d")
 	List<String> findAllAccessions();
 }

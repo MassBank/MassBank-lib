@@ -22,6 +22,8 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
@@ -34,6 +36,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,6 +78,9 @@ class RecordDbTest {
 
     @Autowired
     private RecordService recordService;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     @Autowired
     private RecordRepository recordRepository;
@@ -332,6 +340,46 @@ class RecordDbTest {
         assertEquals(2L, recordService.countAll());
     }
 
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void accessionClaim_onlyOneConcurrentRecordTypeCommits() throws Exception {
+        String accession = "MSBNK-TEST-CONCURRENT-001";
+        CyclicBarrier start = new CyclicBarrier(2);
+        try (var workers = Executors.newFixedThreadPool(2)) {
+            var active = workers.submit(() -> tryConcurrentSave(createManualRecordFixture(accession), start));
+            var deprecated = workers.submit(() -> tryConcurrentSave(createDeprecatedRecordFixture(accession), start));
+            boolean activeCommitted = active.get(20, TimeUnit.SECONDS);
+            boolean deprecatedCommitted = deprecated.get(20, TimeUnit.SECONDS);
+            assertNotEquals(activeCommitted, deprecatedCommitted);
+            assertEquals(activeCommitted ? 1L : 0L, recordService.countActive());
+            assertEquals(deprecatedCommitted ? 1L : 0L, recordService.countDeprecated());
+            assertEquals(1L, tableRowCount("\"massbank-accession-registry\""));
+        } finally {
+            recordService.deleteAll();
+        }
+    }
+
+    private boolean tryConcurrentSave(AbstractRecord record, CyclicBarrier start) {
+        try {
+            new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+                entityManager.createNativeQuery("SET LOCAL lock_timeout = '8s'").executeUpdate();
+                try {
+                    start.await(10, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new AssertionError(e);
+                } catch (java.util.concurrent.BrokenBarrierException | java.util.concurrent.TimeoutException e) {
+                    throw new AssertionError(e);
+                }
+                recordService.save(record);
+            });
+            return true;
+        } catch (IllegalStateException e) {
+            assertEquals("Duplicate accession across record tables: " + record.getAccession(), e.getMessage());
+            return false;
+        }
+    }
 
     @Test
     void fullRoundtripAllFixtureRecords_textToRecordSaveLoadText_compareTextState() throws IOException {

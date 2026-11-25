@@ -38,6 +38,10 @@ import java.util.Optional;
  */
 @Transactional
 public interface RecordService {
+    /**
+     * Saves a record and reserves its accession across both record types.
+     * Applications must write records through this service, not directly through JPA or SQL.
+     */
     AbstractRecord save(AbstractRecord record);
 
     /**
@@ -81,6 +85,14 @@ public interface RecordService {
 
     @Transactional(readOnly = true)
     List<Record> findAllActive();
+
+    /**
+     * Returns active records matching the supplied accessions, in no guaranteed order.
+     * Unknown and deprecated accessions are omitted. Access lazy collections within
+     * a surrounding transaction, for example when exporting a batch.
+     */
+    @Transactional(readOnly = true)
+    List<Record> findAllActiveById(Iterable<String> accessions);
 
     /** Returns an active record whose peaks and metadata are available after the transaction. */
     @Transactional(readOnly = true)
