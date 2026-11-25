@@ -40,6 +40,16 @@ import java.util.Optional;
 public interface RecordService {
     AbstractRecord save(AbstractRecord record);
 
+    /**
+     * Inserts records with new accessions. The call joins an existing transaction
+     * or starts one if needed. All internal chunks share that transaction and
+     * commit or roll back together.
+     * <p>
+     * During batch persistence, the service flushes pending changes and clears
+     * the entire persistence context. This detaches previously managed entities,
+     * including those loaded by the caller. Later changes to detached entities
+     * are no longer tracked automatically.
+     */
     List<AbstractRecord> saveAll(List<AbstractRecord> records);
 
     /**
