@@ -1,0 +1,37 @@
+{
+  "name": "MassBank-lib (Podman)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu26.04",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "25",
+      "jdkDistro": "tem",
+      "installMaven": true,
+      "mavenVersion": "3.9.12"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/MassBank-lib,type=bind",
+  "workspaceFolder": "/workspaces/MassBank-lib",
+  "remoteUser": "vscode",
+  "containerUser": "vscode",
+  "updateRemoteUserUID": false,
+  "init": true,
+  "runArgs": [
+    "--userns=keep-id:uid=1000,gid=1000",
+    "--security-opt=label=disable"
+  ],
+  "mounts": [
+    "source=maven-repo,target=/home/vscode/.m2,type=volume",
+    "source=${localEnv:XDG_RUNTIME_DIR}/podman/podman.sock,target=/run/podman/podman.sock,type=bind",
+    "source=codex-devcontainer,target=/home/vscode/.codex,type=volume",
+    "source=copilot-devcontainer,target=/home/vscode/.copilot,type=volume",
+    "source=copilot-auth-devcontainer,target=/home/vscode/.config/github-copilot,type=volume"
+  ],
+  "containerEnv": {
+    "DOCKER_HOST": "unix:///run/podman/podman.sock",
+    "TESTCONTAINERS_HOST_OVERRIDE": "host.containers.internal",
+    "TESTCONTAINERS_RYUK_DISABLED": "true"
+  },
+  "postCreateCommand": "mvn -B compile",
+  "postStartCommand": "curl -fsS --unix-socket /run/podman/podman.sock http://localhost/_ping"
+}
