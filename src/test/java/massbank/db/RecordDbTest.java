@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
@@ -87,6 +89,24 @@ class RecordDbTest {
 
         Record loaded = (Record) persistAndReload(r);
         assertMappedFieldsEqual(r, loaded);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void singleRecordLookupsReturnExportableDetachedRecords() {
+        Record expected = createManualRecordFixture("TEST-DETACHED-001");
+        String accession = expected.getAccession();
+        recordService.save(expected);
+        try {
+            for (Record loaded : List.of(recordService.findByIdAsRecord(accession),
+                    recordService.findOptionalByIdAsRecord(accession).orElseThrow(),
+                    (Record) recordService.findById(accession))) {
+                assertMappedFieldsEqual(expected, loaded);
+                assertEquals(expected.toString(), loaded.toString());
+            }
+        } finally {
+            recordService.deleteAll();
+        }
     }
 
     @Test

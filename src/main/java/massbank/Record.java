@@ -28,6 +28,7 @@ import io.github.dan2097.jnainchi.InchiStatus;
 import jakarta.persistence.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.openscience.cdk.exception.CDKException;
@@ -537,6 +538,17 @@ public class Record extends AbstractRecord {
 
 	public int getPkNumPeak() {
 		return pkPeak.size();
+	}
+
+	/** Loads the collections needed to read and export this record after detachment. */
+	public void initializeCollections() {
+		Hibernate.initialize(pkPeak);
+		Hibernate.initialize(chLink);
+		Hibernate.initialize(spLink);
+		Hibernate.initialize(acMassSpectrometry);
+		Hibernate.initialize(acChromatography);
+		Hibernate.initialize(msFocusedIon);
+		Hibernate.initialize(msDataProcessing);
 	}
 
 

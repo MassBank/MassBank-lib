@@ -72,9 +72,11 @@ public interface RecordService {
     @Transactional(readOnly = true)
     List<Record> findAllActive();
 
+    /** Returns an active record whose peaks and metadata are available after the transaction. */
     @Transactional(readOnly = true)
     Record findByIdAsRecord(String accession);
 
+    /** Optional variant of {@link #findByIdAsRecord(String)} with the same loading guarantees. */
     @Transactional(readOnly = true)
     Optional<Record> findOptionalByIdAsRecord(String accession);
 

@@ -214,14 +214,16 @@ public class RecordServiceImplementation implements RecordService {
     @Override
     @Transactional(readOnly = true)
     public Record findByIdAsRecord(String accession) {
-        return recordRepository.findById(accession)
+        return findOptionalByIdAsRecord(accession)
                 .orElseThrow(() -> new RuntimeException("Active record not found"));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Record> findOptionalByIdAsRecord(String accession) {
-        return recordRepository.findById(accession);
+        Optional<Record> record = recordRepository.findById(accession);
+        record.ifPresent(Record::initializeCollections);
+        return record;
     }
 
     @Override
@@ -236,7 +238,7 @@ public class RecordServiceImplementation implements RecordService {
     @Override
     @Transactional(readOnly = true)
     public AbstractRecord findById(String accession) {
-        return recordRepository.findById(accession)
+        return findOptionalByIdAsRecord(accession)
                 .map(AbstractRecord.class::cast)
                 .or(() -> deprecatedRecordRepository.findById(accession).map(AbstractRecord.class::cast))
                 .orElseThrow(() -> new RuntimeException("Record not found"));
